@@ -1,0 +1,41 @@
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+    width: 210mm;
+    height: 297mm;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .app-layout {
+    padding: 0;
+  }
+
+  .hub-content {
+    display: block;
+    max-width: none;
+    margin: 0;
+  }
+
+  .preview-area {
+    display: block;
+  }
+
+  .doc-page {
+    box-shadow: none;
+    border: none;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+  }
+}

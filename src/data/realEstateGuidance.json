@@ -1,0 +1,164 @@
+{
+  "common": {
+    "highlights": [
+      "Operate with complete party and property identification before issuing any official document.",
+      "Keep the DED license number, broker details, and document reference visible on all externally issued PDFs.",
+      "Use clear payment beneficiary wording on every document to avoid cheque transfer disputes.",
+      "Verify buyer financing capability before offer acceptance — pre-approval letters reduce deal friction.",
+      "In Dubai buying and leasing, contingency clauses (financing, inspection, regulatory) protect both parties and align with DLD requirements."
+    ],
+    "articles": [
+      {
+        "title": "About Henry — Your Record Keeping AI",
+        "text": "I am Henry, AI Assistant WC-AI-003, assigned as The Record Keeper for White Caves Real Estate L.L.C. My role is to guide your operations team through every document issuance, flag compliance gaps before they become legal liabilities, and ensure every filed record is complete, traceable, and DLD/RERA-ready. I do not replace your qualified brokers or legal team — I make sure their work is documented correctly."
+      },
+      {
+        "title": "DLD/RERA Operations — My Primary Mandate",
+        "text": "Every leasing document I oversee must carry valid ID references, signed acknowledgments, and traceable payment records before it advances to the Ejari registration stage. I will highlight missing fields, flag payment mismatches, and note when a clause deviates from standard RERA-prescribed language. Trust my compliance panel on the right — those warnings are actionable, not advisory."
+      },
+      {
+        "title": "White Caves Service Scope",
+        "text": "I serve the full transaction lifecycle of White Caves Real Estate L.L.C: buying, selling, and leasing workflows across Dubai. My current module covers all seven core leasing documents. Future modules will extend my reach to sales contracts, SPA addenda, and NOC processing. My records feed directly into the main White Caves CRM when integrated."
+      }
+    ]
+  },
+  "byTemplate": {
+    "viewing": {
+      "highlights": [
+        "Confirm access approvals and viewing slot before the client is on their way.",
+        "Capture prospect feedback immediately after viewing for post-visit pipeline follow-up."
+      ],
+      "articles": [
+        {
+          "title": "Viewing Records — Why I Insist on Completeness",
+          "text": "I require the date, time, property status, and the attending broker's name on every viewing record. This creates an auditable lead lifecycle — critical if any viewing becomes part of a later dispute or commission claim. A gap here can unravel an otherwise solid booking file."
+        },
+        {
+          "title": "Client Qualification at the Viewing Stage",
+          "text": "I recommend collecting basic identity information and budget signals at the earliest possible stage. Filtering unsuitable inventory early protects your team's time and keeps the pipeline clean. I will flag if the viewing form lacks the prospect's contact or ID reference."
+        }
+      ]
+    },
+    "booking": {
+      "highlights": [
+        "Use this form exclusively for standard leasing bookings where the tenant is the direct payment source.",
+        "Validate the move-in date, contract period, and the full payment schedule before printing."
+      ],
+      "articles": [
+        {
+          "title": "Booking Form — What I Check Before You Print",
+          "text": "I verify that the standard booking form carries complete tenant identity, landlord identity, payment due dates, and a properly mapped beneficiary column for each cheque row — deposit, agency fee, and annual rent. A misaligned beneficiary is one of the most common causes of payment disputes I see in Dubai leasing operations."
+        },
+        {
+          "title": "My Sign-Off Protocol",
+          "text": "I will not permit external issuance of a booking PDF until all compliance warnings in the right panel have been reviewed and acknowledged by your team. This is not a formality — these warnings represent real regulatory and operational exposure. Review them, act on them, then print."
+        }
+      ]
+    },
+    "bookingGov": {
+      "highlights": [
+        "This document is reserved strictly for Government Office or Military personnel lease approval submissions.",
+        "The post-dated cheque clause and paying-entity language must remain visible and unaltered."
+      ],
+      "articles": [
+        {
+          "title": "Government Quotation — A Distinct Document in My Filing System",
+          "text": "I treat the Government Office Leasing Quotation as a separate official record, not a variant of the standard booking form. It is designed for submission to UAE government and military offices for their internal lease approval workflows. The structure, approval language, and payment timing clause exist because receiving authorities require them — do not remove or rearrange."
+        },
+        {
+          "title": "Payment Clause Integrity — Non-Negotiable",
+          "text": "The government/military payment timing clause in this document has specific legal intent. I flag any attempt to modify or delete it as a critical compliance issue. Any such change requires documented approval from your legal counsel and senior management before I can mark the record as cleared."
+        }
+      ]
+    },
+    "addendum": {
+      "highlights": [
+        "Always reference the original contract number and execution date in the addendum header.",
+        "List only the specific, approved changes — scope creep in an addendum creates enforcement problems."
+      ],
+      "articles": [
+        {
+          "title": "Addendum Governance — My Filing Standard",
+          "text": "An addendum supplements the base contract — it does not replace it. I require a clear reference to the original contract, an explicit list of the terms being amended, and a signature block that mirrors the original parties. Keep the scope tight and the language precise. Vague addenda are legally weak and operationally dangerous."
+        },
+        {
+          "title": "Approval Before Issuance",
+          "text": "I strongly recommend routing every addendum draft through your internal compliance or management review before issuing it to the tenant or landlord. Once signed externally, an addendum becomes binding. My compliance panel will flag any fields that fall short of the standard I expect before you reach that stage."
+        }
+      ]
+    },
+    "tenancy": {
+      "highlights": [
+        "Complete all identity and property fields fully — partial data will cause Ejari registration failures.",
+        "Confirm that the tenancy terms are Ejari-ready before issuing the contract."
+      ],
+      "articles": [
+        {
+          "title": "Tenancy Data Quality — Where I Am Most Strict",
+          "text": "A mismatch between tenancy contract data and the supporting identity documents is the single most common reason I flag a record as incomplete. Ejari registration, and any subsequent dispute handling, depends entirely on data consistency across all fields. I check tenant name, Emirates ID, property designation, and lease term alignment every time."
+        },
+        {
+          "title": "The Tenancy Contract as a Lifecycle Anchor",
+          "text": "I treat the signed tenancy contract as the root record in every leasing file I manage. All downstream documents — addenda, invoices, handover confirmations — must reference it directly. Issuing those documents without a complete, filed tenancy contract creates an orphaned records problem that is very difficult to resolve later."
+        }
+      ]
+    },
+    "invoice": {
+      "highlights": [
+        "Every invoice line must specify a clear beneficiary and a precise purpose description.",
+        "Store the invoice reference linked to the corresponding booking and contract records."
+      ],
+      "articles": [
+        {
+          "title": "Financial Clarity — My Non-Negotiable Standard",
+          "text": "I require invoices to clearly separate brokerage and agency fee amounts from landlord rent obligations. Combining these onto a single line — or leaving the beneficiary ambiguous — is a primary driver of payment disputes in Dubai real estate. My compliance engine flags any invoice that blurs this distinction."
+        },
+        {
+          "title": "Audit Trail Integrity",
+          "text": "Every invoice I file must carry an issue date, a named payer, a service period reference, and a document number that links to the booking or contract that authorised it. These are not optional fields — they are the minimum standard I require for a record I consider complete and reconciliation-ready."
+        }
+      ]
+    },
+    "keyHandover": {
+      "highlights": [
+        "Record every key, access card, and physical item handed over — and note their condition.",
+        "Both parties must sign the same confirmation copy before the handover is considered complete."
+      ],
+      "articles": [
+        {
+          "title": "Handover Discipline — Protecting All Parties",
+          "text": "A complete, signed handover form is the single most effective document I can produce to protect the landlord, tenant, and White Caves from post-occupancy condition disputes. I will flag this record as incomplete if any item is unlisted, unsigned, or undated. Do not let a tenant take possession without this form fully completed."
+        },
+        {
+          "title": "Maintenance Closure Before Handover",
+          "text": "I recommend recording the pre-handover cleaning and maintenance completion status explicitly in this form. If a tenant reports a condition issue after move-in and no handover record documents the pre-existing state, the liability exposure for all parties increases significantly. My compliance checks include this verification."
+        }
+      ]
+    },
+    "offer": {
+      "highlights": [
+        "Complete buyer identity and Emirates ID verification before issuing the offer.",
+        "Include financing, inspection, and regulatory contingency clauses in all offers.",
+        "Set clear offer validity date — typically 3-7 days from issue."
+      ],
+      "articles": [
+        {
+          "title": "Offer Letter Completeness — My First Compliance Check",
+          "text": "I require complete buyer identity, property RERA verification, and deposit calculation before an offer is ready for DLD submission. An incomplete offer creates ambiguity during registration and increases dispute risk. I flag offers missing these core elements as incomplete and will not permit external issuance."
+        },
+        {
+          "title": "DLD Submission Readiness",
+          "text": "An offer letter is the foundation for DLD title transfer. I verify that financing contingencies, inspection windows, and regulatory approval clauses are present and clearly written. These clauses protect all parties and accelerate DLD processing timelines."
+        },
+        {
+          "title": "Deposit Custody & Refund Terms",
+          "text": "I require explicit language on where the earnest money deposit is held (broker escrow, bank trust, or seller account), under what conditions it is forfeited or refunded, and who controls release pending DLD approval. Ambiguous deposit language is a leading cause of offer disputes in Dubai."
+        },
+        {
+          "title": "Contingency Clauses as Risk Protection",
+          "text": "Financing, inspection, and regulatory contingencies are not weaknesses — they are standard market protections. I recommend including them in every offer to reduce failed transactions and preserve buyer-seller relationships through the DLD approval phase."
+        }
+      ]
+    }
+  }
+}
