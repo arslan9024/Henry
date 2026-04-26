@@ -20,7 +20,7 @@ Henry generates, verifies, and archives every official real-estate document Whit
 - **Compliance engine** — every template runs against a curated catalog of RERA / DLD rules (e.g. RERA P210 mandatory disclosure, Decree 43/2013 rent-increase brackets, DLD offer-letter checklist) plus a knowledge-base evaluator. Critical / important / info severities are surfaced in the side panel.
 - **AI extraction (chat dock)** — drop a PDF / image / Emirates ID and Henry suggests field updates with confidence scores. Every applied field is logged.
 - **Audit log** — persisted to `localStorage` (capped at 100), groupable by date, searchable, exportable, and re-importable as JSON. Destructive operations push a 10-second toast with **Undo**.
-- **Records archive** — every generated PDF is filed under `records/{YEAR}/{MONTH}/{PROPERTY}/` via the in-repo Vite dev plugin (`vite-plugins/henryRecordsApi.js`).
+- **Records archive** — every generated PDF is filed under `records/{YEAR}/{MONTH}/{PROPERTY}/` via the in-repo Vite dev plugin (`vite-plugins/henryRecordsApi.js`) in development or the production server (`scripts/records-server.mjs`) in deployed builds.
 - **Density toggle** + `Ctrl+/` chat shortcut + `inert`-shielded backgrounds when a drawer / chat overlay is open.
 - **Global toast system** with `info` / `success` / `warning` / `error` tones and inline action buttons.
 
@@ -43,7 +43,26 @@ npm run format       # apply Prettier to src/
 npm run format:check # CI gate — fails if anything is unformatted
 npm run build        # production bundle to dist/
 npm run preview      # serve the built bundle
+npm run serve:prod   # production server (serves dist + /api/records/*)
 ```
+
+### Production runtime (filesystem persistence enabled)
+
+```powershell
+npm run build
+npm run serve:prod
+```
+
+- Default host/port: `0.0.0.0:5000`
+- Override with env vars:
+  - PowerShell: `$env:PORT=8080; npm run serve:prod`
+  - PowerShell: `$env:HOST='127.0.0.1'; npm run serve:prod`
+
+The server provides the same records API contract used in dev:
+
+- `GET /api/records/archive`
+- `POST /api/records/archive`
+- `POST /api/records/file` (binary body + `x-record-path` + `x-file-name` headers)
 
 ---
 
