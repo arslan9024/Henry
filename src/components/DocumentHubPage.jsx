@@ -247,54 +247,6 @@ const DocumentHubPage = () => {
         )}
 
         <section className="preview-area" aria-live="polite">
-          <div className="preview-toolbar print-hidden">
-            <button
-              type="button"
-              className={`preview-toggle-btn ${previewMode ? 'active' : ''}`}
-              onClick={() => setPreviewMode((v) => !v)}
-              disabled={!canGeneratePdf && !previewMode}
-              title={
-                canGeneratePdf ? 'Toggle A4 vector preview' : 'PDF preview not available for this template'
-              }
-            >
-              {previewMode ? '✏️  Edit Form' : '👁  Toggle Print Preview'}
-            </button>
-
-            <span className="preview-toolbar__doc-title" title={activeTemplateLabel}>
-              {activeTemplateLabel}
-            </span>
-
-            <span className="preview-toolbar__spacer" />
-
-            <button
-              type="button"
-              className={`compliance-badge compliance-badge--${badgeTone}`}
-              title={badgeTitle}
-              aria-label={`Compliance status: ${badgeLabel} — open checklist`}
-              onClick={openCompliance}
-              style={{ cursor: 'pointer' }}
-            >
-              {badgeTone === 'clear' ? '✓' : badgeTone === 'critical' ? '✕' : '!'} {badgeLabel}
-            </button>
-            <button
-              type="button"
-              className="compliance-check-btn"
-              onClick={handleComplianceCheck}
-              title="Audit current document against RERA / DLD compliance rules"
-            >
-              ✅ Compliance Check
-            </button>
-            <button
-              type="button"
-              className="panel-link-btn"
-              onClick={openArchive}
-              title="Open archive history"
-              aria-label="Open archive history"
-            >
-              🗂 Archive
-            </button>
-          </div>
-
           {previewMode ? (
             <PrintPreview />
           ) : ActiveTemplateComponent ? (
@@ -346,7 +298,19 @@ const DocumentHubPage = () => {
       </nav>
 
       <div data-overlay-shield>
-        <FooterActionBar />
+        <FooterActionBar
+          activeTemplateLabel={activeTemplateLabel}
+          previewMode={previewMode}
+          canGeneratePdf={canGeneratePdf}
+          onTogglePreview={() => setPreviewMode((v) => !v)}
+          onOpenCompliance={openCompliance}
+          onRunComplianceCheck={handleComplianceCheck}
+          onOpenArchive={openArchive}
+          onOpenAudit={openAudit}
+          badgeTone={badgeTone}
+          badgeLabel={badgeLabel}
+          badgeTitle={badgeTitle}
+        />
       </div>
 
       {/* Right-edge drawer for compliance / archive */}

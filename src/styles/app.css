@@ -1908,18 +1908,76 @@ body {
 
 /* ---------- Footer override: no longer sticky, no longer holds chat ---------- */
 .footer-action-bar {
-  position: static !important;
-  z-index: auto;
-  grid-template-columns: 1fr;
-  background: transparent;
-  border-top: 0;
-  padding: var(--space-3) 0;
+  position: sticky !important;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: var(--space-3) var(--space-4);
 }
 .footer-action-bar__chat {
   display: none;
 }
+.footer-action-bar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.footer-action-bar__title-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.footer-action-bar__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+.footer-action-bar__template-label {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40ch;
+}
+.footer-action-bar__collapse-toggle {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.footer-action-bar__collapse-toggle:hover {
+  background: var(--surface-muted);
+}
+.footer-action-bar__collapse-toggle:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.footer-action-bar__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
 .footer-action-bar__actions {
-  justify-content: flex-end;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
 }
 
 /* ---------- Toolbar refinements ---------- */
@@ -1988,6 +2046,14 @@ body {
   }
 }
 @media (max-width: 900px) {
+  .footer-action-bar {
+    padding: var(--space-3);
+  }
+
+  .footer-action-bar__controls {
+    align-items: stretch;
+  }
+
   .hub-content--right-overlay {
     grid-template-columns: 1fr;
     grid-template-areas: 'center';
@@ -2012,6 +2078,12 @@ body {
     min-height: 38px;
     padding: 6px 8px;
     font-size: 11px;
+  }
+
+  .footer-action-bar__actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   /* Drawer becomes a bottom sheet on phones for better thumb reach. */
