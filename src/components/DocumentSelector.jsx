@@ -1,28 +1,23 @@
 import React from 'react';
 import { TEMPLATE_CONFIG } from '../templates/registry';
 import { useActiveTemplate } from '../hooks/useActiveTemplate';
+import { FormField, Select } from './ui';
 
 const DocumentSelector = () => {
   const { activeTemplate, onChangeTemplate } = useActiveTemplate();
 
   return (
     <div className="doc-selector-wrap">
-      <label htmlFor="document-selector" className="doc-selector-label">
-        Select document for preview / print
-      </label>
-      <select
-        id="document-selector"
-        className="doc-selector"
-        value={activeTemplate}
-        onChange={(e) => onChangeTemplate(e.target.value)}
-        aria-label="Select document template"
-      >
-        {TEMPLATE_CONFIG.map((template) => (
-          <option key={template.key} value={template.key}>
-            {template.label}
-          </option>
-        ))}
-      </select>
+      <FormField label="Select document for preview / print">
+        <Select
+          value={activeTemplate}
+          onChange={(e) => onChangeTemplate(e.target.value)}
+          options={TEMPLATE_CONFIG.map((template) => ({
+            value: template.key,
+            label: template.label,
+          }))}
+        />
+      </FormField>
     </div>
   );
 };

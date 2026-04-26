@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import App from './App';
 import { store } from './store';
 import './styles/app.css';
+import './components/ui/ui.css';
 import './styles/luxury-print.css';
 
 createRoot(document.getElementById('root')).render(

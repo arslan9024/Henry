@@ -1,7 +1,7 @@
 /**
  * PrintLayout.jsx
  * Professional wrapper for luxury document printing
- * 
+ *
  * Provides:
  * - Consistent header with document info
  * - Footer with metadata
@@ -13,7 +13,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectPolicyMeta, selectHenry } from '../store/selectors';
 
-const PrintLayout = ({ children, documentType, documentTitle }) => {
+const PrintLayout = ({ children, documentType: _documentType, documentTitle }) => {
   const policyMeta = useSelector(selectPolicyMeta);
   const henry = useSelector(selectHenry);
 
@@ -31,9 +31,7 @@ const PrintLayout = ({ children, documentType, documentTitle }) => {
           <h4 style={{ margin: '0 0 4pt 0', color: '#6b7280', fontSize: '9pt' }}>
             White Caves Real Estate L.L.C
           </h4>
-          <p style={{ margin: '0', fontSize: '8pt', color: '#9ca3af' }}>
-            DED License: 1388443 | Dubai, UAE
-          </p>
+          <p style={{ margin: '0', fontSize: '8pt', color: '#9ca3af' }}>DED License: 1388443 | Dubai, UAE</p>
         </div>
       </div>
 

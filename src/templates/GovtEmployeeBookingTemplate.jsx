@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import TemplateLayout from '../components/TemplateLayout';
+import { Disclosure } from '../components/ui';
 
 const GovtEmployeeBookingTemplate = () => {
   const { company, property, tenant, payments, landlord } = useSelector((state) => state.document);
@@ -17,7 +18,7 @@ const GovtEmployeeBookingTemplate = () => {
           <p>Date: {property.documentDate}</p>
         </div>
         <div className="header-company">
-          <img src="/logo.png.png" alt="White Caves" className="logo" />
+          <img src="/logo.png" alt="White Caves" className="logo" />
           <p className="company-name">{company.name}</p>
           <p className="muted">DED License No.: {company.dedLicense}</p>
           <p className="accent">{company.role}</p>
@@ -25,34 +26,31 @@ const GovtEmployeeBookingTemplate = () => {
       </div>
 
       <div className="notice-box">
-        This quotation is prepared for submission to a government/military office in the UAE for
-        leasing approval processing.
+        This quotation is prepared for submission to a government/military office in the UAE for leasing
+        approval processing.
       </div>
 
-      <section className="doc-section">
-        <h4>Applicant Profile</h4>
+      <Disclosure title="Applicant Profile" icon="👤" defaultOpen>
         <p>
           <strong>Tenant:</strong> {tenant.fullName || '____________________'}
         </p>
         <p>
           <strong>Category:</strong> {tenant.occupation}
         </p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section highlight-green">
-        <h4>Government / Military Payment Clause</h4>
+      <Disclosure title="Government / Military Payment Clause" icon="🏛" tone="warning">
         <p>
-          The annual rent amount of AED {payments.annualRent.toLocaleString()} is expected to be
-          paid by a government or military office.
+          The annual rent amount of AED {payments.annualRent.toLocaleString()} is expected to be paid by a
+          government or military office.
         </p>
         <p>
-          Tenant shall submit a post-dated cheque within 30-40 days from move-in date. The
-          landlord will hold cheque until due date unless direct entity transfer is completed.
+          Tenant shall submit a post-dated cheque within 30-40 days from move-in date. The landlord will hold
+          cheque until due date unless direct entity transfer is completed.
         </p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>Beneficiary for Rent</h4>
+      <Disclosure title="Beneficiary for Rent" icon="🏦">
         <p>
           <strong>Landlord:</strong> {landlord.name}
         </p>
@@ -62,7 +60,22 @@ const GovtEmployeeBookingTemplate = () => {
         <p>
           <strong>Issued by:</strong> {company.name}
         </p>
-      </section>
+      </Disclosure>
+
+      <div className="doc-signature-row">
+        <div>
+          <p className="muted">For White Caves Real Estate L.L.C</p>
+          <div className="signature-stage">
+            <img src="/signature.png" alt="Arslan Malik signature" className="signature" />
+            <img src="/stamp.png" alt="White Caves company stamp" className="stamp-overlay" />
+          </div>
+          <p className="line">Arslan Malik - Managing Director</p>
+        </div>
+        <div>
+          <p className="muted">Applicant Acknowledgment</p>
+          <p className="line">Signature & Date</p>
+        </div>
+      </div>
     </TemplateLayout>
   );
 };

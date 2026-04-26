@@ -14,7 +14,7 @@
 @page {
   size: A4 portrait;
   margin: 25mm 25mm 30mm 25mm; /* top, right, bottom, left - 30mm for footer space */
-  
+
   /* Running headers and footers */
   @top-center {
     content: string(pageHeader);
@@ -24,9 +24,9 @@
     padding-bottom: 8mm;
     margin-bottom: 8mm;
   }
-  
+
   @bottom-center {
-    content: "Page " counter(page) " of " counter(pages);
+    content: 'Page ' counter(page) ' of ' counter(pages);
     font-size: 9pt;
     color: #9ca3af;
     border-top: 1px solid #e5e7eb;
@@ -38,7 +38,7 @@
   /* ─────────────────────────────────────────────────────────────────── */
   /* ROOT & GLOBAL */
   /* ─────────────────────────────────────────────────────────────────── */
-  
+
   html,
   body {
     background: #fff !important;
@@ -46,7 +46,7 @@
     padding: 0;
     width: 210mm;
     color: #1f2937;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.5;
     font-size: 11pt;
   }

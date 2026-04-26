@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "name": "White Caves Tenancy Knowledge Base",
+    "version": "2026.04",
+    "jurisdiction": "Dubai, UAE",
+    "maintainer": "White Caves Real Estate L.L.C.",
+    "verificationStatus": "pending-official-review",
+    "reviewNote": "Curated operating summaries for implementation. Legal sign-off required before production go-live.",
+    "lastUpdated": "2026-04-23"
+  },
+  "rules": [
+    {
+      "id": "KB-RENT-NOTICE-90",
+      "title": "90-day rent increase notice window",
+      "severity": "critical",
+      "category": "rent-increase",
+      "appliesToTemplates": ["booking", "bookingGov", "tenancy"],
+      "sourceTitle": "Decree No. 43 of 2013",
+      "sourceType": "curated-summary",
+      "citation": "Mandatory notice period for rent increase discussions and renewal changes.",
+      "effectiveDate": "2013-01-01",
+      "fieldDependencies": [
+        "renewal.noticeSentDate",
+        "renewal.renewalDate",
+        "renewal.proposedRent",
+        "renewal.currentRent"
+      ],
+      "summary": "If rent is being increased on renewal, notice should be served at least 90 days before the renewal date.",
+      "logic": {
+        "type": "minimumNoticeDays",
+        "minimumDays": 90
+      }
+    },
+    {
+      "id": "KB-RENT-RERA-TIER",
+      "title": "RERA tiered rent increase formula",
+      "severity": "important",
+      "category": "rent-increase",
+      "appliesToTemplates": ["booking", "bookingGov", "tenancy"],
+      "sourceTitle": "Decree No. 43 of 2013",
+      "sourceType": "curated-summary",
+      "citation": "RERA increase brackets based on how far current rent is below market rent.",
+      "effectiveDate": "2013-01-01",
+      "fieldDependencies": ["renewal.currentRent", "renewal.marketRent", "renewal.proposedRent"],
+      "summary": "Allowed increase is typically 0%, 5%, 10%, 15%, or 20% depending on the gap between current rent and estimated market rent.",
+      "logic": {
+        "type": "reraTierFormula"
+      }
+    },
+    {
+      "id": "KB-SHARED-HOUSING-PERMIT",
+      "title": "Shared housing permit and occupant registration",
+      "severity": "critical",
+      "category": "shared-housing",
+      "appliesToTemplates": ["booking", "bookingGov", "tenancy", "keyHandover"],
+      "sourceTitle": "Law No. 4 of 2026",
+      "sourceType": "curated-summary",
+      "citation": "Shared housing requires a permit and all occupants must be registered in Ejari.",
+      "effectiveDate": "2026-01-01",
+      "fieldDependencies": [
+        "occupancy.isSharedHousing",
+        "occupancy.sharedHousingPermitNumber",
+        "occupancy.ejariOccupantsRegistered",
+        "occupancy.occupants"
+      ],
+      "summary": "Where shared housing applies, the property should carry a valid permit and every occupant should be reflected in Ejari records.",
+      "logic": {
+        "type": "sharedHousingPermit"
+      }
+    },
+    {
+      "id": "KB-EVICTION-PERSONAL-USE",
+      "title": "12-month notarized eviction notice for personal use",
+      "severity": "critical",
+      "category": "eviction",
+      "appliesToTemplates": ["tenancy", "addendum"],
+      "sourceTitle": "Eviction Law 2026",
+      "sourceType": "curated-summary",
+      "citation": "Personal-use eviction should be supported by 12 months notice through a notarized channel rather than WhatsApp or email.",
+      "effectiveDate": "2026-01-01",
+      "fieldDependencies": [
+        "eviction.reason",
+        "eviction.noticeDate",
+        "eviction.noticeMethod",
+        "renewal.renewalDate"
+      ],
+      "summary": "For personal-use recovery, notice should be notarized and sent at least 12 months before the expected handover/end date.",
+      "logic": {
+        "type": "notarizedEvictionNotice",
+        "minimumDays": 365
+      }
+    }
+  ]
+}

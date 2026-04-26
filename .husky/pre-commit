@@ -1,0 +1,4 @@
+# Henry pre-commit gate.
+# Runs lint + Prettier on staged files only (fast: <2s typical).
+# To bypass in an emergency: `git commit --no-verify`
+npx lint-staged

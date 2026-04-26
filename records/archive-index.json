@@ -1,0 +1,535 @@
+[
+  {
+    "id": "tenancy-2026-04-25T06:04:15.368Z",
+    "createdAt": "2026-04-25T06:04:15.368Z",
+    "templateKey": "tenancy",
+    "templateLabel": "Tenancy Contract (DLD Ejari)",
+    "fileName": "Tenancy_Contract_Unit_449_Tenant_22-Apr-2026.pdf",
+    "recordPath": "/records/2026/April/Damac_Hills_2_Unit_449/",
+    "persistedPath": "/records/2026/April/Damac_Hills_2_Unit_449/Tenancy_Contract_Unit_449_Tenant_22-Apr-2026.pdf",
+    "unit": "Unit 449",
+    "community": "Damac Hills 2",
+    "tenantName": "Pending Review",
+    "documentSnapshot": {
+      "company": {
+        "name": "White Caves Real Estate L.L.C",
+        "dedLicense": "1388443",
+        "role": "Authorized Property Leasing Agent",
+        "city": "Dubai"
+      },
+      "property": {
+        "referenceNo": "WHITE CAVES / BOOKING / 449 / 2026",
+        "documentDate": "22 April 2026",
+        "unit": "Unit 449",
+        "cluster": "Avencia-2",
+        "community": "Damac Hills 2",
+        "city": "Dubai",
+        "description": "4 Bedroom Townhouse (Corner Unit)",
+        "size": "1,505.23 / 1,776.26 Sq. Ft.",
+        "parking": "Two (2) Allocated Spaces",
+        "condition": "Unfurnished — Deep cleaned & fully maintained before move-in (at no cost to tenant)",
+        "usage": "Residential",
+        "plotNo": "",
+        "makaniNo": "",
+        "dewaPremisesNo": "",
+        "projectName": "Damac Hills 2",
+        "buildingNumber": "",
+        "ownersAssociationNo": "",
+        "propertyStatus": "Vacant — Ready to move in",
+        "parkingCount": 2,
+        "propertyType": "Villa"
+      },
+      "broker": {
+        "orn": "",
+        "companyName": "White Caves Real Estate L.L.C",
+        "commercialLicenseNumber": "1388443",
+        "brokerName": "Arslan Malik",
+        "brn": "",
+        "phone": "",
+        "mobile": "",
+        "address": "Dubai, U.A.E.",
+        "email": ""
+      },
+      "viewing": {
+        "agreementNumber": "WC-VIEW-2026-001",
+        "rentalBudget": "",
+        "additionalInfo": "",
+        "servicesNotes": "",
+        "viewingDate": "",
+        "viewingTime": ""
+      },
+      "tenant": {
+        "fullName": "",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "contactNo": "",
+        "occupation": "UAE Armed Forces (Military Personnel)",
+        "category": "government-military",
+        "email": "",
+        "passportNo": "",
+        "address": "",
+        "poBox": ""
+      },
+      "landlord": {
+        "name": "MUHAMMAD NAEEM MUHAMMAD H K KHAN",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "iban": "AE030359356491705358002",
+        "bank": "First Abu Dhabi Bank (FAB)",
+        "swift": "NBADAEAA",
+        "email": "",
+        "phone": ""
+      },
+      "payments": {
+        "moveInDate": "01 May 2026",
+        "contractStartDate": "01 May 2026",
+        "contractEndDate": "30 April 2027",
+        "signingDeadline": "01 May 2026",
+        "annualRent": 85000,
+        "securityDeposit": 4250,
+        "agencyFee": 4250,
+        "ejariFee": 265,
+        "total": 93765,
+        "modeOfPayment": "4 Cheques"
+      },
+      "renewal": {
+        "currentRent": 85000,
+        "proposedRent": 85000,
+        "marketRent": 90000,
+        "renewalDate": "30 April 2027",
+        "noticeSentDate": "",
+        "noticeChannel": "not-set"
+      },
+      "occupancy": {
+        "isSharedHousing": false,
+        "sharedHousingPermitNumber": "",
+        "ejariOccupantsRegistered": false,
+        "occupants": ""
+      },
+      "eviction": {
+        "reason": "none",
+        "noticeDate": "",
+        "noticeMethod": "notarized"
+      }
+    }
+  },
+  {
+    "id": "bookingGov-2026-04-25T06:02:55.404Z",
+    "createdAt": "2026-04-25T06:02:55.404Z",
+    "templateKey": "bookingGov",
+    "templateLabel": "Government Office Leasing Quotation",
+    "fileName": "Unit_449_Tenant_22-Apr-2026.pdf",
+    "recordPath": "/records/2026/April/Damac_Hills_2_Unit_449/",
+    "persistedPath": "/records/2026/April/Damac_Hills_2_Unit_449/Unit_449_Tenant_22-Apr-2026.pdf",
+    "unit": "Unit 449",
+    "community": "Damac Hills 2",
+    "tenantName": "Pending Review",
+    "documentSnapshot": {
+      "company": {
+        "name": "White Caves Real Estate L.L.C",
+        "dedLicense": "1388443",
+        "role": "Authorized Property Leasing Agent",
+        "city": "Dubai"
+      },
+      "property": {
+        "referenceNo": "WHITE CAVES / BOOKING / 449 / 2026",
+        "documentDate": "22 April 2026",
+        "unit": "Unit 449",
+        "cluster": "Avencia-2",
+        "community": "Damac Hills 2",
+        "city": "Dubai",
+        "description": "4 Bedroom Townhouse (Corner Unit)",
+        "size": "1,505.23 / 1,776.26 Sq. Ft.",
+        "parking": "Two (2) Allocated Spaces",
+        "condition": "Unfurnished — Deep cleaned & fully maintained before move-in (at no cost to tenant)",
+        "usage": "Residential",
+        "plotNo": "",
+        "makaniNo": "",
+        "dewaPremisesNo": "",
+        "projectName": "Damac Hills 2",
+        "buildingNumber": "",
+        "ownersAssociationNo": "",
+        "propertyStatus": "Vacant — Ready to move in",
+        "parkingCount": 2,
+        "propertyType": "Villa"
+      },
+      "broker": {
+        "orn": "",
+        "companyName": "White Caves Real Estate L.L.C",
+        "commercialLicenseNumber": "1388443",
+        "brokerName": "Arslan Malik",
+        "brn": "",
+        "phone": "",
+        "mobile": "",
+        "address": "Dubai, U.A.E.",
+        "email": ""
+      },
+      "viewing": {
+        "agreementNumber": "WC-VIEW-2026-001",
+        "rentalBudget": "",
+        "additionalInfo": "",
+        "servicesNotes": "",
+        "viewingDate": "",
+        "viewingTime": ""
+      },
+      "tenant": {
+        "fullName": "",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "contactNo": "",
+        "occupation": "UAE Armed Forces (Military Personnel)",
+        "category": "government-military",
+        "email": "",
+        "passportNo": "",
+        "address": "",
+        "poBox": ""
+      },
+      "landlord": {
+        "name": "MUHAMMAD NAEEM MUHAMMAD H K KHAN",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "iban": "AE030359356491705358002",
+        "bank": "First Abu Dhabi Bank (FAB)",
+        "swift": "NBADAEAA",
+        "email": "",
+        "phone": ""
+      },
+      "payments": {
+        "moveInDate": "01 May 2026",
+        "contractStartDate": "01 May 2026",
+        "contractEndDate": "30 April 2027",
+        "signingDeadline": "01 May 2026",
+        "annualRent": 85000,
+        "securityDeposit": 4250,
+        "agencyFee": 4250,
+        "ejariFee": 265,
+        "total": 93765,
+        "modeOfPayment": "4 Cheques"
+      },
+      "renewal": {
+        "currentRent": 85000,
+        "proposedRent": 85000,
+        "marketRent": 90000,
+        "renewalDate": "30 April 2027",
+        "noticeSentDate": "",
+        "noticeChannel": "not-set"
+      },
+      "occupancy": {
+        "isSharedHousing": false,
+        "sharedHousingPermitNumber": "",
+        "ejariOccupantsRegistered": false,
+        "occupants": ""
+      },
+      "eviction": {
+        "reason": "none",
+        "noticeDate": "",
+        "noticeMethod": "notarized"
+      }
+    }
+  },
+  {
+    "id": "viewing-2026-04-25T06:02:20.811Z",
+    "createdAt": "2026-04-25T06:02:20.811Z",
+    "templateKey": "viewing",
+    "templateLabel": "Property Viewing Agreement (DLD/RERA P210)",
+    "fileName": "Viewing_Agreement_Unit_449_22-Apr-2026.pdf",
+    "recordPath": "/records/2026/April/Damac_Hills_2_Unit_449/",
+    "persistedPath": "/records/2026/April/Damac_Hills_2_Unit_449/Viewing_Agreement_Unit_449_22-Apr-2026.pdf",
+    "unit": "Unit 449",
+    "community": "Damac Hills 2",
+    "tenantName": "Pending Review",
+    "documentSnapshot": {
+      "company": {
+        "name": "White Caves Real Estate L.L.C",
+        "dedLicense": "1388443",
+        "role": "Authorized Property Leasing Agent",
+        "city": "Dubai"
+      },
+      "property": {
+        "referenceNo": "WHITE CAVES / BOOKING / 449 / 2026",
+        "documentDate": "22 April 2026",
+        "unit": "Unit 449",
+        "cluster": "Avencia-2",
+        "community": "Damac Hills 2",
+        "city": "Dubai",
+        "description": "4 Bedroom Townhouse (Corner Unit)",
+        "size": "1,505.23 / 1,776.26 Sq. Ft.",
+        "parking": "Two (2) Allocated Spaces",
+        "condition": "Unfurnished — Deep cleaned & fully maintained before move-in (at no cost to tenant)",
+        "usage": "Residential",
+        "plotNo": "",
+        "makaniNo": "",
+        "dewaPremisesNo": "",
+        "projectName": "Damac Hills 2",
+        "buildingNumber": "",
+        "ownersAssociationNo": "",
+        "propertyStatus": "Vacant — Ready to move in",
+        "parkingCount": 2,
+        "propertyType": "Villa"
+      },
+      "broker": {
+        "orn": "",
+        "companyName": "White Caves Real Estate L.L.C",
+        "commercialLicenseNumber": "1388443",
+        "brokerName": "Arslan Malik",
+        "brn": "",
+        "phone": "",
+        "mobile": "",
+        "address": "Dubai, U.A.E.",
+        "email": ""
+      },
+      "viewing": {
+        "agreementNumber": "WC-VIEW-2026-001",
+        "rentalBudget": "",
+        "additionalInfo": "",
+        "servicesNotes": "",
+        "viewingDate": "",
+        "viewingTime": ""
+      },
+      "tenant": {
+        "fullName": "",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "contactNo": "",
+        "occupation": "UAE Armed Forces (Military Personnel)",
+        "category": "government-military",
+        "email": "",
+        "passportNo": "",
+        "address": "",
+        "poBox": ""
+      },
+      "landlord": {
+        "name": "MUHAMMAD NAEEM MUHAMMAD H K KHAN",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "iban": "AE030359356491705358002",
+        "bank": "First Abu Dhabi Bank (FAB)",
+        "swift": "NBADAEAA",
+        "email": "",
+        "phone": ""
+      },
+      "payments": {
+        "moveInDate": "01 May 2026",
+        "contractStartDate": "01 May 2026",
+        "contractEndDate": "30 April 2027",
+        "signingDeadline": "01 May 2026",
+        "annualRent": 85000,
+        "securityDeposit": 4250,
+        "agencyFee": 4250,
+        "ejariFee": 265,
+        "total": 93765,
+        "modeOfPayment": "4 Cheques"
+      },
+      "renewal": {
+        "currentRent": 85000,
+        "proposedRent": 85000,
+        "marketRent": 90000,
+        "renewalDate": "30 April 2027",
+        "noticeSentDate": "",
+        "noticeChannel": "not-set"
+      },
+      "occupancy": {
+        "isSharedHousing": false,
+        "sharedHousingPermitNumber": "",
+        "ejariOccupantsRegistered": false,
+        "occupants": ""
+      },
+      "eviction": {
+        "reason": "none",
+        "noticeDate": "",
+        "noticeMethod": "notarized"
+      }
+    }
+  },
+  {
+    "id": "booking-2026-04-25T06:01:31.038Z",
+    "createdAt": "2026-04-25T06:01:31.038Z",
+    "templateKey": "booking",
+    "templateLabel": "Booking Form (Standard Leasing)",
+    "fileName": "Unit_449_Tenant_22-Apr-2026.pdf",
+    "recordPath": "/records/2026/April/Damac_Hills_2_Unit_449/",
+    "persistedPath": "/records/2026/April/Damac_Hills_2_Unit_449/Unit_449_Tenant_22-Apr-2026.pdf",
+    "unit": "Unit 449",
+    "community": "Damac Hills 2",
+    "tenantName": "Pending Review",
+    "documentSnapshot": {
+      "company": {
+        "name": "White Caves Real Estate L.L.C",
+        "dedLicense": "1388443",
+        "role": "Authorized Property Leasing Agent",
+        "city": "Dubai"
+      },
+      "property": {
+        "referenceNo": "WHITE CAVES / BOOKING / 449 / 2026",
+        "documentDate": "22 April 2026",
+        "unit": "Unit 449",
+        "cluster": "Avencia-2",
+        "community": "Damac Hills 2",
+        "city": "Dubai",
+        "description": "4 Bedroom Townhouse (Corner Unit)",
+        "size": "1,505.23 / 1,776.26 Sq. Ft.",
+        "parking": "Two (2) Allocated Spaces",
+        "condition": "Unfurnished — Deep cleaned & fully maintained before move-in (at no cost to tenant)",
+        "usage": "Residential",
+        "plotNo": "",
+        "makaniNo": "",
+        "dewaPremisesNo": "",
+        "projectName": "Damac Hills 2",
+        "buildingNumber": "",
+        "ownersAssociationNo": "",
+        "propertyStatus": "Vacant — Ready to move in",
+        "parkingCount": 2,
+        "propertyType": "Villa"
+      },
+      "broker": {
+        "orn": "",
+        "companyName": "White Caves Real Estate L.L.C",
+        "commercialLicenseNumber": "1388443",
+        "brokerName": "Arslan Malik",
+        "brn": "",
+        "phone": "",
+        "mobile": "",
+        "address": "Dubai, U.A.E.",
+        "email": ""
+      },
+      "viewing": {
+        "agreementNumber": "WC-VIEW-2026-001",
+        "rentalBudget": "",
+        "additionalInfo": "",
+        "servicesNotes": "",
+        "viewingDate": "",
+        "viewingTime": ""
+      },
+      "tenant": {
+        "fullName": "",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "contactNo": "",
+        "occupation": "UAE Armed Forces (Military Personnel)",
+        "category": "government-military",
+        "email": "",
+        "passportNo": "",
+        "address": "",
+        "poBox": ""
+      },
+      "landlord": {
+        "name": "MUHAMMAD NAEEM MUHAMMAD H K KHAN",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "iban": "AE030359356491705358002",
+        "bank": "First Abu Dhabi Bank (FAB)",
+        "swift": "NBADAEAA",
+        "email": "",
+        "phone": ""
+      },
+      "payments": {
+        "moveInDate": "01 May 2026",
+        "contractStartDate": "01 May 2026",
+        "contractEndDate": "30 April 2027",
+        "signingDeadline": "01 May 2026",
+        "annualRent": 85000,
+        "securityDeposit": 4250,
+        "agencyFee": 4250,
+        "ejariFee": 265,
+        "total": 93765,
+        "modeOfPayment": "4 Cheques"
+      },
+      "renewal": {
+        "currentRent": 85000,
+        "proposedRent": 85000,
+        "marketRent": 90000,
+        "renewalDate": "30 April 2027",
+        "noticeSentDate": "",
+        "noticeChannel": "not-set"
+      },
+      "occupancy": {
+        "isSharedHousing": false,
+        "sharedHousingPermitNumber": "",
+        "ejariOccupantsRegistered": false,
+        "occupants": ""
+      },
+      "eviction": {
+        "reason": "none",
+        "noticeDate": "",
+        "noticeMethod": "notarized"
+      }
+    }
+  },
+  {
+    "id": "bookingGov-2026-04-23T00:03:34.320Z",
+    "createdAt": "2026-04-23T00:03:34.320Z",
+    "templateKey": "bookingGov",
+    "templateLabel": "Government Office Leasing Quotation",
+    "fileName": "Unit_449_Tenant_22-Apr-2026.pdf",
+    "recordPath": "/records/2026/April/Damac_Hills_2_Unit_449/",
+    "unit": "Unit 449",
+    "community": "Damac Hills 2",
+    "tenantName": "Pending Review",
+    "documentSnapshot": {
+      "company": {
+        "name": "White Caves Real Estate L.L.C",
+        "dedLicense": "1388443",
+        "role": "Authorized Property Leasing Agent",
+        "city": "Dubai"
+      },
+      "property": {
+        "referenceNo": "WHITE CAVES / BOOKING / 449 / 2026",
+        "documentDate": "22 April 2026",
+        "unit": "Unit 449",
+        "cluster": "Avencia-2",
+        "community": "Damac Hills 2",
+        "city": "Dubai",
+        "description": "4 Bedroom Townhouse (Corner Unit)",
+        "size": "1,505.23 / 1,776.26 Sq. Ft.",
+        "parking": "Two (2) Allocated Spaces",
+        "condition": "Unfurnished — Deep cleaned & fully maintained before move-in (at no cost to tenant)"
+      },
+      "tenant": {
+        "fullName": "",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "contactNo": "",
+        "occupation": "UAE Armed Forces (Military Personnel)",
+        "category": "government-military"
+      },
+      "landlord": {
+        "name": "MUHAMMAD NAEEM MUHAMMAD H K KHAN",
+        "emiratesId": "",
+        "idExpiryDate": "",
+        "iban": "AE030359356491705358002",
+        "bank": "First Abu Dhabi Bank (FAB)",
+        "swift": "NBADAEAA"
+      },
+      "payments": {
+        "moveInDate": "01 May 2026",
+        "contractStartDate": "01 May 2026",
+        "contractEndDate": "30 April 2027",
+        "signingDeadline": "01 May 2026",
+        "annualRent": 85000,
+        "securityDeposit": 4250,
+        "agencyFee": 4250,
+        "ejariFee": 265,
+        "total": 93765
+      },
+      "renewal": {
+        "currentRent": 85000,
+        "proposedRent": 85000,
+        "marketRent": 90000,
+        "renewalDate": "30 April 2027",
+        "noticeSentDate": "",
+        "noticeChannel": "not-set"
+      },
+      "occupancy": {
+        "isSharedHousing": false,
+        "sharedHousingPermitNumber": "",
+        "ejariOccupantsRegistered": false,
+        "occupants": ""
+      },
+      "eviction": {
+        "reason": "none",
+        "noticeDate": "",
+        "noticeMethod": "notarized"
+      }
+    }
+  }
+]

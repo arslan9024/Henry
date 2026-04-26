@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import TemplateLayout from '../components/TemplateLayout';
+import { Disclosure } from '../components/ui';
 
 const BookingFormTemplate = () => {
   const { company, property, tenant, landlord, payments } = useSelector((state) => state.document);
@@ -17,7 +18,7 @@ const BookingFormTemplate = () => {
           <p>Date: {property.documentDate}</p>
         </div>
         <div className="header-company">
-          <img src="/logo.png.png" alt="White Caves" className="logo" />
+          <img src="/logo.png" alt="White Caves" className="logo" />
           <p className="company-name">{company.name}</p>
           <p className="muted">DED License No.: {company.dedLicense}</p>
           <p className="accent">{company.role}</p>
@@ -25,14 +26,14 @@ const BookingFormTemplate = () => {
       </div>
 
       <div className="notice-box">
-        Thank you for choosing <strong>{company.name}</strong>. This booking quotation is issued for
-        property leasing in {company.city} and supports authority submission where applicable.
+        Thank you for choosing <strong>{company.name}</strong>. This booking quotation is issued for property
+        leasing in {company.city} and supports authority submission where applicable.
       </div>
 
-      <section className="doc-section">
-        <h4>1. Property Specifications</h4>
+      <Disclosure title="1. Property Specifications" icon="🏠" defaultOpen>
         <p>
-          <strong>Property:</strong> {property.community} - {property.cluster}, {property.unit}, {property.city}
+          <strong>Property:</strong> {property.community} - {property.cluster}, {property.unit},{' '}
+          {property.city}
         </p>
         <p>
           <strong>Description:</strong> {property.description}
@@ -46,10 +47,9 @@ const BookingFormTemplate = () => {
         <p>
           <strong>Condition:</strong> {property.condition}
         </p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>2. Tenant Details</h4>
+      <Disclosure title="2. Tenant Details" icon="👤">
         <p>
           <strong>Tenant Name:</strong> {tenant.fullName || '____________________'}
         </p>
@@ -62,10 +62,9 @@ const BookingFormTemplate = () => {
         <p>
           <strong>Contact:</strong> {tenant.contactNo || '____________________'}
         </p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>3. Lease Terms</h4>
+      <Disclosure title="3. Lease Terms" icon="📅">
         <p>
           <strong>Move-In Date:</strong> {payments.moveInDate}
         </p>
@@ -81,10 +80,9 @@ const BookingFormTemplate = () => {
         <p>
           <strong>Landlord:</strong> {landlord.name}
         </p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>4. Payment Schedule</h4>
+      <Disclosure title="4. Payment Schedule" icon="💰">
         <table className="doc-table">
           <thead>
             <tr>
@@ -121,10 +119,9 @@ const BookingFormTemplate = () => {
             </tr>
           </tbody>
         </table>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>5. Bank Details</h4>
+      <Disclosure title="5. Bank Details" icon="🏦">
         <p>
           <strong>Landlord Beneficiary:</strong> {landlord.name}
         </p>
@@ -134,12 +131,15 @@ const BookingFormTemplate = () => {
         <p>
           <strong>Bank:</strong> {landlord.bank} | <strong>SWIFT:</strong> {landlord.swift}
         </p>
-      </section>
+      </Disclosure>
 
       <div className="doc-signature-row">
         <div>
           <p className="muted">For White Caves Real Estate L.L.C</p>
-          <img src="/signature.png.png" alt="signature" className="signature" />
+          <div className="signature-stage">
+            <img src="/signature.png" alt="Arslan Malik signature" className="signature" />
+            <img src="/stamp.png" alt="White Caves company stamp" className="stamp-overlay" />
+          </div>
           <p className="line">Arslan Malik - Managing Director</p>
         </div>
         <div>

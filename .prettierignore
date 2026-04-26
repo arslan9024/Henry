@@ -1,0 +1,23 @@
+# Generated / vendored
+dist/
+coverage/
+records/
+node_modules/
+*.lock
+package-lock.json
+
+# Static assets
+public/
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.svg
+**/*.ico
+**/*.pdf
+
+# Heavy test fixtures
+src/test/**/*.snap
+
+# We don't reformat the legacy bootstrap shell
+index.jsx

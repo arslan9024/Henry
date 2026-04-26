@@ -1,26 +1,24 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import TemplateLayout from '../components/TemplateLayout';
+import { Disclosure } from '../components/ui';
 
 const InvoiceTemplate = () => {
   const { company, tenant, payments } = useSelector((state) => state.document);
 
   return (
     <TemplateLayout title="Invoice">
-      <section className="doc-section">
-        <h4>Issuer</h4>
+      <Disclosure title="Issuer" icon="🏢" defaultOpen>
         <p>{company.name}</p>
         <p>DED License No.: {company.dedLicense}</p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>Billed To</h4>
+      <Disclosure title="Billed To" icon="👤">
         <p>{tenant.fullName || '____________________'}</p>
         <p>{tenant.contactNo || '____________________'}</p>
-      </section>
+      </Disclosure>
 
-      <section className="doc-section">
-        <h4>Charges</h4>
+      <Disclosure title="Charges" icon="💰" defaultOpen>
         <table className="doc-table">
           <thead>
             <tr>
@@ -43,7 +41,7 @@ const InvoiceTemplate = () => {
             </tr>
           </tbody>
         </table>
-      </section>
+      </Disclosure>
     </TemplateLayout>
   );
 };
