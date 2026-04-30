@@ -9,6 +9,7 @@ import { selectIsPreviewReady, selectPreviewState } from '../store/uiSlice';
 import { useActiveTemplate } from '../hooks/useActiveTemplate';
 import { buildLogicalRecordPath } from '../records/pathBuilder';
 import { persistRecordFile } from '../records/archiveService';
+import { getTemplateSourcePolicy } from '../templates/registry';
 
 const PrintButton = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ const PrintButton = () => {
   const documentData = useSelector(selectDocument);
   const isPreviewReady = useSelector(selectIsPreviewReady);
   const previewState = useSelector(selectPreviewState);
+  const archiveEntries = useSelector((state) => state.archive.entries || []);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
@@ -84,10 +86,15 @@ const PrintButton = () => {
     try {
       setIsGenerating(true);
       const createdAt = new Date().toISOString();
+      const sourcePolicy = getTemplateSourcePolicy(activeTemplate);
+      const copyNumber =
+        archiveEntries.filter((entry) => entry.templateKey === activeTemplate && !entry.isDraft).length + 1;
       const { downloadQuotationPdf } = await import('../pdf/generateQuotationPdf');
       const { fileName, blob } = await downloadQuotationPdf({
         documentData,
         templateKey: activeTemplate,
+        createdAt,
+        copyNumber,
       });
 
       const recordPath = buildLogicalRecordPath({
@@ -106,6 +113,10 @@ const PrintButton = () => {
           timestamp: createdAt,
           fileName,
           persisted: persistResult.ok ? persistResult.path : false,
+          copyNumber,
+          sourceTemplateImmutable: sourcePolicy.immutable,
+          sourceTemplateVersion: sourcePolicy.templateVersion,
+          generationMode: 'copy-from-source-template',
         }),
       );
 
@@ -122,6 +133,14 @@ const PrintButton = () => {
           community: documentData.property.community,
           tenantName: documentData.tenant.fullName || 'Pending Review',
           documentSnapshot: documentData,
+          copyNumber,
+          generationMode: 'copy-from-source-template',
+          sourceTemplate: {
+            key: activeTemplate,
+            immutable: sourcePolicy.immutable,
+            governmentIssued: sourcePolicy.governmentIssued,
+            templateVersion: sourcePolicy.templateVersion,
+          },
         }),
       );
 
@@ -131,7 +150,7 @@ const PrintButton = () => {
           pushToast({
             tone: 'success',
             title: 'PDF generated',
-            body: `${fileName} saved to ${persistResult.path}`,
+            body: `${fileName} (copy #${copyNumber}) saved to ${persistResult.path}`,
             durationMs: 6000,
           }),
         );
@@ -140,7 +159,7 @@ const PrintButton = () => {
           pushToast({
             tone: 'warning',
             title: 'PDF generated (not archived)',
-            body: `${fileName} downloaded — filesystem write skipped.`,
+            body: `${fileName} (copy #${copyNumber}) downloaded — filesystem write skipped.`,
             durationMs: 7000,
           }),
         );

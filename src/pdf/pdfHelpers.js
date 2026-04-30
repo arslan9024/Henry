@@ -44,10 +44,41 @@ export const buildAddendumFileName = (documentData) => {
   return `Addendum_${unit}_${tenantName}_${dateValue}.pdf`;
 };
 
+export const buildSalaryCertificateFileName = (documentData) => {
+  const employeeName = sanitizeFileNameSegment(
+    documentData?.salaryCertificate?.employeeName || documentData?.tenant?.fullName || 'Employee',
+  );
+  const issueDate = sanitizeFileNameSegment(
+    formatDateDisplay(
+      documentData?.salaryCertificate?.issueDate || documentData?.property?.documentDate || new Date(),
+    ).replace(/\s+/g, '-'),
+  );
+  return `Salary_Certificate_${employeeName}_${issueDate}.pdf`;
+};
+
+export const buildCopySuffix = ({ createdAt = new Date(), copyNumber } = {}) => {
+  const date = new Date(createdAt);
+  const yyyy = String(date.getFullYear());
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mi = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  const copyTag = Number.isFinite(copyNumber) ? `C${String(copyNumber).padStart(4, '0')}` : 'C0001';
+  return `${yyyy}${mm}${dd}-${hh}${mi}${ss}_${copyTag}`;
+};
+
+export const buildGeneratedCopyFileName = (baseFileName, options = {}) => {
+  const safeBase = sanitizeFileNameSegment(String(baseFileName || 'Document.pdf')).replace(/\.pdf$/i, '');
+  const suffix = buildCopySuffix(options);
+  return `${safeBase}__COPY_${suffix}.pdf`;
+};
+
 export const buildPdfFileName = (templateKey, documentData) => {
   if (templateKey === 'viewing') return buildViewingAgreementFileName(documentData);
   if (templateKey === 'tenancy') return buildEjariFileName(documentData);
   if (templateKey === 'addendum') return buildAddendumFileName(documentData);
+  if (templateKey === 'salaryCertificate') return buildSalaryCertificateFileName(documentData);
   return buildQuotationFileName(documentData);
 };
 
