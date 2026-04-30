@@ -260,3 +260,21 @@ export const {
   removeAddendumClause,
 } = documentSlice.actions;
 export default documentSlice.reducer;
+
+/**
+ * Programmatic export of the scalar document fields — consumed by llmService
+ * to derive ALLOWED_FIELDS without duplication.  Only scalar (non-array)
+ * fields are included; array fields are edited via dedicated slice actions
+ * (addTenancyTerm, addAddendumClause, etc.) and must NOT be set via setDocumentValue.
+ */
+export const DOCUMENT_SCALAR_FIELDS = Object.fromEntries(
+  Object.entries(initialState)
+    .map(([section, fields]) => {
+      if (typeof fields !== 'object' || fields === null || Array.isArray(fields)) return null;
+      const scalars = Object.entries(fields)
+        .filter(([, v]) => !Array.isArray(v))
+        .map(([k]) => k);
+      return scalars.length > 0 ? [section, scalars] : null;
+    })
+    .filter(Boolean),
+);

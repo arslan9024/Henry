@@ -7,6 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import templateReducer from '../store/templateSlice';
 import policyMetaReducer from '../store/policyMetaSlice';
 import henryReducer from '../store/henrySlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 vi.mock('../hooks/useDensity', () => ({
   default: () => ({ density: 'comfortable', toggle: vi.fn() }),
@@ -28,6 +29,7 @@ const makeStore = (preloadedState = {}) =>
       template: templateReducer,
       policyMeta: policyMetaReducer,
       henry: henryReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState,
   });

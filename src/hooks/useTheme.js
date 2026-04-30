@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { STORAGE_KEY_THEME } from '../constants/storageKeys';
 
-const KEY = 'henry.ui.theme';
 const VALUES = ['light', 'dark', 'system'];
 
 const read = () => {
   try {
-    const v = localStorage.getItem(KEY);
+    const v = localStorage.getItem(STORAGE_KEY_THEME);
     if (VALUES.includes(v)) return v;
   } catch {
     /* ignore */
@@ -45,7 +45,7 @@ export default function useTheme() {
     setResolved(next);
     apply(next);
     try {
-      localStorage.setItem(KEY, mode);
+      localStorage.setItem(STORAGE_KEY_THEME, mode);
     } catch {
       /* ignore */
     }

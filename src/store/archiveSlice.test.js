@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit';
 
 // Mock the archive service BEFORE importing the slice — the slice calls
 // loadArchiveEntries() at module load to seed initialState.
@@ -9,6 +10,20 @@ vi.mock('../records/archiveService', () => ({
 
 import reducer, { addArchiveEntry, clearArchiveEntries } from './archiveSlice';
 import { persistArchiveEntries } from '../records/archiveService';
+
+/** Store that includes listener middleware for persistence — mirrors the real store. */
+const makeStoreWithPersistence = () => {
+  const lm = createListenerMiddleware();
+  lm.startListening({
+    actionCreator: addArchiveEntry,
+    effect: (_, api) => persistArchiveEntries(api.getState().archive.entries),
+  });
+  lm.startListening({
+    actionCreator: clearArchiveEntries,
+    effect: (_, api) => persistArchiveEntries(api.getState().archive.entries),
+  });
+  return configureStore({ reducer: { archive: reducer }, middleware: (gd) => gd().prepend(lm.middleware) });
+};
 
 describe('archiveSlice', () => {
   beforeEach(() => {
@@ -21,12 +36,13 @@ describe('archiveSlice', () => {
   });
 
   it('addArchiveEntry unshifts (newest first) and persists', () => {
-    let state = reducer(undefined, { type: '@@INIT' });
-    state = reducer(state, addArchiveEntry({ id: 'a', unit: 'A-101' }));
-    state = reducer(state, addArchiveEntry({ id: 'b', unit: 'B-202' }));
-    expect(state.entries.map((e) => e.id)).toEqual(['b', 'a']);
+    const store = makeStoreWithPersistence();
+    store.dispatch(addArchiveEntry({ id: 'a', unit: 'A-101' }));
+    store.dispatch(addArchiveEntry({ id: 'b', unit: 'B-202' }));
+    const entries = store.getState().archive.entries;
+    expect(entries.map((e) => e.id)).toEqual(['b', 'a']);
     expect(persistArchiveEntries).toHaveBeenCalledTimes(2);
-    expect(persistArchiveEntries).toHaveBeenLastCalledWith(state.entries);
+    expect(persistArchiveEntries).toHaveBeenLastCalledWith(entries);
   });
 
   it('caps entries at 100 (drops oldest)', () => {
@@ -44,10 +60,10 @@ describe('archiveSlice', () => {
   });
 
   it('clearArchiveEntries empties the list and persists the empty array', () => {
-    let state = reducer(undefined, { type: '@@INIT' });
-    state = reducer(state, addArchiveEntry({ id: 'x' }));
-    state = reducer(state, clearArchiveEntries());
-    expect(state.entries).toEqual([]);
+    const store = makeStoreWithPersistence();
+    store.dispatch(addArchiveEntry({ id: 'x' }));
+    store.dispatch(clearArchiveEntries());
+    expect(store.getState().archive.entries).toEqual([]);
     expect(persistArchiveEntries).toHaveBeenLastCalledWith([]);
   });
 });

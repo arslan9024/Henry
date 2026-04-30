@@ -44,6 +44,7 @@ import henryReducer from '../store/henrySlice';
 import archiveReducer from '../store/archiveSlice';
 import ocrReducer from '../store/ocrSlice';
 import uiReducer from '../store/uiSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 // Components under test
 import DocumentSelector from './DocumentSelector';
@@ -176,6 +177,7 @@ function makeFullStore(preloadedState = {}) {
       archive: archiveReducer,
       ocr: ocrReducer,
       ui: uiReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState,
   });

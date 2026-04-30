@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { render, screen, cleanup, fireEvent, act } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -14,6 +14,7 @@ import henryReducer from '../store/henrySlice';
 import archiveReducer from '../store/archiveSlice';
 import ocrReducer from '../store/ocrSlice';
 import uiReducer from '../store/uiSlice';
+import uiCommandReducer, { openDrawer, triggerPrint } from '../store/uiCommandSlice';
 
 const printClickSpy = vi.fn();
 
@@ -88,6 +89,7 @@ const makeStore = () =>
       archive: archiveReducer,
       ocr: ocrReducer,
       ui: uiReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState: {
       template: {
@@ -98,11 +100,14 @@ const makeStore = () =>
 
 const renderHub = () => {
   const store = makeStore();
-  return render(
-    <Provider store={store}>
-      <DocumentHubPage />
-    </Provider>,
-  );
+  return {
+    store,
+    ...render(
+      <Provider store={store}>
+        <DocumentHubPage />
+      </Provider>,
+    ),
+  };
 };
 
 beforeEach(() => {
@@ -115,51 +120,51 @@ afterEach(() => {
 });
 
 describe('DocumentHubPage command events', () => {
-  it('opens compliance drawer when henry:open-compliance event is dispatched', () => {
-    renderHub();
+  it('opens compliance drawer when openDrawer("compliance") is dispatched', () => {
+    const { store } = renderHub();
 
     act(() => {
-      window.dispatchEvent(new Event('henry:open-compliance'));
+      store.dispatch(openDrawer('compliance'));
     });
 
     expect(screen.getByText('Compliance Panel Stub')).toBeInTheDocument();
   });
 
-  it('opens archive drawer when henry:open-archive event is dispatched', () => {
-    renderHub();
+  it('opens archive drawer when openDrawer("archive") is dispatched', () => {
+    const { store } = renderHub();
 
     act(() => {
-      window.dispatchEvent(new Event('henry:open-archive'));
+      store.dispatch(openDrawer('archive'));
     });
 
     expect(screen.getByText('Archive Panel Stub')).toBeInTheDocument();
   });
 
-  it('opens audit drawer when henry:open-audit event is dispatched', () => {
-    renderHub();
+  it('opens audit drawer when openDrawer("audit") is dispatched', () => {
+    const { store } = renderHub();
 
     act(() => {
-      window.dispatchEvent(new Event('henry:open-audit'));
+      store.dispatch(openDrawer('audit'));
     });
 
     expect(screen.getByText('Audit Panel Stub')).toBeInTheDocument();
   });
 
-  it('triggers footer print button when henry:trigger-print event is dispatched', () => {
-    renderHub();
+  it('triggers footer print button when triggerPrint() is dispatched', async () => {
+    const { store } = renderHub();
 
     act(() => {
-      window.dispatchEvent(new Event('henry:trigger-print'));
+      store.dispatch(triggerPrint());
     });
 
-    expect(printClickSpy).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(printClickSpy).toHaveBeenCalledTimes(1));
   });
 
   it('closes drawer on Escape key', () => {
-    renderHub();
+    const { store } = renderHub();
 
     act(() => {
-      window.dispatchEvent(new Event('henry:open-compliance'));
+      store.dispatch(openDrawer('compliance'));
     });
     expect(screen.getByText('Compliance Panel Stub')).toBeInTheDocument();
 

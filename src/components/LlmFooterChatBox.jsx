@@ -15,13 +15,36 @@ import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../services/fileExtr
 import FileExtractionPanel from './FileExtractionPanel';
 import Spinner from './ui/Spinner';
 import { useActiveTemplate } from '../hooks/useActiveTemplate';
+import { STORAGE_KEY_CHAT_HISTORY } from '../constants/storageKeys';
+
+const MAX_CHAT_HISTORY = 50;
+
+const loadChatHistory = () => {
+  try {
+    const raw = window.localStorage?.getItem(STORAGE_KEY_CHAT_HISTORY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.slice(0, MAX_CHAT_HISTORY) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveChatHistory = (messages) => {
+  try {
+    const toSave = messages.slice(-MAX_CHAT_HISTORY);
+    window.localStorage?.setItem(STORAGE_KEY_CHAT_HISTORY, JSON.stringify(toSave));
+  } catch {
+    /* quota exceeded — silently skip */
+  }
+};
 
 const LlmFooterChatBox = () => {
   const dispatch = useDispatch();
   const documentData = useSelector(selectDocument);
   const { activeTemplate } = useActiveTemplate();
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => loadChatHistory());
   const [pendingSuggestion, setPendingSuggestion] = useState(null);
   const [isThinking, setIsThinking] = useState(false);
   const [available, setAvailable] = useState(null);
@@ -31,6 +54,11 @@ const LlmFooterChatBox = () => {
   const [extractionStatus, setExtractionStatus] = useState('idle'); // idle|reading|querying|error
   const fileInputRef = useRef(null);
   const listRef = useRef(null);
+
+  // Persist messages to localStorage whenever they change.
+  useEffect(() => {
+    saveChatHistory(messages);
+  }, [messages]);
 
   const appendMessage = useCallback(
     (msg) => setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]),
@@ -82,22 +110,21 @@ const LlmFooterChatBox = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Check Ollama availability on mount and activate silently if available.
     checkOllamaAvailability().then(async (ok) => {
       if (!cancelled) setAvailable(ok);
       if (!cancelled && ok) {
         const modelOk = await checkOllamaModelAvailable(DEFAULT_MODEL, 2500);
         setModelReady(modelOk);
+      } else if (!cancelled && !ok) {
+        // Auto-activate (silent) when the chat panel first mounts so users
+        // don't need to click "Activate Ollama" manually.
+        activateOllama({ silent: true });
       }
     });
 
-    const onActivate = () => {
-      if (!cancelled) activateOllama({ silent: false });
-    };
-
-    window.addEventListener('henry:activate-ollama', onActivate);
     return () => {
       cancelled = true;
-      window.removeEventListener('henry:activate-ollama', onActivate);
     };
   }, [activateOllama]);
 
@@ -131,21 +158,33 @@ const LlmFooterChatBox = () => {
       return;
     }
 
+    // Add a placeholder "thinking" message that will be replaced as tokens arrive.
+    const streamingMsgId = `${Date.now()}-stream`;
+    setMessages((prev) => [...prev, { id: streamingMsgId, role: 'assistant', text: '…' }]);
+
     const result = await fetchOllamaSuggestion({
       userPrompt: trimmed,
       documentData,
       templateKey: activeTemplate,
+      onToken: (token) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingMsgId ? { ...m, text: (m.text === '…' ? '' : m.text) + token } : m,
+          ),
+        );
+      },
     });
 
     if (!result.ok) {
+      // Remove the streaming placeholder and show the error instead.
+      setMessages((prev) => prev.filter((m) => m.id !== streamingMsgId));
       appendMessage({ role: 'assistant', text: `⚠️ ${result.reason}` });
     } else {
       const { section, field, value, rationale } = result.suggestion;
       setPendingSuggestion(result.suggestion);
-      appendMessage({
-        role: 'assistant',
-        text: `Suggestion: update ${section}.${field} → ${JSON.stringify(value)}${rationale ? ` — ${rationale}` : ''}`,
-      });
+      // Replace the streaming placeholder with the structured suggestion message.
+      const suggestionText = `Suggestion: update ${section}.${field} → ${JSON.stringify(value)}${rationale ? ` — ${rationale}` : ''}`;
+      setMessages((prev) => prev.map((m) => (m.id === streamingMsgId ? { ...m, text: suggestionText } : m)));
     }
 
     setIsThinking(false);
@@ -296,15 +335,19 @@ const LlmFooterChatBox = () => {
   };
 
   const handleExtractionDismiss = (key) => {
+    // key format is `${section}.${field}.${index}` — remove by exact index match.
     setExtraction((prev) => {
       if (!prev) return prev;
-      // FileExtractionPanel uses a derived `_key` per row; we filter by index match.
-      // Simpler: rebuild without the matching key by relying on the visible component.
-      // Since the panel manages its own visible state, we just no-op here; dismiss is local.
-      return prev;
+      const parts = key.split('.');
+      const section = parts[0];
+      const field = parts[1];
+      const idx = parseInt(parts[2], 10);
+      const next = prev.suggestions.filter(
+        (s, i) => !(s.section === section && s.field === field && i === idx),
+      );
+      if (next.length === prev.suggestions.length) return prev; // nothing matched, no change
+      return next.length === 0 ? null : { ...prev, suggestions: next };
     });
-    // No assistant message to avoid noise.
-    void key;
   };
 
   const handleExtractionDismissAll = () => {
@@ -334,6 +377,20 @@ const LlmFooterChatBox = () => {
         <strong>Ask Henry</strong>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {statusBadge}
+          {messages.length > 0 && (
+            <button
+              type="button"
+              className="utility-btn secondary"
+              onClick={() => {
+                setMessages([]);
+                saveChatHistory([]);
+              }}
+              aria-label="Clear chat history"
+              title="Clear chat history"
+            >
+              Clear history
+            </button>
+          )}
           {!available || !modelReady ? (
             <button
               type="button"
