@@ -17,13 +17,14 @@
  *  6.  Selecting 'keyHandover' renders KeyHandoverMaintenanceTemplate
  *  7.  Selecting 'addendum' renders AddendumTemplate
  *  8.  Selecting 'bookingGov' renders GovtEmployeeBookingTemplate
- *  9.  Redux state updated correctly after selection
- *  10. Switching back to 'booking' after another template re-renders BookingFormTemplate
- *  11. Multiple rapid switches end at the last selected template
- *  12. Active template label in InfoArticlesPanel updates after switch
- *  13. Compliance re-evaluated with new template key after switch
- *  14. DocumentSelector select value stays in sync with Redux state
- *  15. Preview area aria-live region reflects new template
+ *  9.  Selecting 'salaryCertificate' renders SalaryCertificateTemplate
+ *  10. Redux state updated correctly after selection
+ *  11. Switching back to 'booking' after another template re-renders BookingFormTemplate
+ *  12. Multiple rapid switches end at the last selected template
+ *  13. Active template label in InfoArticlesPanel updates after switch
+ *  14. Compliance re-evaluated with new template key after switch
+ *  15. DocumentSelector select value stays in sync with Redux state
+ *  16. Preview area aria-live region reflects new template
  */
 
 import React from 'react';
@@ -150,6 +151,12 @@ vi.mock('../templates/registry', async (importOriginal) => {
         component: () => <div data-testid="tpl-offer">OfferLetterTemplate</div>,
         supportsPdf: false,
       },
+      salaryCertificate: {
+        key: 'salaryCertificate',
+        label: 'Salary Certificate',
+        component: () => <div data-testid="tpl-salaryCertificate">SalaryCertificateTemplate</div>,
+        supportsPdf: true,
+      },
     },
   };
 });
@@ -260,14 +267,21 @@ describe('Template Switching E2E', () => {
     expect(screen.getByTestId('tpl-bookingGov')).toBeInTheDocument();
   });
 
-  // 9. Redux state updated correctly after selection
+  // 9. Selecting 'salaryCertificate' renders SalaryCertificateTemplate
+  it('renders SalaryCertificateTemplate after selecting salaryCertificate', () => {
+    renderE2E(store);
+    switchTemplate('salaryCertificate');
+    expect(screen.getByTestId('tpl-salaryCertificate')).toBeInTheDocument();
+  });
+
+  // 10. Redux state updated correctly after selection
   it('updates Redux template.activeTemplate after selection', () => {
     renderE2E(store);
     switchTemplate('tenancy');
     expect(store.getState().template.activeTemplate).toBe('tenancy');
   });
 
-  // 10. Switching back to booking after another template
+  // 11. Switching back to booking after another template
   it('re-renders BookingFormTemplate after switching back', () => {
     renderE2E(store);
     switchTemplate('invoice');
@@ -277,7 +291,7 @@ describe('Template Switching E2E', () => {
     expect(screen.queryByTestId('tpl-invoice')).not.toBeInTheDocument();
   });
 
-  // 11. Multiple rapid switches end at the last selected template
+  // 12. Multiple rapid switches end at the last selected template
   it('shows the last selected template after multiple rapid switches', () => {
     renderE2E(store);
     switchTemplate('viewing');
@@ -288,14 +302,14 @@ describe('Template Switching E2E', () => {
     expect(store.getState().template.activeTemplate).toBe('offer');
   });
 
-  // 12. DocumentSelector select value stays in sync with Redux state
+  // 13. DocumentSelector select value stays in sync with Redux state
   it('select value stays in sync after template switch', () => {
     renderE2E(store);
     switchTemplate('invoice');
     expect(getSelect().value).toBe('invoice');
   });
 
-  // 13. Compliance evaluated with the new template key after switch
+  // 14. Compliance evaluated with the new template key after switch
   it('calls evaluateCompliance with the new template key after switching', () => {
     evaluateCompliance.mockReturnValue([]);
     renderE2E(store);
@@ -305,14 +319,14 @@ describe('Template Switching E2E', () => {
     expect(callArgs).toContain('viewing');
   });
 
-  // 14. Preview area has aria-live attribute
+  // 15. Preview area has aria-live attribute
   it('preview area has aria-live="polite" for accessibility', () => {
     renderE2E(store);
     const preview = document.querySelector('.preview-area');
     expect(preview).toHaveAttribute('aria-live', 'polite');
   });
 
-  // 15. Pre-loading with non-default template shows correct component immediately
+  // 16. Pre-loading with non-default template shows correct component immediately
   it('renders correct template on initial load when store pre-seeded with viewing', () => {
     const customStore = makeFullStore({ template: { activeTemplate: 'viewing' } });
     render(
