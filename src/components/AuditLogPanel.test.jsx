@@ -218,15 +218,16 @@ describe('<AuditLogPanel />', () => {
   it('cancelling the clear confirm dialog leaves logs intact', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT' })]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // cancel
     renderWithStore(<AuditLogPanel />, { store });
 
-    await user.click(screen.getByRole('button', { name: /clear/i }));
+    // First click shows the inline alertdialog.
+    await user.click(screen.getByRole('button', { name: /✕ Clear/i }));
+    // Click "Cancel" in the inline dialog.
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
 
     // Logs should be unchanged.
     expect(store.getState().audit.logs).toHaveLength(1);
     expect(store.getState().ui.toasts).toHaveLength(0);
-    confirmSpy.mockRestore();
   });
 
   it('export error path pushes an error toast when URL.createObjectURL throws', async () => {
@@ -335,6 +336,84 @@ describe('<AuditLogPanel />', () => {
 
     expect(store.getState().audit.logs).toHaveLength(1);
     expect(store.getState().ui.toasts[0].tone).toBe('error');
+  });
+
+  it('import (merge mode) de-dups entries sharing the same id when both have ids', async () => {
+    const user = userEvent.setup();
+    // existing entry has a known id
+    const existingEntry = { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z', id: 'existing-id-123' };
+    const store = seed([existingEntry]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [
+      // Same id → should be de-duped
+      { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z', id: 'existing-id-123' },
+      // Different id → should be kept
+      { type: 'PDF_GENERATED', timestamp: '2026-04-23T09:00:00Z', id: 'new-id-456' },
+    ];
+    const fakeFile = { name: 'merge.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
+    // 2 unique entries (existing + new)
+    expect(store.getState().audit.logs).toHaveLength(2);
+    const ids = store.getState().audit.logs.map((l) => l.id);
+    expect(ids).toContain('existing-id-123');
+    expect(ids).toContain('new-id-456');
+  });
+
+  it('import sort order: merged entries are sorted newest-first by timestamp', async () => {
+    const user = userEvent.setup();
+    const store = seed([{ type: 'PRINT', timestamp: '2026-04-20T10:00:00Z' }]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [
+      { type: 'PDF_GENERATED', timestamp: '2026-04-22T10:00:00Z' },
+      { type: 'CHAT_FILE_UPLOADED', timestamp: '2026-04-18T10:00:00Z' },
+    ];
+    const fakeFile = { name: 'sort.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
+    const logs = store.getState().audit.logs;
+    expect(logs).toHaveLength(3);
+    // Verify descending timestamp order
+    for (let i = 1; i < logs.length; i++) {
+      expect(logs[i - 1].timestamp >= logs[i].timestamp).toBe(true);
+    }
+  });
+
+  it('import cancel dialog leaves logs and no toast', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [{ type: 'PDF_GENERATED', timestamp: '2026-04-22T12:00:00Z' }];
+    const fakeFile = { name: 'cancel.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Cancel the dialog
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
+
+    expect(store.getState().audit.logs).toHaveLength(1);
+    expect(store.getState().ui.toasts).toHaveLength(0);
   });
 
   it('search handles JSON.stringify failure (BigInt payload) without crashing', async () => {

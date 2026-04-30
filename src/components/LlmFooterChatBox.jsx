@@ -158,21 +158,33 @@ const LlmFooterChatBox = () => {
       return;
     }
 
+    // Add a placeholder "thinking" message that will be replaced as tokens arrive.
+    const streamingMsgId = `${Date.now()}-stream`;
+    setMessages((prev) => [...prev, { id: streamingMsgId, role: 'assistant', text: '…' }]);
+
     const result = await fetchOllamaSuggestion({
       userPrompt: trimmed,
       documentData,
       templateKey: activeTemplate,
+      onToken: (token) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingMsgId ? { ...m, text: (m.text === '…' ? '' : m.text) + token } : m,
+          ),
+        );
+      },
     });
 
     if (!result.ok) {
+      // Remove the streaming placeholder and show the error instead.
+      setMessages((prev) => prev.filter((m) => m.id !== streamingMsgId));
       appendMessage({ role: 'assistant', text: `⚠️ ${result.reason}` });
     } else {
       const { section, field, value, rationale } = result.suggestion;
       setPendingSuggestion(result.suggestion);
-      appendMessage({
-        role: 'assistant',
-        text: `Suggestion: update ${section}.${field} → ${JSON.stringify(value)}${rationale ? ` — ${rationale}` : ''}`,
-      });
+      // Replace the streaming placeholder with the structured suggestion message.
+      const suggestionText = `Suggestion: update ${section}.${field} → ${JSON.stringify(value)}${rationale ? ` — ${rationale}` : ''}`;
+      setMessages((prev) => prev.map((m) => (m.id === streamingMsgId ? { ...m, text: suggestionText } : m)));
     }
 
     setIsThinking(false);

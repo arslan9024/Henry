@@ -29,9 +29,12 @@ export default defineConfig({
         'src/store/**/*.js',
         'src/hooks/**/*.js',
         'src/compliance/**/*.js',
+        'src/services/**/*.js',
+        'src/records/**/*.js',
         'src/components/AuditLogPanel.jsx',
         'src/components/ToastHost.jsx',
         'src/components/Disclosure.jsx',
+        'src/components/LlmFooterChatBox.jsx',
       ],
       exclude: [
         '**/*.test.{js,jsx}',
