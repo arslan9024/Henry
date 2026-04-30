@@ -164,6 +164,15 @@ const PrintButton = () => {
           }),
         );
       }
+    } catch (err) {
+      dispatch(
+        pushToast({
+          tone: 'error',
+          title: 'PDF generation failed',
+          body: err?.message || 'An unexpected error occurred. Please try again.',
+          durationMs: 8000,
+        }),
+      );
     } finally {
       setIsGenerating(false);
     }

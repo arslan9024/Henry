@@ -5,9 +5,39 @@
 //   { "section": "<known-section>", "field": "<known-field>", "value": <string|number|boolean>, "rationale": "<short text>" }
 // Any non-JSON or unknown section/field is rejected at the validator layer.
 
-const OLLAMA_BASE_URL = 'http://localhost:11434';
-const DEFAULT_MODEL = 'mistral';
-const DEFAULT_TIMEOUT_MS = 15000;
+const OLLAMA_BASE_URLS = ['http://127.0.0.1:11434', 'http://localhost:11434'];
+export const DEFAULT_MODEL = 'llama3.2:1b';
+const DEFAULT_TIMEOUT_MS = 45000;
+
+const toMemoryFriendlyReason = (detail = '') => {
+  const text = String(detail || '');
+  if (/requires more system memory/i.test(text)) {
+    return `Selected Ollama model needs more RAM than available. Use a lighter model (default: \`${DEFAULT_MODEL}\`) and run \`ollama pull ${DEFAULT_MODEL}\`.`;
+  }
+  return null;
+};
+
+const requestOllamaWithFallback = async ({ path, options, timeoutMs }) => {
+  const errors = [];
+
+  for (const baseUrl of OLLAMA_BASE_URLS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return { response, baseUrl };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      errors.push(`${baseUrl}: ${error?.message || 'request failed'}`);
+    }
+  }
+
+  throw new Error(errors.join(' | '));
+};
 
 export const ALLOWED_FIELDS = {
   company: ['name', 'dedLicense', 'role', 'city'],
@@ -229,23 +259,27 @@ export const fetchOllamaSuggestion = async ({
   model = DEFAULT_MODEL,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 }) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: `${buildSystemPrompt(documentData, templateKey)}\nUser: ${userPrompt}\nAssistant:`,
-        stream: false,
-      }),
-      signal: controller.signal,
+    const { response, baseUrl } = await requestOllamaWithFallback({
+      path: '/api/generate',
+      timeoutMs,
+      options: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt: `${buildSystemPrompt(documentData, templateKey)}\nUser: ${userPrompt}\nAssistant:`,
+          stream: false,
+        }),
+      },
     });
 
     if (!response.ok) {
       const message = await response.text().catch(() => '');
+      const memoryReason = toMemoryFriendlyReason(message);
+      if (memoryReason) {
+        return { ok: false, reason: memoryReason, detail: message };
+      }
       throw new Error(`Ollama HTTP ${response.status}: ${message || 'request failed'}`);
     }
 
@@ -272,47 +306,50 @@ export const fetchOllamaSuggestion = async ({
       ok: true,
       suggestion: parsed,
       raw: data.response || '',
+      endpoint: baseUrl,
     };
   } catch (error) {
+    const memoryReason = toMemoryFriendlyReason(error?.message);
+    if (memoryReason) {
+      return { ok: false, reason: memoryReason, detail: error?.message };
+    }
     if (error.name === 'AbortError') {
       return { ok: false, reason: `Request timed out after ${timeoutMs}ms.` };
     }
     return {
       ok: false,
-      reason: `Local Ollama unreachable. Start Ollama at ${OLLAMA_BASE_URL} and pull a model (e.g. \`ollama pull ${DEFAULT_MODEL}\`).`,
+      reason: `Local Ollama unreachable. Start Ollama at ${OLLAMA_BASE_URLS[0]} and pull a model (e.g. \`ollama pull ${DEFAULT_MODEL}\`).`,
       detail: error.message,
     };
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
 export const checkOllamaAvailability = async (timeoutMs = 2000) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: controller.signal });
+    const { response } = await requestOllamaWithFallback({
+      path: '/api/tags',
+      timeoutMs,
+      options: {},
+    });
     return response.ok;
   } catch {
     return false;
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
 export const checkOllamaModelAvailable = async (model = DEFAULT_MODEL, timeoutMs = 2500) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: controller.signal });
+    const { response } = await requestOllamaWithFallback({
+      path: '/api/tags',
+      timeoutMs,
+      options: {},
+    });
     if (!response.ok) return false;
     const data = await response.json().catch(() => ({}));
     const models = Array.isArray(data?.models) ? data.models : [];
     return models.some((m) => String(m?.name || '').startsWith(model));
   } catch {
     return false;
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
@@ -330,23 +367,27 @@ export const fetchOllamaExtraction = async ({
     return { ok: false, reason: 'No text was extracted from the file.' };
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData }),
-        stream: false,
-      }),
-      signal: controller.signal,
+    const { response } = await requestOllamaWithFallback({
+      path: '/api/generate',
+      timeoutMs,
+      options: {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData }),
+          stream: false,
+        }),
+      },
     });
 
     if (!response.ok) {
       const message = await response.text().catch(() => '');
+      const memoryReason = toMemoryFriendlyReason(message);
+      if (memoryReason) {
+        return { ok: false, reason: memoryReason, detail: message };
+      }
       throw new Error(`Ollama HTTP ${response.status}: ${message || 'request failed'}`);
     }
 
@@ -380,15 +421,17 @@ export const fetchOllamaExtraction = async ({
       raw: data.response || '',
     };
   } catch (error) {
+    const memoryReason = toMemoryFriendlyReason(error?.message);
+    if (memoryReason) {
+      return { ok: false, reason: memoryReason, detail: error?.message };
+    }
     if (error.name === 'AbortError') {
       return { ok: false, reason: `Extraction timed out after ${timeoutMs}ms.` };
     }
     return {
       ok: false,
-      reason: `Local Ollama unreachable. Start Ollama at ${OLLAMA_BASE_URL} and pull a model (e.g. \`ollama pull ${DEFAULT_MODEL}\`).`,
+      reason: `Local Ollama unreachable. Start Ollama at ${OLLAMA_BASE_URLS[0]} and pull a model (e.g. \`ollama pull ${DEFAULT_MODEL}\`).`,
       detail: error.message,
     };
-  } finally {
-    clearTimeout(timeoutId);
   }
 };

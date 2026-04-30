@@ -46,6 +46,14 @@ vi.mock('../compliance/ruleEngine', () => ({
   evaluateCompliance: () => [],
 }));
 vi.mock('../templates/registry', () => ({
+  TEMPLATE_CONFIG: [
+    {
+      key: 'viewing',
+      label: 'Viewing Form',
+      supportsPdf: true,
+      component: () => <div>Viewing Template Stub</div>,
+    },
+  ],
   TEMPLATE_MAP: {
     viewing: {
       key: 'viewing',

@@ -5,6 +5,7 @@ import { addAuditLog } from '../store/auditSlice';
 import { pushToast } from '../store/uiSlice';
 import { selectDocument } from '../store/selectors';
 import {
+  DEFAULT_MODEL,
   checkOllamaAvailability,
   checkOllamaModelAvailable,
   fetchOllamaSuggestion,
@@ -51,7 +52,7 @@ const LlmFooterChatBox = () => {
         serverOk = await checkOllamaAvailability(2500);
         if (serverOk) {
           // eslint-disable-next-line no-await-in-loop
-          modelOk = await checkOllamaModelAvailable('mistral', 2500);
+          modelOk = await checkOllamaModelAvailable(DEFAULT_MODEL, 2500);
           if (modelOk) break;
         }
         // eslint-disable-next-line no-await-in-loop
@@ -69,7 +70,7 @@ const LlmFooterChatBox = () => {
             serverOk && modelOk
               ? '✅ Ollama is active. You can now update document fields via chat.'
               : serverOk
-                ? '⚠️ Ollama server is running, but model `mistral` is missing. Run `ollama pull mistral`.'
+                ? `⚠️ Ollama server is running, but model \`${DEFAULT_MODEL}\` is missing. Run \`ollama pull ${DEFAULT_MODEL}\`.`
                 : '⚠️ Ollama is not reachable. Start it with `ollama serve` and open chat again.',
         });
       }
@@ -84,7 +85,7 @@ const LlmFooterChatBox = () => {
     checkOllamaAvailability().then(async (ok) => {
       if (!cancelled) setAvailable(ok);
       if (!cancelled && ok) {
-        const modelOk = await checkOllamaModelAvailable('mistral', 2500);
+        const modelOk = await checkOllamaModelAvailable(DEFAULT_MODEL, 2500);
         setModelReady(modelOk);
       }
     });
@@ -124,7 +125,7 @@ const LlmFooterChatBox = () => {
     if (!ready) {
       appendMessage({
         role: 'assistant',
-        text: '⚠️ Ollama is offline. Run `ollama serve` (and `ollama pull mistral` once) to enable chat updates.',
+        text: `⚠️ Ollama is offline. Run \`ollama serve\` (and \`ollama pull ${DEFAULT_MODEL}\` once) to enable chat updates.`,
       });
       setIsThinking(false);
       return;
@@ -320,7 +321,9 @@ const LlmFooterChatBox = () => {
       return <span className="llm-chat__status llm-chat__status--ok">Local Ollama ready</span>;
     }
     if (available && !modelReady) {
-      return <span className="llm-chat__status llm-chat__status--err">Model missing (pull mistral)</span>;
+      return (
+        <span className="llm-chat__status llm-chat__status--err">Model missing (pull {DEFAULT_MODEL})</span>
+      );
     }
     return <span className="llm-chat__status llm-chat__status--err">Ollama not running</span>;
   })();
