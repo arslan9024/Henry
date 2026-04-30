@@ -94,4 +94,57 @@ describe('useTheme', () => {
     const { result } = renderHook(() => useTheme());
     expect(result.current.mode).toBe('system');
   });
+
+  it('does not throw and falls back to system when localStorage.getItem throws', async () => {
+    installMatchMedia(false);
+    const origGetItem = window.localStorage.getItem.bind(window.localStorage);
+    Object.defineProperty(window.localStorage, 'getItem', {
+      configurable: true,
+      writable: true,
+      value: () => {
+        throw new Error('storage blocked');
+      },
+    });
+    try {
+      const { default: useTheme } = await import('./useTheme');
+      const { result } = renderHook(() => useTheme());
+      // Fallback: read() returns 'system' on error.
+      expect(result.current.mode).toBe('system');
+    } finally {
+      Object.defineProperty(window.localStorage, 'getItem', {
+        configurable: true,
+        writable: true,
+        value: origGetItem,
+      });
+    }
+  });
+
+  it('does not throw when localStorage.setItem throws during persist', async () => {
+    installMatchMedia(false);
+    // Seed localStorage so read() starts us in 'light' mode (cycle: light→dark).
+    localStorage.setItem('henry.ui.theme', 'light');
+    // Now block setItem so the persist() call in the effect throws.
+    const origSetItem = window.localStorage.setItem.bind(window.localStorage);
+    Object.defineProperty(window.localStorage, 'setItem', {
+      configurable: true,
+      writable: true,
+      value: () => {
+        throw new DOMException('QuotaExceededError');
+      },
+    });
+    try {
+      const { default: useTheme } = await import('./useTheme');
+      const { result } = renderHook(() => useTheme());
+      expect(result.current.mode).toBe('light'); // seeded correctly
+      // Cycling light→dark triggers the effect which calls blocked setItem — must not throw.
+      act(() => result.current.cycle());
+      expect(result.current.mode).toBe('dark');
+    } finally {
+      Object.defineProperty(window.localStorage, 'setItem', {
+        configurable: true,
+        writable: true,
+        value: origSetItem,
+      });
+    }
+  });
 });

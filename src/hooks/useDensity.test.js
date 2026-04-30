@@ -42,4 +42,50 @@ describe('useDensity', () => {
     const { result } = renderHook(() => useDensity());
     expect(result.current.density).toBe('comfortable');
   });
+
+  it('does not throw and falls back to comfortable when localStorage.getItem throws', () => {
+    const origGetItem = window.localStorage.getItem.bind(window.localStorage);
+    Object.defineProperty(window.localStorage, 'getItem', {
+      configurable: true,
+      writable: true,
+      value: () => {
+        throw new Error('storage unavailable');
+      },
+    });
+    try {
+      const { result } = renderHook(() => useDensity());
+      expect(result.current.density).toBe('comfortable');
+    } finally {
+      Object.defineProperty(window.localStorage, 'getItem', {
+        configurable: true,
+        writable: true,
+        value: origGetItem,
+      });
+    }
+  });
+
+  it('does not throw when localStorage.setItem throws during persist', async () => {
+    const origSetItem = window.localStorage.setItem.bind(window.localStorage);
+    Object.defineProperty(window.localStorage, 'setItem', {
+      configurable: true,
+      writable: true,
+      value: () => {
+        throw new DOMException('QuotaExceededError');
+      },
+    });
+    try {
+      const { result } = renderHook(() => useDensity());
+      // Toggling triggers the effect which calls setItem — should not throw.
+      await act(() => {
+        result.current.toggle();
+      });
+      expect(result.current.density).toBe('compact');
+    } finally {
+      Object.defineProperty(window.localStorage, 'setItem', {
+        configurable: true,
+        writable: true,
+        value: origSetItem,
+      });
+    }
+  });
 });

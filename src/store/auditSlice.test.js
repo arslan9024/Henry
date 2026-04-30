@@ -142,4 +142,35 @@ describe('auditSlice — localStorage persistence', () => {
       });
     }
   });
+
+  it('loadInitial and persist skip gracefully when window.localStorage is absent', async () => {
+    // Temporarily hide localStorage from the module so the SSR/non-browser guard fires.
+    const savedStorage = window.localStorage;
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+    try {
+      vi.resetModules();
+      const fresh = await import('./auditSlice.js');
+      const store = configureStore({ reducer: { audit: fresh.default } });
+      // loadInitial should have returned [] (guard fired).
+      expect(store.getState().audit.logs).toEqual([]);
+      // persist inside addAuditLog should not throw either (guard fires).
+      expect(() => {
+        store.dispatch(
+          fresh.addAuditLog({ type: 'PRINT', template: 'viewing', timestamp: new Date().toISOString() }),
+        );
+      }).not.toThrow();
+      // The log is still recorded in Redux even if persistence is skipped.
+      expect(store.getState().audit.logs).toHaveLength(1);
+    } finally {
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        writable: true,
+        value: savedStorage,
+      });
+    }
+  });
 });

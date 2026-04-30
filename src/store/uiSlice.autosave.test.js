@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import reducer, {
+  pushToast,
   markDirty,
   markSaved,
   resetSaveState,
@@ -147,5 +148,90 @@ describe('uiSlice — document/* matcher preview branch', () => {
     store.dispatch(setPreviewError());
     store.dispatch({ type: 'document/setDocumentValue', payload: {} });
     expect(store.getState().ui.preview.status).toBe('error');
+  });
+});
+
+// ─── pushToast prepare branches ─────────────────────────────────────────────
+describe('uiSlice — pushToast prepare branch coverage', () => {
+  it('title defaults to empty string when omitted', () => {
+    const store = makeStore();
+    store.dispatch(pushToast({ tone: 'info', body: 'No title here' }));
+    const toast = store.getState().ui.toasts[0];
+    expect(toast.title).toBe('');
+  });
+
+  it('body defaults to empty string when omitted', () => {
+    const store = makeStore();
+    store.dispatch(pushToast({ tone: 'success', title: 'Done' }));
+    const toast = store.getState().ui.toasts[0];
+    expect(toast.body).toBe('');
+  });
+
+  it('action descriptor without payload sets payload to null', () => {
+    const store = makeStore();
+    store.dispatch(
+      pushToast({
+        title: 'Undo available',
+        action: { label: 'Undo', type: 'some/action' },
+      }),
+    );
+    const toast = store.getState().ui.toasts[0];
+    expect(toast.action).toEqual({ label: 'Undo', type: 'some/action', payload: null });
+  });
+
+  it('missing label or type in action results in null action', () => {
+    const store = makeStore();
+    store.dispatch(pushToast({ title: 'X', action: { label: 'Y' } })); // no type
+    expect(store.getState().ui.toasts[0].action).toBeNull();
+  });
+
+  it('no action arg produces null action field', () => {
+    const store = makeStore();
+    store.dispatch(pushToast({ title: 'plain' }));
+    expect(store.getState().ui.toasts[0].action).toBeNull();
+  });
+});
+
+// ─── markDirty / markSaved prepare fallback paths ────────────────────────────
+describe('uiSlice — markDirty/markSaved Date.now() fallback', () => {
+  it('markDirty() with no argument uses Date.now() for dirtyAt', () => {
+    const before = Date.now();
+    const store = makeStore();
+    store.dispatch(markDirty());
+    const after = Date.now();
+    const { dirtyAt } = selectSaveState(store.getState());
+    expect(dirtyAt).toBeGreaterThanOrEqual(before);
+    expect(dirtyAt).toBeLessThanOrEqual(after);
+  });
+
+  it('markDirty() with a non-number arg (undefined) still uses Date.now()', () => {
+    const before = Date.now();
+    const store = makeStore();
+    store.dispatch(markDirty('not-a-number'));
+    const after = Date.now();
+    const { dirtyAt } = selectSaveState(store.getState());
+    expect(dirtyAt).toBeGreaterThanOrEqual(before);
+    expect(dirtyAt).toBeLessThanOrEqual(after);
+  });
+
+  it('markSaved() with no argument uses Date.now() for lastSavedAt', () => {
+    const before = Date.now();
+    const store = makeStore();
+    store.dispatch(markDirty(1000));
+    store.dispatch(markSaved());
+    const after = Date.now();
+    const { lastSavedAt } = selectSaveState(store.getState());
+    expect(lastSavedAt).toBeGreaterThanOrEqual(before);
+    expect(lastSavedAt).toBeLessThanOrEqual(after);
+  });
+
+  it('markSaved() with a non-number arg still uses Date.now()', () => {
+    const before = Date.now();
+    const store = makeStore();
+    store.dispatch(markSaved('nope'));
+    const after = Date.now();
+    const { lastSavedAt } = selectSaveState(store.getState());
+    expect(lastSavedAt).toBeGreaterThanOrEqual(before);
+    expect(lastSavedAt).toBeLessThanOrEqual(after);
   });
 });

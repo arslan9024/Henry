@@ -82,4 +82,22 @@ describe('<ToastHost />', () => {
       vi.useRealTimers();
     }
   });
+
+  it('toast with durationMs=0 is not auto-dismissed', async () => {
+    vi.useFakeTimers();
+    try {
+      const store = buildTestStore();
+      store.dispatch(pushToast({ title: 'Persistent', durationMs: 0 }));
+      renderWithStore(<ToastHost />, { store });
+
+      act(() => {
+        vi.advanceTimersByTime(60000); // advance by 60 seconds
+      });
+
+      // Toast should still be present because durationMs=0 skips the timer.
+      expect(store.getState().ui.toasts).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

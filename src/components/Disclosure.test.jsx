@@ -106,4 +106,32 @@ describe('<Disclosure />', () => {
     const region = screen.getByRole('region', { name: /^a$/i });
     expect(header.getAttribute('aria-controls')).toBe(region.id);
   });
+
+  it('badge=null renders no badge node', () => {
+    render(
+      <Disclosure title="A" badge={null}>
+        <p />
+      </Disclosure>,
+    );
+    // The .disclosure__badge span should NOT be in the document.
+    expect(document.querySelector('.disclosure__badge')).toBeNull();
+  });
+
+  it('badge=undefined also renders no badge node', () => {
+    render(
+      <Disclosure title="A">
+        <p />
+      </Disclosure>,
+    );
+    expect(document.querySelector('.disclosure__badge')).toBeNull();
+  });
+
+  it('lazy=false renders children immediately without first opening', () => {
+    render(
+      <Disclosure title="A" lazy={false}>
+        <p>eager child</p>
+      </Disclosure>,
+    );
+    expect(screen.getByText('eager child')).toBeInTheDocument();
+  });
 });

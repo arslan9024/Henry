@@ -80,4 +80,69 @@ describe('useFocusTrap', () => {
     // Body still receives default focus; no error.
     expect(document.activeElement).toBe(document.body);
   });
+
+  it('Tab in a container with no focusable elements is prevented without throwing', async () => {
+    // A harness whose trap has no focusable children.
+    const EmptyTrap = () => {
+      const [active, setActive] = React.useState(false);
+      const ref = useFocusTrap(active);
+      return (
+        <>
+          <button data-testid="open" onClick={() => setActive(true)}>
+            open
+          </button>
+          {active ? (
+            <div ref={ref} data-testid="empty-trap" tabIndex={-1}>
+              <span>no buttons here</span>
+            </div>
+          ) : null}
+        </>
+      );
+    };
+    const user = userEvent.setup();
+    render(<EmptyTrap />);
+    await user.click(screen.getByTestId('open'));
+    await flushMicrotasks();
+    // Tab should not throw even with no focusable elements.
+    await expect(user.keyboard('{Tab}')).resolves.not.toThrow();
+  });
+
+  it('deactivating the trap tries to restore focus and handles stale/detached nodes silently', async () => {
+    // A harness that unmounts the previously-focused element before restoring focus.
+    const StaleFocusHarness = () => {
+      const [showTrigger, setShowTrigger] = React.useState(true);
+      const [active, setActive] = React.useState(false);
+      const ref = useFocusTrap(active);
+      return (
+        <>
+          {showTrigger ? (
+            <button
+              data-testid="trigger"
+              onClick={() => {
+                setShowTrigger(false); // unmount trigger before trap activates
+                setActive(true);
+              }}
+            >
+              open
+            </button>
+          ) : null}
+          {active ? (
+            <div ref={ref} data-testid="stale-trap" tabIndex={-1}>
+              <button data-testid="close" onClick={() => setActive(false)}>
+                close
+              </button>
+            </div>
+          ) : null}
+        </>
+      );
+    };
+    const user = userEvent.setup();
+    render(<StaleFocusHarness />);
+    // Click trigger — it disappears and trap activates.
+    await user.click(screen.getByTestId('trigger'));
+    await flushMicrotasks();
+    // Close the trap — previouslyFocusedRef points to the now-removed button.
+    // The catch block should swallow any focus error.
+    await expect(user.click(screen.getByTestId('close'))).resolves.not.toThrow();
+  });
 });

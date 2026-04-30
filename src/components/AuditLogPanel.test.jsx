@@ -203,4 +203,167 @@ describe('<AuditLogPanel />', () => {
     expect(toasts[0].tone).toBe('error');
     expect(toasts[0].title).toMatch(/import failed/i);
   });
+
+  it('shows "no matching entries" EmptyState when search has no results', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT', template: 'viewing' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const search = screen.getByRole('searchbox', { name: /search audit log/i });
+    await user.type(search, 'xyzabcnonexistent');
+
+    expect(screen.getByText(/no matching entries/i)).toBeInTheDocument();
+  });
+
+  it('cancelling the clear confirm dialog leaves logs intact', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT' })]);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // cancel
+    renderWithStore(<AuditLogPanel />, { store });
+
+    await user.click(screen.getByRole('button', { name: /clear/i }));
+
+    // Logs should be unchanged.
+    expect(store.getState().audit.logs).toHaveLength(1);
+    expect(store.getState().ui.toasts).toHaveLength(0);
+    confirmSpy.mockRestore();
+  });
+
+  it('export error path pushes an error toast when URL.createObjectURL throws', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT' })]);
+
+    if (!URL.createObjectURL) URL.createObjectURL = () => '';
+    const createUrl = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
+      throw new Error('Blob URLs unsupported');
+    });
+
+    renderWithStore(<AuditLogPanel />, { store });
+    await user.click(screen.getByRole('button', { name: /export/i }));
+
+    const toasts = store.getState().ui.toasts;
+    expect(toasts).toHaveLength(1);
+    expect(toasts[0].tone).toBe('error');
+    expect(toasts[0].title).toMatch(/export failed/i);
+    createUrl.mockRestore();
+  });
+
+  it('import skips processing when no file is selected (empty files array)', async () => {
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [] } });
+      await Promise.resolve();
+    });
+
+    // Logs should remain unchanged, no toast pushed.
+    expect(store.getState().audit.logs).toHaveLength(1);
+    expect(store.getState().ui.toasts).toHaveLength(0);
+  });
+
+  it('import (merge mode) de-dupes and merges entries newest-first', async () => {
+    const user = userEvent.setup();
+    const existing = entry({ type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' });
+    const store = seed([existing]);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true); // true = Merge
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [
+      // Duplicate of existing — should be de-duped.
+      { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' },
+      // New entry.
+      { type: 'PDF_GENERATED', fileName: 'merged.pdf', timestamp: '2026-04-23T09:00:00Z' },
+    ];
+    const fakeFile = {
+      name: 'merge.json',
+      text: () => Promise.resolve(JSON.stringify(importedEntries)),
+    };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Only 2 unique entries (not 3).
+    expect(store.getState().audit.logs).toHaveLength(2);
+    const types = store.getState().audit.logs.map((l) => l.type);
+    expect(types).toContain('PDF_GENERATED');
+    expect(types).toContain('PRINT');
+
+    const toasts = store.getState().ui.toasts;
+    expect(toasts[0].title).toMatch(/merged/i);
+    confirmSpy.mockRestore();
+  });
+
+  it('import error path: valid JSON but non-array pushes an error toast', async () => {
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const fakeFile = {
+      name: 'invalid.json',
+      text: () => Promise.resolve('{"type":"PRINT"}'), // object, not array
+    };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(store.getState().audit.logs).toHaveLength(1); // unchanged
+    expect(store.getState().ui.toasts[0].tone).toBe('error');
+  });
+
+  it('import error path: array of entries with no valid objects pushes an error toast', async () => {
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const fakeFile = {
+      name: 'empty-valid.json',
+      text: () => Promise.resolve('[null, 42, "string"]'), // no valid {type} objects
+    };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(store.getState().audit.logs).toHaveLength(1);
+    expect(store.getState().ui.toasts[0].tone).toBe('error');
+  });
+
+  it('summaryFor renders LLM and compliance event types correctly', () => {
+    const store = seed([
+      entry({ type: 'LLM_FIELD_APPLIED', section: 'tenant', field: 'name' }),
+      entry({
+        type: 'LLM_FILE_FIELD_APPLIED',
+        fileName: 'lease.pdf',
+        section: 'landlord',
+        field: 'name',
+        confidence: 0.92,
+      }),
+      entry({ type: 'LLM_FILE_FIELD_APPLIED', fileName: 'doc.pdf', section: 'property', field: 'ref' }), // no confidence
+      entry({ type: 'LLM_FILE_BULK_APPLIED', appliedCount: 5, fileName: 'bulk.pdf' }),
+      entry({ type: 'LLM_FILE_BULK_APPLIED', appliedCount: 1, fileName: 'single.pdf' }),
+      entry({ type: 'COMPLIANCE_CHECK_RUN', template: 'tenancy', warningCount: 2, criticalCount: 1 }),
+      entry({ type: 'COMPLIANCE_CHECK_RUN', template: 'offer', warningCount: 1, criticalCount: 0 }),
+      entry({ type: 'PDF_GENERATED', fileName: 'doc.pdf', persisted: 'drafts/' }),
+      entry({ type: 'PDF_GENERATED', fileName: 'doc.pdf' }), // no persisted
+      entry({ type: 'UNKNOWN_CUSTOM_TYPE' }), // default case
+    ]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    expect(screen.getByText(/chat applied tenant\.name/i)).toBeInTheDocument();
+    expect(screen.getByText(/from lease\.pdf.*landlord\.name.*92%/i)).toBeInTheDocument();
+    expect(screen.getByText(/bulk applied 5 fields from bulk\.pdf/i)).toBeInTheDocument();
+    expect(screen.getByText(/bulk applied 1 field from single\.pdf/i)).toBeInTheDocument();
+    expect(screen.getByText(/tenancy.*2 warnings.*1 critical/i)).toBeInTheDocument();
+    // The type text also appears in the filter <select> options, so use getAllByText.
+    expect(screen.getAllByText(/UNKNOWN_CUSTOM_TYPE/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/doc\.pdf → drafts\//i)).toBeInTheDocument();
+  });
 });
