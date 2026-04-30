@@ -133,6 +133,40 @@ const initialState = {
     // Inspection notes recorded at move-in.
     moveInInspectionNotes: '',
   },
+  // ─── Salary Certificate ──────────────────────────────────────────────────
+  salaryCertificate: {
+    referenceNumber: '',
+    issueDate: '',
+    issuedTo: '', // e.g. 'Emirates NBD Bank', 'Dubai Immigration'
+    validityDays: '30',
+    // Employee details
+    employeeName: '',
+    employeeId: '',
+    designation: '',
+    department: '',
+    joiningDate: '',
+    employmentType: 'Full-Time, Permanent',
+    nationality: '',
+    idType: 'Emirates ID',
+    idNumber: '',
+    passportNo: '',
+    // Salary components (numbers stored as strings to allow empty defaults)
+    currency: 'AED',
+    basicSalary: '',
+    housingAllowance: '',
+    transportAllowance: '',
+    otherAllowance: '',
+    otherAllowanceLabel: 'Other Allowance',
+    totalSalary: '', // auto-calculated if blank
+    salaryWordAmount: '', // e.g. 'Eight Thousand Five Hundred'
+    // Bank / WPS details (optional)
+    bankName: '',
+    bankAccountNo: '',
+    iban: '',
+    // Signatory
+    hrName: '',
+    hrDesignation: 'HR Manager',
+  },
   // ─── Standard Tenancy Addendum (RERA Master Config) ──────────────────────
   // Pre-populated when the “addendum” template is selected.
   // Locked defaults (securityDeposit, renewalCharges, maintenanceCap,

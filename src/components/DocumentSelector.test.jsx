@@ -62,12 +62,12 @@ describe('DocumentSelector', () => {
     expect(select).toBeInTheDocument();
   });
 
-  // 3. All 8 template keys present as <option> elements
-  it('renders all 8 template options', () => {
+  // 3. All 9 template keys present as <option> elements
+  it('renders all 9 template options', () => {
     renderSelector(store);
     const select = screen.getByRole('combobox');
-    // 8 templates defined in registry
-    expect(select.options).toHaveLength(8);
+    // 9 templates defined in registry (including Salary Certificate)
+    expect(select.options).toHaveLength(9);
   });
 
   // 4. Option values match expected template keys
@@ -84,6 +84,7 @@ describe('DocumentSelector', () => {
       'invoice',
       'keyHandover',
       'offer',
+      'salaryCertificate',
     ];
     for (const key of expectedKeys) {
       expect(optionValues).toContain(key);

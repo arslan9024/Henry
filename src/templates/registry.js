@@ -6,6 +6,7 @@ import TenancyContractTemplate from './TenancyContractTemplate';
 import InvoiceTemplate from './InvoiceTemplate';
 import KeyHandoverMaintenanceTemplate from './KeyHandoverMaintenanceTemplate';
 import OfferLetterTemplate from './OfferLetterTemplate';
+import SalaryCertificateTemplate from './SalaryCertificateTemplate';
 
 export const TEMPLATE_CONFIG = [
   {
@@ -50,6 +51,12 @@ export const TEMPLATE_CONFIG = [
     label: 'Property Offer Letter (Buying)',
     component: OfferLetterTemplate,
     supportsPdf: false,
+  },
+  {
+    key: 'salaryCertificate',
+    label: 'Salary Certificate',
+    component: SalaryCertificateTemplate,
+    supportsPdf: true,
   },
 ];
 
