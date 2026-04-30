@@ -80,6 +80,20 @@ export const ALLOWED_FIELDS = {
   renewal: ['currentRent', 'proposedRent', 'marketRent', 'renewalDate', 'noticeSentDate', 'noticeChannel'],
   occupancy: ['isSharedHousing', 'sharedHousingPermitNumber', 'ejariOccupantsRegistered', 'occupants'],
   eviction: ['reason', 'noticeDate', 'noticeMethod'],
+  tenancy: [
+    'specialConditions',
+    'maintenanceObligation',
+    'subletAllowed',
+    'petsAllowed',
+    'includedUtilities',
+    'ejariNumber',
+    'ejariRegistrationDate',
+    'noticePeriodDays',
+    'gracePeriodDays',
+    'checklistCompleted',
+    'keyHandoverDate',
+    'moveInInspectionNotes',
+  ],
   // Scalar addendum fields (arrays landlordServices / additionalClauses are
   // edited via updateDocumentSection, not the scalar setDocumentValue path).
   addendum: [
@@ -95,6 +109,35 @@ export const ALLOWED_FIELDS = {
     'legalReference',
     'witnessName',
     'witnessIdNo',
+  ],
+  salaryCertificate: [
+    'referenceNumber',
+    'issueDate',
+    'issuedTo',
+    'validityDays',
+    'employeeName',
+    'employeeId',
+    'designation',
+    'department',
+    'joiningDate',
+    'employmentType',
+    'nationality',
+    'idType',
+    'idNumber',
+    'passportNo',
+    'currency',
+    'basicSalary',
+    'housingAllowance',
+    'transportAllowance',
+    'otherAllowance',
+    'otherAllowanceLabel',
+    'totalSalary',
+    'salaryWordAmount',
+    'bankName',
+    'bankAccountNo',
+    'iban',
+    'hrName',
+    'hrDesignation',
   ],
 };
 
@@ -250,6 +293,22 @@ export const checkOllamaAvailability = async (timeoutMs = 2000) => {
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: controller.signal });
     return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+export const checkOllamaModelAvailable = async (model = DEFAULT_MODEL, timeoutMs = 2500) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: controller.signal });
+    if (!response.ok) return false;
+    const data = await response.json().catch(() => ({}));
+    const models = Array.isArray(data?.models) ? data.models : [];
+    return models.some((m) => String(m?.name || '').startsWith(model));
   } catch {
     return false;
   } finally {

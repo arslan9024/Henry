@@ -6,6 +6,7 @@ import { pushToast } from '../store/uiSlice';
 import { selectDocument } from '../store/selectors';
 import {
   checkOllamaAvailability,
+  checkOllamaModelAvailable,
   fetchOllamaSuggestion,
   fetchOllamaExtraction,
 } from '../services/llmService';
@@ -23,18 +24,71 @@ const LlmFooterChatBox = () => {
   const [pendingSuggestion, setPendingSuggestion] = useState(null);
   const [isThinking, setIsThinking] = useState(false);
   const [available, setAvailable] = useState(null);
+  const [modelReady, setModelReady] = useState(null);
+  const [isActivating, setIsActivating] = useState(false);
   const [extraction, setExtraction] = useState(null); // { fileName, suggestions[] }
   const [extractionStatus, setExtractionStatus] = useState('idle'); // idle|reading|querying|error
   const fileInputRef = useRef(null);
   const listRef = useRef(null);
 
+  const activateOllama = async ({ silent = false } = {}) => {
+    setIsActivating(true);
+    if (!silent) {
+      appendMessage({ role: 'assistant', text: '🔌 Activating local Ollama… checking connection.' });
+    }
+
+    // Retry a few times so opening chat right after launching ollama serve still works.
+    let serverOk = false;
+    let modelOk = false;
+    for (let i = 0; i < 4; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      serverOk = await checkOllamaAvailability(2500);
+      if (serverOk) {
+        // eslint-disable-next-line no-await-in-loop
+        modelOk = await checkOllamaModelAvailable('mistral', 2500);
+        if (modelOk) break;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
+
+    setAvailable(serverOk);
+    setModelReady(modelOk);
+    setIsActivating(false);
+
+    if (!silent) {
+      appendMessage({
+        role: 'assistant',
+        text:
+          serverOk && modelOk
+            ? '✅ Ollama is active. You can now update document fields via chat.'
+            : serverOk
+              ? '⚠️ Ollama server is running, but model `mistral` is missing. Run `ollama pull mistral`.'
+              : '⚠️ Ollama is not reachable. Start it with `ollama serve` and open chat again.',
+      });
+    }
+
+    return serverOk && modelOk;
+  };
+
   useEffect(() => {
     let cancelled = false;
-    checkOllamaAvailability().then((ok) => {
+    checkOllamaAvailability().then(async (ok) => {
       if (!cancelled) setAvailable(ok);
+      if (!cancelled && ok) {
+        const modelOk = await checkOllamaModelAvailable('mistral', 2500);
+        setModelReady(modelOk);
+      }
     });
+
+    const onActivate = () => {
+      if (!cancelled) activateOllama({ silent: false });
+    };
+
+    window.addEventListener('henry:activate-ollama', onActivate);
     return () => {
       cancelled = true;
+      window.removeEventListener('henry:activate-ollama', onActivate);
     };
   }, []);
 
@@ -56,6 +110,20 @@ const LlmFooterChatBox = () => {
     setInput('');
     setPendingSuggestion(null);
     setIsThinking(true);
+
+    let ready = available;
+    if (!ready) {
+      ready = await activateOllama({ silent: true });
+    }
+
+    if (!ready) {
+      appendMessage({
+        role: 'assistant',
+        text: '⚠️ Ollama is offline. Run `ollama serve` (and `ollama pull mistral` once) to enable chat updates.',
+      });
+      setIsThinking(false);
+      return;
+    }
 
     const result = await fetchOllamaSuggestion({
       userPrompt: trimmed,
@@ -241,8 +309,14 @@ const LlmFooterChatBox = () => {
   const isBusy = isThinking || extractionStatus === 'reading' || extractionStatus === 'querying';
 
   const statusBadge = (() => {
+    if (isActivating) return <span className="llm-chat__status">Activating Ollama…</span>;
     if (available === null) return <span className="llm-chat__status">Checking Ollama…</span>;
-    if (available) return <span className="llm-chat__status llm-chat__status--ok">Local Ollama ready</span>;
+    if (available && modelReady) {
+      return <span className="llm-chat__status llm-chat__status--ok">Local Ollama ready</span>;
+    }
+    if (available && !modelReady) {
+      return <span className="llm-chat__status llm-chat__status--err">Model missing (pull mistral)</span>;
+    }
     return <span className="llm-chat__status llm-chat__status--err">Ollama not running</span>;
   })();
 
@@ -250,7 +324,21 @@ const LlmFooterChatBox = () => {
     <section className="llm-chat print-hidden" aria-label="Henry AI assistant chat">
       <header className="llm-chat__header">
         <strong>Ask Henry</strong>
-        {statusBadge}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {statusBadge}
+          {!available || !modelReady ? (
+            <button
+              type="button"
+              className="utility-btn secondary"
+              onClick={() => activateOllama({ silent: false })}
+              disabled={isActivating}
+              aria-label="Activate Ollama"
+              title="Activate Ollama"
+            >
+              {isActivating ? 'Activating…' : 'Activate Ollama'}
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <div className="llm-chat__messages" ref={listRef} aria-live="polite">

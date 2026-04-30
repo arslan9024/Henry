@@ -36,6 +36,11 @@ const ChatDock = () => {
   const handleOpen = useCallback(() => {
     setOpen(true);
     setHasOpened(true);
+    window.dispatchEvent(
+      new CustomEvent('henry:activate-ollama', {
+        detail: { source: 'chat-dock-open', at: new Date().toISOString() },
+      }),
+    );
   }, []);
 
   // Esc closes the panel; Ctrl+/ (or Cmd+/) toggles it from anywhere.
