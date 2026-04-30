@@ -8,6 +8,7 @@ import InfoArticlesPanel from './InfoArticlesPanel';
 import FooterActionBar from './FooterActionBar';
 import ChatDock from './ChatDock';
 import PrintPreview from './PrintPreview';
+import DocumentWorkAreaForm from './DocumentWorkAreaForm';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
 import { evaluateCompliance } from '../compliance/ruleEngine';
@@ -24,8 +25,7 @@ const readRail = () => {
   } catch {
     /* ignore */
   }
-  // Default: collapsed on narrower viewports.
-  if (typeof window !== 'undefined' && window.innerWidth < 1280) return 'collapsed';
+  // Default expanded so template selector is always visible for operators.
   return 'expanded';
 };
 
@@ -247,6 +247,7 @@ const DocumentHubPage = () => {
         )}
 
         <section className="preview-area" aria-live="polite">
+          <DocumentWorkAreaForm />
           {previewMode ? (
             <PrintPreview />
           ) : ActiveTemplateComponent ? (

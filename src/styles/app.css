@@ -374,6 +374,38 @@ body {
   grid-area: center;
 }
 
+.workarea-form {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workarea-form__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.workarea-form__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.workarea-form__subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
 .template-nav,
 .info-articles-panel,
 .checklist-panel {
