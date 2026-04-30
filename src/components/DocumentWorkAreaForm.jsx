@@ -2,15 +2,14 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDocumentValue } from '../store/documentSlice';
 import Disclosure from './Disclosure';
+import DocumentSelector from './DocumentSelector';
 import { FormField, Input, Textarea } from './ui';
+import { selectActiveTemplateLabel } from '../store/selectors';
 
 const DocumentWorkAreaForm = () => {
   const dispatch = useDispatch();
   const activeTemplate = useSelector((state) => state.template.activeTemplate);
-  const activeTemplateLabel = useSelector((state) => {
-    const key = state.template.activeTemplate;
-    return state?.template?.activeTemplateLabel || key;
-  });
+  const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const documentData = useSelector((state) => state.document);
 
   const setField = (section, field) => (event) => {
@@ -25,6 +24,27 @@ const DocumentWorkAreaForm = () => {
           Template: <strong>{activeTemplateLabel}</strong>
         </p>
       </header>
+
+      <div className="workarea-form__selector-row">
+        <DocumentSelector />
+      </div>
+
+      <div className="workarea-form__flow" role="note" aria-label="Document workflow guidance">
+        <span>1) Select template</span>
+        <span>2) Fill fields manually or use Ask Henry chat</span>
+        <span>3) Toggle Print Preview</span>
+        <span>4) Generate PDF from footer</span>
+        <button
+          type="button"
+          className="utility-btn secondary"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('henry:open-chat'));
+          }}
+          aria-label="Open Ask Henry chat"
+        >
+          💬 Open Ask Henry
+        </button>
+      </div>
 
       <Disclosure title="Property Details" icon="🏠" defaultOpen>
         <div className="viewing-grid">

@@ -193,7 +193,9 @@ function renderE2E(store) {
 }
 
 function getSelect() {
-  return screen.getByRole('combobox');
+  // Multiple selectors can exist (left sidebar + working area);
+  // use the first visible selector as the interaction target.
+  return screen.getAllByRole('combobox')[0];
 }
 
 function switchTemplate(key) {

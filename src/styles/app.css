@@ -406,6 +406,37 @@ body {
   color: #6b7280;
 }
 
+.workarea-form__selector-row {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fcfcfd;
+}
+
+.workarea-form__selector-row .doc-selector-wrap {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.workarea-form__flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.workarea-form__flow span {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
 .template-nav,
 .info-articles-panel,
 .checklist-panel {

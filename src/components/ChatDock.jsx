@@ -43,6 +43,12 @@ const ChatDock = () => {
     );
   }, []);
 
+  useEffect(() => {
+    const onOpenChat = () => handleOpen();
+    window.addEventListener('henry:open-chat', onOpenChat);
+    return () => window.removeEventListener('henry:open-chat', onOpenChat);
+  }, [handleOpen]);
+
   // Esc closes the panel; Ctrl+/ (or Cmd+/) toggles it from anywhere.
   useEffect(() => {
     const onKey = (e) => {

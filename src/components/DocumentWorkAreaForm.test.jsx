@@ -27,6 +27,9 @@ describe('DocumentWorkAreaForm', () => {
     );
 
     expect(screen.getByText(/Working Area — Manual Input/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Select document for preview \/ print/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\) Select template/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Open Ask Henry chat/i })).toBeInTheDocument();
     expect(screen.getByText(/Property Details/i)).toBeInTheDocument();
     expect(screen.getByText(/Tenant Details/i)).toBeInTheDocument();
     expect(screen.getByText(/Financial Details/i)).toBeInTheDocument();

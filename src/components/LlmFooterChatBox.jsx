@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDocumentValue } from '../store/documentSlice';
 import { addAuditLog } from '../store/auditSlice';
@@ -31,45 +31,53 @@ const LlmFooterChatBox = () => {
   const fileInputRef = useRef(null);
   const listRef = useRef(null);
 
-  const activateOllama = async ({ silent = false } = {}) => {
-    setIsActivating(true);
-    if (!silent) {
-      appendMessage({ role: 'assistant', text: '🔌 Activating local Ollama… checking connection.' });
-    }
+  const appendMessage = useCallback(
+    (msg) => setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]),
+    [],
+  );
 
-    // Retry a few times so opening chat right after launching ollama serve still works.
-    let serverOk = false;
-    let modelOk = false;
-    for (let i = 0; i < 4; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      serverOk = await checkOllamaAvailability(2500);
-      if (serverOk) {
-        // eslint-disable-next-line no-await-in-loop
-        modelOk = await checkOllamaModelAvailable('mistral', 2500);
-        if (modelOk) break;
+  const activateOllama = useCallback(
+    async ({ silent = false } = {}) => {
+      setIsActivating(true);
+      if (!silent) {
+        appendMessage({ role: 'assistant', text: '🔌 Activating local Ollama… checking connection.' });
       }
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise((resolve) => setTimeout(resolve, 600));
-    }
 
-    setAvailable(serverOk);
-    setModelReady(modelOk);
-    setIsActivating(false);
+      // Retry a few times so opening chat right after launching ollama serve still works.
+      let serverOk = false;
+      let modelOk = false;
+      for (let i = 0; i < 4; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        serverOk = await checkOllamaAvailability(2500);
+        if (serverOk) {
+          // eslint-disable-next-line no-await-in-loop
+          modelOk = await checkOllamaModelAvailable('mistral', 2500);
+          if (modelOk) break;
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
 
-    if (!silent) {
-      appendMessage({
-        role: 'assistant',
-        text:
-          serverOk && modelOk
-            ? '✅ Ollama is active. You can now update document fields via chat.'
-            : serverOk
-              ? '⚠️ Ollama server is running, but model `mistral` is missing. Run `ollama pull mistral`.'
-              : '⚠️ Ollama is not reachable. Start it with `ollama serve` and open chat again.',
-      });
-    }
+      setAvailable(serverOk);
+      setModelReady(modelOk);
+      setIsActivating(false);
 
-    return serverOk && modelOk;
-  };
+      if (!silent) {
+        appendMessage({
+          role: 'assistant',
+          text:
+            serverOk && modelOk
+              ? '✅ Ollama is active. You can now update document fields via chat.'
+              : serverOk
+                ? '⚠️ Ollama server is running, but model `mistral` is missing. Run `ollama pull mistral`.'
+                : '⚠️ Ollama is not reachable. Start it with `ollama serve` and open chat again.',
+        });
+      }
+
+      return serverOk && modelOk;
+    },
+    [appendMessage],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -90,16 +98,13 @@ const LlmFooterChatBox = () => {
       cancelled = true;
       window.removeEventListener('henry:activate-ollama', onActivate);
     };
-  }, []);
+  }, [activateOllama]);
 
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
     }
   }, [messages, pendingSuggestion, extraction]);
-
-  const appendMessage = (msg) =>
-    setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
