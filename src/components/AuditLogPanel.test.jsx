@@ -336,6 +336,34 @@ describe('<AuditLogPanel />', () => {
     expect(store.getState().ui.toasts[0].tone).toBe('error');
   });
 
+  it('search handles JSON.stringify failure (BigInt payload) without crashing', async () => {
+    const user = userEvent.setup();
+    const withBigInt = entry({ type: 'PRINT', template: 'viewing', amount: 10n });
+    const store = seed([withBigInt]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const search = screen.getByRole('searchbox', { name: /search audit log/i });
+    // Doesn't match type/summary, so code falls through to JSON.stringify catch path.
+    await user.type(search, 'definitely-not-present');
+
+    expect(screen.getByText(/no matching entries/i)).toBeInTheDocument();
+  });
+
+  it('clicking Import triggers the hidden file input click', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput).toBeTruthy();
+    const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {});
+
+    await user.click(screen.getByRole('button', { name: /import/i }));
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+
+    clickSpy.mockRestore();
+  });
+
   it('summaryFor renders LLM and compliance event types correctly', () => {
     const store = seed([
       entry({ type: 'LLM_FIELD_APPLIED', section: 'tenant', field: 'name' }),
