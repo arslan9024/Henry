@@ -5,6 +5,8 @@ import EjariPDF from './EjariPDF';
 import ViewingAgreementPDF from './ViewingAgreementPDF';
 import AddendumPDF from './AddendumPDF';
 import SalaryCertificatePDF from './SalaryCertificatePDF';
+import InvoiceDocument from './InvoiceDocument';
+import KeyHandoverDocument from './KeyHandoverDocument';
 import { buildGeneratedCopyFileName, buildPdfFileName } from './pdfHelpers';
 
 const pickPdfComponent = (templateKey) => {
@@ -12,6 +14,8 @@ const pickPdfComponent = (templateKey) => {
   if (templateKey === 'viewing') return ViewingAgreementPDF;
   if (templateKey === 'addendum') return AddendumPDF;
   if (templateKey === 'salaryCertificate') return SalaryCertificatePDF;
+  if (templateKey === 'invoice') return InvoiceDocument;
+  if (templateKey === 'keyHandover') return KeyHandoverDocument;
   if (templateKey === 'booking' || templateKey === 'bookingGov') return QuotationPDF;
   return null;
 };

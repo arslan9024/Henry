@@ -91,11 +91,12 @@ describe('<AuditLogPanel />', () => {
   it('clear pushes a warning toast carrying an Undo action descriptor', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT' }), entry({ type: 'PRINT' })]);
-    // Stub confirm so the destructive path runs.
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderWithStore(<AuditLogPanel />, { store });
 
-    await user.click(screen.getByRole('button', { name: /clear/i }));
+    // First click shows inline confirmation dialog.
+    await user.click(screen.getByRole('button', { name: /✕ Clear/i }));
+    // Second click on the "Confirm" button in the alertdialog.
+    await user.click(screen.getByRole('button', { name: /^Confirm$/i }));
 
     // Logs are gone, but a toast with Undo action should have been pushed.
     expect(store.getState().audit.logs).toEqual([]);
@@ -106,7 +107,6 @@ describe('<AuditLogPanel />', () => {
       action: { label: 'Undo', type: 'audit/restoreAuditLogs' },
     });
     expect(toasts[0].action.payload).toHaveLength(2);
-    confirmSpy.mockRestore();
   });
 
   it('export creates a JSON blob and triggers an <a download> click + success toast', async () => {
@@ -141,7 +141,6 @@ describe('<AuditLogPanel />', () => {
   it('import (replace mode) parses the JSON file, restores entries, and offers Undo', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' })]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // false = Replace
     renderWithStore(<AuditLogPanel />, { store });
 
     const importedEntries = [
@@ -167,6 +166,9 @@ describe('<AuditLogPanel />', () => {
       await Promise.resolve();
     });
 
+    // Inline confirmation dialog is now showing — click "Replace".
+    await user.click(screen.getByRole('button', { name: /^Replace$/i }));
+
     // Replace mode → only the 2 imported entries remain.
     const finalLogs = store.getState().audit.logs;
     expect(finalLogs).toHaveLength(2);
@@ -178,8 +180,6 @@ describe('<AuditLogPanel />', () => {
     expect(toasts[0].title).toMatch(/replaced/i);
     expect(toasts[0].action).toMatchObject({ label: 'Undo', type: 'audit/restoreAuditLogs' });
     expect(toasts[0].action.payload).toHaveLength(1);
-
-    confirmSpy.mockRestore();
   });
 
   it('import error path: malformed JSON pushes an error toast and leaves logs untouched', async () => {
@@ -267,11 +267,10 @@ describe('<AuditLogPanel />', () => {
     const user = userEvent.setup();
     const existing = entry({ type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' });
     const store = seed([existing]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true); // true = Merge
     renderWithStore(<AuditLogPanel />, { store });
 
     const importedEntries = [
-      // Duplicate of existing — should be de-duped.
+      // Duplicate of existing — should be de-duped (same timestamp+type).
       { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' },
       // New entry.
       { type: 'PDF_GENERATED', fileName: 'merged.pdf', timestamp: '2026-04-23T09:00:00Z' },
@@ -287,6 +286,9 @@ describe('<AuditLogPanel />', () => {
       await Promise.resolve();
     });
 
+    // Inline confirmation dialog is now showing — click "Merge".
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
     // Only 2 unique entries (not 3).
     expect(store.getState().audit.logs).toHaveLength(2);
     const types = store.getState().audit.logs.map((l) => l.type);
@@ -295,7 +297,6 @@ describe('<AuditLogPanel />', () => {
 
     const toasts = store.getState().ui.toasts;
     expect(toasts[0].title).toMatch(/merged/i);
-    confirmSpy.mockRestore();
   });
 
   it('import error path: valid JSON but non-array pushes an error toast', async () => {

@@ -186,6 +186,27 @@ field=null, value=null and a rationale explaining the field is locked by policy.
 --- END MASTER ADDENDUM CONFIGURATION ---
 `;
 
+/**
+ * Build a compact context projection of the document for prompt injection.
+ * Only includes non-empty scalar fields (skips arrays, empty strings, null, etc.)
+ * to keep token count low for small models like llama3.2:1b.
+ */
+const buildDocumentContext = (documentData, templateKey) => {
+  const ctx = {};
+  // Always include the template key so the model knows the active form type.
+  ctx._template = templateKey || 'unknown';
+  for (const [section, value] of Object.entries(documentData || {})) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) continue;
+    const relevant = {};
+    for (const [field, fVal] of Object.entries(value)) {
+      if (fVal === null || fVal === undefined || fVal === '' || Array.isArray(fVal)) continue;
+      relevant[field] = fVal;
+    }
+    if (Object.keys(relevant).length > 0) ctx[section] = relevant;
+  }
+  return JSON.stringify(ctx);
+};
+
 const buildSystemPrompt = (
   documentData,
   templateKey = '',
@@ -200,8 +221,8 @@ ${formatAllowedFieldsForPrompt()}
 If the user request is ambiguous or targets a field not in the allowed list, respond with:
 {"section":null,"field":null,"value":null,"rationale":"<why you cannot apply>"}
 ${templateKey === 'addendum' ? ADDENDUM_LOCKED_RULES : ''}
-Current document state (for context only — do not echo back):
-${JSON.stringify(documentData)}
+Current document state (non-empty fields only — for context, do not echo back):
+${buildDocumentContext(documentData, templateKey)}
 `;
 
 const buildExtractionPrompt = ({
@@ -209,6 +230,7 @@ const buildExtractionPrompt = ({
   fileName,
   fileKind,
   documentData,
+  templateKey = '',
 }) => `You are Henry, a real-estate document field extractor.
 
 You will be given OCR/PDF text from a file the user uploaded. Identify any fields you can confidently extract for a White Caves Real Estate document.
@@ -224,8 +246,8 @@ ${formatAllowedFieldsForPrompt()}
 - Do not invent values. If nothing is confidently extractable, return {"suggestions":[]}.
 - Do not echo or summarise the source text. Only return the JSON object.
 
-Current document state (for de-duplication context only — do not echo back):
-${JSON.stringify(documentData)}
+Current document state (non-empty fields only — for de-duplication, do not echo back):
+${buildDocumentContext(documentData, templateKey)}
 
 File name: ${fileName}
 File kind: ${fileKind}

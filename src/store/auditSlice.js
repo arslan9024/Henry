@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, nanoid } from '@reduxjs/toolkit';
 import { STORAGE_KEY_AUDIT } from '../constants/storageKeys';
 
 const MAX_ENTRIES = 100;
@@ -32,12 +32,17 @@ const auditSlice = createSlice({
   name: 'audit',
   initialState,
   reducers: {
-    addAuditLog: (state, action) => {
-      state.logs.unshift(action.payload);
-      if (state.logs.length > MAX_ENTRIES) {
-        state.logs = state.logs.slice(0, MAX_ENTRIES);
-      }
-      // Side effect (localStorage persistence) handled by listener middleware.
+    addAuditLog: {
+      reducer: (state, action) => {
+        state.logs.unshift(action.payload);
+        if (state.logs.length > MAX_ENTRIES) {
+          state.logs = state.logs.slice(0, MAX_ENTRIES);
+        }
+        // Side effect (localStorage persistence) handled by listener middleware.
+      },
+      // Automatically add a unique `id` to every audit entry so deduplication
+      // on import can use `id` instead of the collision-prone `timestamp|type` key.
+      prepare: (payload) => ({ payload: { id: nanoid(), ...payload } }),
     },
     clearAuditLogs: (state) => {
       state.logs = [];
