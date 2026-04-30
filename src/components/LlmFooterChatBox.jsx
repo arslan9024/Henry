@@ -335,11 +335,10 @@ const LlmFooterChatBox = () => {
   };
 
   const handleExtractionDismiss = (key) => {
-    // _key format is `${section}.${field}.${index}` — parse section+field for removal.
+    // key format is `${section}.${field}.${index}` — remove by exact index match.
     setExtraction((prev) => {
       if (!prev) return prev;
       const parts = key.split('.');
-      // Remove first occurrence of a suggestion matching section+field from the key.
       const section = parts[0];
       const field = parts[1];
       const idx = parseInt(parts[2], 10);

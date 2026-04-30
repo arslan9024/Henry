@@ -206,7 +206,8 @@ const AuditLogPanel = () => {
       ? // De-dup: use `id` when present (new entries), also match by timestamp|type for legacy.
         (() => {
           const seenIds = new Set(logs.filter((l) => l.id).map((l) => l.id));
-          const seenLegacy = new Set(logs.map((l) => `${l.timestamp}|${l.type}`));
+          // Only use legacy dedup for logs that don't have an id (backward compatibility).
+          const seenLegacy = new Set(logs.filter((l) => !l.id).map((l) => `${l.timestamp}|${l.type}`));
           const additions = valid.filter((v) => {
             if (v.id && seenIds.has(v.id)) return false;
             if (seenLegacy.has(`${v.timestamp}|${v.type}`)) return false;

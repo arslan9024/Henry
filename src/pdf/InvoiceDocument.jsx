@@ -224,7 +224,7 @@ const InvoiceDocument = ({ documentData }) => {
   const payments = documentData?.payments || {};
   const property = documentData?.property || {};
 
-  const docDate = safe(formatDateDisplay(property.documentDate || new Date()), formatDateDisplay(new Date()));
+  const docDate = formatDateDisplay(property.documentDate || new Date());
 
   const agencyFee = Number(payments.agencyFee || 0);
   const ejariFee = Number(payments.ejariFee || 0);
