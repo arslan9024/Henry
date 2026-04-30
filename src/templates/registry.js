@@ -8,6 +8,9 @@ import KeyHandoverMaintenanceTemplate from './KeyHandoverMaintenanceTemplate';
 import OfferLetterTemplate from './OfferLetterTemplate';
 import SalaryCertificateTemplate from './SalaryCertificateTemplate';
 
+/** Single source-of-truth for the current template revision. */
+const CURRENT_TEMPLATE_VERSION = '2026.04';
+
 export const TEMPLATE_CONFIG = [
   {
     key: 'viewing',
@@ -17,7 +20,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -28,7 +31,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: false,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -39,7 +42,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -50,7 +53,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -61,29 +64,29 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
     key: 'invoice',
     label: 'Invoice',
     component: InvoiceTemplate,
-    supportsPdf: false,
+    supportsPdf: true,
     sourceOfTruth: {
       immutable: true,
       governmentIssued: false,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
     key: 'keyHandover',
     label: 'Key Handover and Maintenance Confirmation',
     component: KeyHandoverMaintenanceTemplate,
-    supportsPdf: false,
+    supportsPdf: true,
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -94,7 +97,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: false,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
   {
@@ -105,7 +108,7 @@ export const TEMPLATE_CONFIG = [
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,
-      templateVersion: '2026.04',
+      templateVersion: CURRENT_TEMPLATE_VERSION,
     },
   },
 ];

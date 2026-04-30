@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PrintButton from './PrintButton';
-
-const FOOTER_BAR_KEY = 'henry.ui.footerBar';
+import { STORAGE_KEY_FOOTER_BAR } from '../constants/storageKeys';
 
 const readFooterState = () => {
   try {
-    const v = localStorage.getItem(FOOTER_BAR_KEY);
+    const v = localStorage.getItem(STORAGE_KEY_FOOTER_BAR);
     if (v === 'collapsed') return true;
   } catch {
     /* ignore */
@@ -30,7 +29,7 @@ const FooterActionBar = ({
 
   useEffect(() => {
     try {
-      localStorage.setItem(FOOTER_BAR_KEY, collapsed ? 'collapsed' : 'expanded');
+      localStorage.setItem(STORAGE_KEY_FOOTER_BAR, collapsed ? 'collapsed' : 'expanded');
     } catch {
       /* ignore */
     }

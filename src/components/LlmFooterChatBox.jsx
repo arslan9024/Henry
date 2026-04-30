@@ -82,22 +82,21 @@ const LlmFooterChatBox = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Check Ollama availability on mount and activate silently if available.
     checkOllamaAvailability().then(async (ok) => {
       if (!cancelled) setAvailable(ok);
       if (!cancelled && ok) {
         const modelOk = await checkOllamaModelAvailable(DEFAULT_MODEL, 2500);
         setModelReady(modelOk);
+      } else if (!cancelled && !ok) {
+        // Auto-activate (silent) when the chat panel first mounts so users
+        // don't need to click "Activate Ollama" manually.
+        activateOllama({ silent: true });
       }
     });
 
-    const onActivate = () => {
-      if (!cancelled) activateOllama({ silent: false });
-    };
-
-    window.addEventListener('henry:activate-ollama', onActivate);
     return () => {
       cancelled = true;
-      window.removeEventListener('henry:activate-ollama', onActivate);
     };
   }, [activateOllama]);
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
+import { toggleLeftRail } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -17,6 +18,7 @@ const THEME_NEXT = {
 };
 
 const TopNavbar = React.memo(() => {
+  const dispatch = useDispatch();
   const policyMeta = useSelector(selectPolicyMeta);
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const henry = useSelector(selectHenry);
@@ -59,7 +61,7 @@ const TopNavbar = React.memo(() => {
       <button
         type="button"
         className="top-navbar__hamburger"
-        onClick={() => window.dispatchEvent(new CustomEvent('henry:toggle-left-rail'))}
+        onClick={() => dispatch(toggleLeftRail())}
         aria-label="Toggle sidebar"
         title="Toggle sidebar"
       >
