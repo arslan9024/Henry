@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import reducer, { markDirty, markSaved, resetSaveState, selectSaveState } from '../store/uiSlice';
+import reducer, {
+  markDirty,
+  markSaved,
+  resetSaveState,
+  selectSaveState,
+  setPreviewReady,
+  setPreviewRendering,
+  setPreviewError,
+  resetPreviewStatus,
+} from '../store/uiSlice';
 
 const makeStore = () => configureStore({ reducer: { ui: reducer } });
 
@@ -58,5 +67,85 @@ describe('uiSlice — autosave (T-39)', () => {
       dirtyAt: null,
       lastSavedAt: null,
     });
+  });
+});
+
+describe('uiSlice — preview status actions', () => {
+  it('starts with preview idle', () => {
+    const store = makeStore();
+    expect(store.getState().ui.preview.status).toBe('idle');
+    expect(store.getState().ui.preview.lastRenderedAt).toBeNull();
+  });
+
+  it('setPreviewRendering sets status to rendering', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewRendering());
+    expect(store.getState().ui.preview.status).toBe('rendering');
+  });
+
+  it('setPreviewReady sets status to ready and records timestamp', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewReady(9999));
+    expect(store.getState().ui.preview.status).toBe('ready');
+    expect(store.getState().ui.preview.lastRenderedAt).toBe(9999);
+  });
+
+  it('setPreviewReady defaults to current time when no timestamp given', () => {
+    const store = makeStore();
+    const before = Date.now();
+    store.dispatch(setPreviewReady());
+    const after = Date.now();
+    const ts = store.getState().ui.preview.lastRenderedAt;
+    expect(ts).toBeGreaterThanOrEqual(before);
+    expect(ts).toBeLessThanOrEqual(after);
+  });
+
+  it('setPreviewError sets status to error', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewRendering());
+    store.dispatch(setPreviewError());
+    expect(store.getState().ui.preview.status).toBe('error');
+  });
+
+  it('resetPreviewStatus returns to idle', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewReady(1234));
+    store.dispatch(resetPreviewStatus());
+    expect(store.getState().ui.preview.status).toBe('idle');
+    expect(store.getState().ui.preview.lastRenderedAt).toBeNull();
+  });
+});
+
+describe('uiSlice — document/* matcher preview branch', () => {
+  it('transitions preview from ready → rendering on any document action', () => {
+    const store = makeStore();
+    // First put preview in ready state.
+    store.dispatch(setPreviewReady(5000));
+    expect(store.getState().ui.preview.status).toBe('ready');
+    // Any document action should flip it to rendering.
+    store.dispatch({ type: 'document/setDocumentValue', payload: {} });
+    expect(store.getState().ui.preview.status).toBe('rendering');
+  });
+
+  it('does NOT change preview when it is already rendering (idempotent)', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewRendering());
+    store.dispatch({ type: 'document/updateDocumentSection', payload: {} });
+    // Still rendering — guard prevents double-transition.
+    expect(store.getState().ui.preview.status).toBe('rendering');
+  });
+
+  it('does NOT change preview when it is idle (only flips from ready)', () => {
+    const store = makeStore();
+    // preview starts idle; document action should leave it idle.
+    store.dispatch({ type: 'document/setDocumentValue', payload: {} });
+    expect(store.getState().ui.preview.status).toBe('idle');
+  });
+
+  it('does NOT change preview when it is in error state', () => {
+    const store = makeStore();
+    store.dispatch(setPreviewError());
+    store.dispatch({ type: 'document/setDocumentValue', payload: {} });
+    expect(store.getState().ui.preview.status).toBe('error');
   });
 });

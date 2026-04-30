@@ -110,4 +110,36 @@ describe('auditSlice — localStorage persistence', () => {
     const store = configureStore({ reducer: { audit: fresh.default } });
     expect(store.getState().audit.logs).toEqual([]);
   });
+
+  it('silently drops persistence when localStorage.setItem throws (quota exceeded)', async () => {
+    vi.resetModules();
+    const fresh = await import('./auditSlice.js');
+    const store = configureStore({ reducer: { audit: fresh.default } });
+
+    // Simulate storage quota exceeded by replacing setItem with a throwing function.
+    const originalSetItem = window.localStorage.setItem.bind(window.localStorage);
+    Object.defineProperty(window.localStorage, 'setItem', {
+      configurable: true,
+      writable: true,
+      value: () => {
+        throw new DOMException('QuotaExceededError');
+      },
+    });
+
+    try {
+      // Should not throw — error is silently swallowed inside persist().
+      expect(() => {
+        store.dispatch(
+          fresh.addAuditLog({ type: 'PRINT', template: 'viewing', timestamp: new Date().toISOString() }),
+        );
+      }).not.toThrow();
+    } finally {
+      // Restore original setItem.
+      Object.defineProperty(window.localStorage, 'setItem', {
+        configurable: true,
+        writable: true,
+        value: originalSetItem,
+      });
+    }
+  });
 });
