@@ -4,7 +4,7 @@ import LlmFooterChatBox from './LlmFooterChatBox';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
 import { STORAGE_KEY_CHAT_DOCK } from '../constants/storageKeys';
-import { openChat, closeChat, toggleChat, selectChatOpen } from '../store/uiCommandSlice';
+import { openChat, closeChat, selectChatOpen } from '../store/uiCommandSlice';
 
 const readInitialOpen = () => {
   try {

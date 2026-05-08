@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { loadArchiveEntries, persistArchiveEntries } from '../records/archiveService';
+import { loadArchiveEntries } from '../records/archiveService';
 
 const initialState = {
   entries: loadArchiveEntries(),
