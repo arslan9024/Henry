@@ -78,6 +78,9 @@
   --motion-med: 220ms;
   --easing: cubic-bezier(0.2, 0, 0, 1);
 
+  /* Page-level background (themed independently from --surface) */
+  --page-bg: #f1f5f9;
+
   /* --color-* aliases — referenced by audit panel + toast + audit-list utilities */
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-muted);
@@ -102,11 +105,11 @@
 
 body {
   margin: 0;
-  background: #f1f5f9;
+  background: var(--page-bg);
 }
 
-:root[data-theme='dark'] body {
-  background: #020617;
+:root[data-theme='dark'] {
+  --page-bg: #020617;
 }
 
 .app-layout {
@@ -235,6 +238,7 @@ body {
 }
 
 .henry-identity__module {
+  /* Hidden in the compact navbar row — visible in the popover details panel */
   display: none;
 }
 
@@ -389,7 +393,7 @@ body {
 .print-btn.secondary:hover,
 .utility-btn.secondary:hover {
   background: var(--surface-muted);
-  border-color: #9ca3af;
+  border-color: var(--border-strong);
   transform: translateY(-1px);
 }
 
@@ -561,7 +565,7 @@ body {
 
 .panel-link-btn:hover {
   background: var(--surface-muted);
-  border-color: #9ca3af;
+  border-color: var(--border-strong);
   box-shadow: var(--shadow-sm);
 }
 
