@@ -2,6 +2,14 @@ import React, { useEffect, useState } from 'react';
 import PrintButton from './PrintButton';
 import { STORAGE_KEY_FOOTER_BAR } from '../constants/storageKeys';
 
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import MuiButton from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
+import Collapse from '@mui/material/Collapse';
+
 const readFooterState = () => {
   try {
     const v = localStorage.getItem(STORAGE_KEY_FOOTER_BAR);
@@ -10,6 +18,12 @@ const readFooterState = () => {
     /* ignore */
   }
   return false;
+};
+
+const TONE_COLORS = {
+  clear: 'success',
+  critical: 'error',
+  important: 'warning',
 };
 
 const FooterActionBar = ({
@@ -35,90 +49,185 @@ const FooterActionBar = ({
     }
   }, [collapsed]);
 
+  const badgeIcon = badgeTone === 'clear' ? '✓' : badgeTone === 'critical' ? '✕' : '!';
+
   return (
-    <footer
-      className="footer-action-bar print-hidden"
+    <Paper
+      component="footer"
       role="contentinfo"
       aria-label="Document footer actions"
+      square
+      elevation={0}
+      className="footer-action-bar print-hidden"
+      sx={{
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 30,
+        borderTop: 2,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        boxShadow: '0 -2px 12px rgba(15,23,42,0.06)',
+        px: 2,
+        py: 0.75,
+      }}
     >
-      <div className="footer-action-bar__header">
-        <div className="footer-action-bar__title-group">
-          <p className="footer-action-bar__title">Action Center</p>
-          <p className="footer-action-bar__template-label" title={activeTemplateLabel}>
+      {/* Header row: title + template label + collapse toggle */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+          <Typography
+            component="p"
+            sx={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Action Center
+          </Typography>
+          <Typography
+            component="p"
+            title={activeTemplateLabel}
+            sx={{
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: 'text.primary',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '40ch',
+            }}
+          >
             {activeTemplateLabel}
-          </p>
-        </div>
-        <button
-          type="button"
-          className="footer-action-bar__collapse-toggle"
+          </Typography>
+        </Box>
+
+        <MuiButton
+          size="small"
+          variant="outlined"
           onClick={() => setCollapsed((v) => !v)}
           aria-expanded={!collapsed}
           aria-controls="footer-action-controls"
           title={collapsed ? 'Expand action center' : 'Collapse action center'}
+          sx={{
+            fontSize: '0.72rem',
+            py: 0.25,
+            px: 1.25,
+            borderRadius: '999px',
+            minWidth: 0,
+            flexShrink: 0,
+          }}
         >
           {collapsed ? '▴ Expand' : '▾ Collapse'}
-        </button>
-      </div>
+        </MuiButton>
+      </Box>
 
-      {!collapsed ? (
-        <div className="footer-action-bar__controls" id="footer-action-controls">
-          <button
-            type="button"
-            className={`preview-toggle-btn ${previewMode ? 'active' : ''}`}
-            onClick={onTogglePreview}
-            disabled={!canGeneratePdf && !previewMode}
+      {/* Collapsible controls row */}
+      <Collapse in={!collapsed}>
+        <Box
+          id="footer-action-controls"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: 'wrap',
+            pt: 0.75,
+          }}
+        >
+          {/* Preview toggle */}
+          <Tooltip
             title={
-              canGeneratePdf ? 'Toggle A4 vector preview' : 'PDF preview not available for this template'
+              canGeneratePdf
+                ? 'Toggle A4 vector preview'
+                : 'PDF preview not available for this template'
             }
+            placement="top"
           >
-            {previewMode ? '✏️  Edit Form' : '👁  Toggle Print Preview'}
-          </button>
+            <span>
+              <MuiButton
+                size="small"
+                variant={previewMode ? 'contained' : 'outlined'}
+                color={previewMode ? 'primary' : 'inherit'}
+                onClick={onTogglePreview}
+                disabled={!canGeneratePdf && !previewMode}
+                sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+              >
+                {previewMode ? '✏️  Edit Form' : '👁  Toggle Print Preview'}
+              </MuiButton>
+            </span>
+          </Tooltip>
 
-          <button
-            type="button"
-            className={`compliance-badge compliance-badge--${badgeTone}`}
-            title={badgeTitle}
-            aria-label={`Compliance status: ${badgeLabel} — open checklist`}
-            onClick={onOpenCompliance}
-          >
-            {badgeTone === 'clear' ? '✓' : badgeTone === 'critical' ? '✕' : '!'} {badgeLabel}
-          </button>
+          {/* Compliance badge */}
+          <Tooltip title={badgeTitle} placement="top">
+            <Chip
+              size="small"
+              component="button"
+              type="button"
+              color={TONE_COLORS[badgeTone] ?? 'default'}
+              variant="outlined"
+              label={`${badgeIcon} ${badgeLabel}`}
+              aria-label={`Compliance status: ${badgeLabel} — open checklist`}
+              onClick={onOpenCompliance}
+              clickable
+              sx={{ fontWeight: 700, fontSize: '0.72rem', cursor: 'pointer' }}
+            />
+          </Tooltip>
 
-          <button
-            type="button"
-            className="compliance-check-btn"
-            onClick={onRunComplianceCheck}
-            title="Audit current document against RERA / DLD compliance rules"
-          >
-            ✅ Compliance Check
-          </button>
+          {/* Run compliance check */}
+          <Tooltip title="Audit current document against RERA / DLD compliance rules" placement="top">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={onRunComplianceCheck}
+              aria-label="Run compliance check"
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              ✅ Compliance Check
+            </MuiButton>
+          </Tooltip>
 
-          <button
-            type="button"
-            className="panel-link-btn"
-            onClick={onOpenArchive}
-            title="Open archive history"
-            aria-label="Open archive history"
-          >
-            🗂 Archive
-          </button>
+          {/* Archive */}
+          <Tooltip title="Open archive history" placement="top">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={onOpenArchive}
+              aria-label="Open archive history"
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              🗂 Archive
+            </MuiButton>
+          </Tooltip>
 
-          <button
-            type="button"
-            className="panel-link-btn"
-            onClick={onOpenAudit}
-            title="Open audit log"
-            aria-label="Open audit log"
-          >
-            📜 Audit
-          </button>
+          {/* Audit */}
+          <Tooltip title="Open audit log" placement="top">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={onOpenAudit}
+              aria-label="Open audit log"
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              📜 Audit
+            </MuiButton>
+          </Tooltip>
 
-          <div className="footer-action-bar__actions">
+          {/* Print action (far right) */}
+          <Box sx={{ ml: 'auto' }}>
             <PrintButton />
-          </div>
-        </div>
-      ) : null}
-    </footer>
+          </Box>
+        </Box>
+      </Collapse>
+    </Paper>
   );
 };
 
