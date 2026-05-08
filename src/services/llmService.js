@@ -1,5 +1,10 @@
-// Local LLM service: talks to a user-run Ollama server at http://localhost:11434.
-// Privacy-first: no data leaves the local machine.
+// LLM service layer — supports two providers:
+//   1. Ollama  (local, privacy-first — talks to http://localhost:11434)
+//   2. Groq    (free cloud API — https://api.groq.com, requires an API key)
+//
+// Both providers share the same prompt-building helpers and JSON-contract
+// validator.  The caller selects the provider; no network traffic leaves the
+// machine unless the user explicitly configures the Groq provider.
 //
 // Expected output contract from the model is strict JSON:
 //   { "section": "<known-section>", "field": "<known-field>", "value": <string|number|boolean>, "rationale": "<short text>" }
@@ -7,9 +12,15 @@
 
 import { DOCUMENT_SCALAR_FIELDS } from '../store/documentSlice';
 
+// ── Ollama ────────────────────────────────────────────────────────────────────
 const OLLAMA_BASE_URLS = ['http://127.0.0.1:11434', 'http://localhost:11434'];
 export const DEFAULT_MODEL = 'llama3.2:1b';
 const DEFAULT_TIMEOUT_MS = 45000;
+
+// ── Groq ──────────────────────────────────────────────────────────────────────
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
+export const DEFAULT_GROQ_MODEL = 'llama-3.1-8b-instant';
+const GROQ_TIMEOUT_MS = 30_000;
 
 const toMemoryFriendlyReason = (detail = '') => {
   const text = String(detail || '');
@@ -319,6 +330,210 @@ export const checkOllamaModelAvailable = async (model = DEFAULT_MODEL, timeoutMs
 };
 
 const EXTRACTION_TIMEOUT_MS = 45_000;
+
+// ── Groq helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Read an OpenAI-compatible chat completion response.
+ * Returns the content string from choices[0].message.content.
+ */
+const readChatCompletionContent = async (response) => {
+  const data = await response.json();
+  return String(data?.choices?.[0]?.message?.content ?? '');
+};
+
+/**
+ * Check that a Groq API key is valid by hitting the /models endpoint.
+ * Returns true if the key is accepted (HTTP 200), false otherwise.
+ */
+export const checkGroqAvailability = async (apiKey, timeoutMs = 5000) => {
+  if (!apiKey || !apiKey.trim()) return false;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    clearTimeout(timeoutId);
+    return false;
+  }
+};
+
+/**
+ * Ask the Groq API to suggest a single field update for the current document.
+ * Uses `response_format: {type:"json_object"}` to guarantee structured output.
+ *
+ * @param {object} params
+ * @param {string} params.userPrompt
+ * @param {object} params.documentData
+ * @param {string} [params.templateKey]
+ * @param {string} params.apiKey               - Groq API key
+ * @param {string} [params.model]              - defaults to DEFAULT_GROQ_MODEL
+ * @param {number} [params.timeoutMs]
+ * @param {(token: string) => void} [params.onToken]
+ */
+export const fetchGroqSuggestion = async ({
+  userPrompt,
+  documentData,
+  templateKey = '',
+  apiKey,
+  model = DEFAULT_GROQ_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+  onToken,
+}) => {
+  if (!apiKey || !apiKey.trim()) {
+    return {
+      ok: false,
+      reason:
+        'No Groq API key configured. Add your free key from console.groq.com in the Ask Henry settings.',
+    };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(documentData, templateKey) },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Invalid Groq API key. Check your key in Ask Henry settings.' };
+      }
+      return { ok: false, reason: `Groq API error ${response.status}: ${message || 'request failed'}` };
+    }
+
+    const content = await readChatCompletionContent(response);
+    if (onToken && content) onToken(content);
+
+    const parsed = extractJson(content);
+    if (!parsed) {
+      return { ok: false, reason: 'Model did not return parseable JSON.', raw: content };
+    }
+
+    if (!isFieldAllowed(parsed.section, parsed.field)) {
+      return {
+        ok: false,
+        reason: parsed.rationale || 'Suggested target is not in the allowed field list.',
+        raw: content,
+        parsed,
+      };
+    }
+
+    return { ok: true, suggestion: parsed, raw: content };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Request timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq request failed: ${error.message}`, detail: error.message };
+  }
+};
+
+/**
+ * Ask the Groq API to extract document fields from uploaded-file text.
+ * Mirrors fetchOllamaExtraction but targets the Groq chat completions endpoint.
+ */
+export const fetchGroqExtraction = async ({
+  extractedText,
+  fileName,
+  fileKind,
+  documentData,
+  apiKey,
+  model = DEFAULT_GROQ_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+  onToken,
+}) => {
+  if (!extractedText || !extractedText.trim()) {
+    return { ok: false, reason: 'No text was extracted from the file.' };
+  }
+  if (!apiKey || !apiKey.trim()) {
+    return { ok: false, reason: 'No Groq API key configured.' };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData }),
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Invalid Groq API key.' };
+      }
+      return { ok: false, reason: `Groq API error ${response.status}: ${message || 'request failed'}` };
+    }
+
+    const content = await readChatCompletionContent(response);
+    if (onToken && content) onToken(content);
+
+    const parsed = extractJson(content);
+    if (!parsed || !Array.isArray(parsed.suggestions)) {
+      return { ok: false, reason: 'Model did not return a parseable suggestions list.', raw: content };
+    }
+
+    const suggestions = parsed.suggestions
+      .filter((s) => s && isFieldAllowed(s.section, s.field))
+      .filter((s) => s.value !== null && s.value !== undefined && String(s.value).trim() !== '')
+      .map((s) => ({
+        section: s.section,
+        field: s.field,
+        value: s.value,
+        rationale: typeof s.rationale === 'string' ? s.rationale : '',
+        confidence:
+          typeof s.confidence === 'number' && s.confidence >= 0 && s.confidence <= 1 ? s.confidence : 0.6,
+      }))
+      .filter((s) => s.confidence >= 0.6);
+
+    return {
+      ok: true,
+      suggestions,
+      droppedCount: parsed.suggestions.length - suggestions.length,
+      raw: content,
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Extraction timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq request failed: ${error.message}`, detail: error.message };
+  }
+};
 
 export const fetchOllamaExtraction = async ({
   extractedText,
