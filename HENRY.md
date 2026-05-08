@@ -258,7 +258,7 @@ Henry uses two mechanisms to read and update document fields:
 
 ### Chat-based updates (natural language)
 - **Prompt:** "Set tenant full name to Ahmed bin Mohammed"
-- **Provider:** Local Ollama (`llama-3.1-8b-instant`) or cloud Groq API (configurable in settings)
+- **Provider:** Local Ollama (uses the Ollama `DEFAULT_MODEL`) or cloud Groq API (uses `GROQ_DEFAULT_MODEL`; configurable in settings)
 - **Output:** Structured JSON `{ section, field, value, rationale }` — surfaced as a pending suggestion with Apply / Dismiss buttons
 - **Streaming:** Tokens stream in real-time; partial responses shown while Henry thinks
 
