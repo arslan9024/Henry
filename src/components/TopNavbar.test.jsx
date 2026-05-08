@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -122,6 +122,25 @@ describe('TopNavbar document action buttons', () => {
     const store = makeStore({ template: { activeTemplate: 'viewing' } });
     renderNavbar(store);
     expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeEnabled();
+  });
+
+  it('exits preview mode and disables preview when template has no PDF support', async () => {
+    const store = makeStore({
+      template: { activeTemplate: 'offer' },
+      uiCommand: {
+        leftRail: 'expanded',
+        drawerTab: null,
+        chatOpen: false,
+        printTrigger: 0,
+        previewMode: true,
+      },
+    });
+    renderNavbar(store);
+
+    await waitFor(() => {
+      expect(store.getState().uiCommand.previewMode).toBe(false);
+    });
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
   });
 
   it('clicking Preview dispatches togglePreview to Redux', () => {

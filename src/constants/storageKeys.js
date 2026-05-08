@@ -35,5 +35,9 @@ export const STORAGE_KEY_LLM_PROVIDER = 'henry.llm.provider';
 /** Groq API key (user-supplied, stored in localStorage, never leaves the browser). */
 export const STORAGE_KEY_GROQ_API_KEY = 'henry.llm.groqApiKey';
 
-/** Persisted document state (serialised JSON of the document Redux slice). */
+/**
+ * Persisted document state (serialised JSON of the document Redux slice).
+ * Version suffix policy: bump `.vN` only for breaking schema changes and
+ * migrate from the previous key at app boot before removing older keys.
+ */
 export const STORAGE_KEY_DOCUMENT = 'henry.document.state.v1';

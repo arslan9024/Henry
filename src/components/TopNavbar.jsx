@@ -6,7 +6,13 @@ import {
   selectHenry,
   selectCanGeneratePdf,
 } from '../store/selectors';
-import { toggleLeftRail, openDrawer, togglePreview, selectPreviewMode } from '../store/uiCommandSlice';
+import {
+  toggleLeftRail,
+  openDrawer,
+  togglePreview,
+  selectPreviewMode,
+  setPreviewMode,
+} from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -67,6 +73,12 @@ const TopNavbar = React.memo(() => {
       document.removeEventListener('mousedown', onPointerDown);
     };
   }, [identityOpen]);
+
+  useEffect(() => {
+    if (!canGeneratePdf && previewMode) {
+      dispatch(setPreviewMode(false));
+    }
+  }, [canGeneratePdf, previewMode, dispatch]);
 
   return (
     <AppBar
@@ -290,7 +302,7 @@ const TopNavbar = React.memo(() => {
                 variant={previewMode ? 'contained' : 'outlined'}
                 color={previewMode ? 'primary' : 'inherit'}
                 onClick={() => dispatch(togglePreview())}
-                disabled={!canGeneratePdf && !previewMode}
+                disabled={!canGeneratePdf}
                 aria-pressed={previewMode}
                 aria-label={previewMode ? 'Close print preview, return to edit form' : 'Toggle print preview'}
                 sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
