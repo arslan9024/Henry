@@ -23,6 +23,45 @@ import {
   togglePreview,
 } from '../store/uiCommandSlice';
 
+const LEFT_RAIL_EXPAND_ACTIONS = [
+  { key: 'templates', ariaLabel: 'Templates', title: 'Templates', icon: '📄' },
+  { key: 'highlights', ariaLabel: 'Highlights', title: 'Highlights', icon: '💡' },
+  { key: 'articles', ariaLabel: 'Articles', title: 'Articles', icon: '📚' },
+];
+
+const DRAWER_ACTIONS = [
+  {
+    key: 'compliance',
+    ariaLabel: 'Compliance checklist',
+    title: 'Compliance checklist',
+    icon: '✅',
+    mobileAriaLabel: 'Open compliance drawer',
+    mobileTitle: 'Open compliance drawer',
+    mobileLabel: '✅ Compliance',
+    tabLabel: 'Compliance',
+  },
+  {
+    key: 'archive',
+    ariaLabel: 'Archive history',
+    title: 'Archive history',
+    icon: '🗂',
+    mobileAriaLabel: 'Open archive drawer',
+    mobileTitle: 'Open archive drawer',
+    mobileLabel: '🗂 Archive',
+    tabLabel: 'Archive',
+  },
+  {
+    key: 'audit',
+    ariaLabel: 'Audit log',
+    title: 'Audit log',
+    icon: '📜',
+    mobileAriaLabel: 'Open audit drawer',
+    mobileTitle: 'Open audit drawer',
+    mobileLabel: '📜 Audit',
+    tabLabel: 'Audit',
+  },
+];
+
 const DocumentHubPage = () => {
   const dispatch = useDispatch();
   const activeTemplate = useSelector((state) => state.template.activeTemplate);
@@ -51,6 +90,12 @@ const DocumentHubPage = () => {
   const ActiveTemplateComponent = TEMPLATE_MAP[activeTemplate]?.component;
   const railCollapsed = leftRail === 'collapsed';
   const toggleRail = () => dispatch(toggleLeftRailAction());
+  const expandLeftRail = () => dispatch(setLeftRailAction('expanded'));
+  const drawerActionHandlers = {
+    compliance: openCompliance,
+    archive: openArchive,
+    audit: openAudit,
+  };
   const drawerTrapRef = useFocusTrap(Boolean(drawerTab));
   useBackgroundInert(Boolean(drawerTab));
 
@@ -72,61 +117,31 @@ const DocumentHubPage = () => {
               ☰
             </button>
             <span className="icon-rail__divider" />
-            <button
-              type="button"
-              className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
-              aria-label="Templates"
-              title="Templates"
-            >
-              📄
-            </button>
-            <button
-              type="button"
-              className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
-              aria-label="Highlights"
-              title="Highlights"
-            >
-              💡
-            </button>
-            <button
-              type="button"
-              className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
-              aria-label="Articles"
-              title="Articles"
-            >
-              📚
-            </button>
+            {LEFT_RAIL_EXPAND_ACTIONS.map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                className="icon-rail__btn"
+                onClick={expandLeftRail}
+                aria-label={action.ariaLabel}
+                title={action.title}
+              >
+                {action.icon}
+              </button>
+            ))}
             <span className="icon-rail__divider" />
-            <button
-              type="button"
-              className={`icon-rail__btn ${drawerTab === 'compliance' ? 'is-active' : ''}`}
-              onClick={openCompliance}
-              aria-label="Compliance checklist"
-              title="Compliance checklist"
-            >
-              ✅
-            </button>
-            <button
-              type="button"
-              className={`icon-rail__btn ${drawerTab === 'archive' ? 'is-active' : ''}`}
-              onClick={openArchive}
-              aria-label="Archive history"
-              title="Archive history"
-            >
-              🗂
-            </button>
-            <button
-              type="button"
-              className={`icon-rail__btn ${drawerTab === 'audit' ? 'is-active' : ''}`}
-              onClick={openAudit}
-              aria-label="Audit log"
-              title="Audit log"
-            >
-              📜
-            </button>
+            {DRAWER_ACTIONS.map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                className={`icon-rail__btn ${drawerTab === action.key ? 'is-active' : ''}`}
+                onClick={drawerActionHandlers[action.key]}
+                aria-label={action.ariaLabel}
+                title={action.title}
+              >
+                {action.icon}
+              </button>
+            ))}
           </nav>
         ) : (
           <div style={{ gridArea: 'left', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -166,33 +181,18 @@ const DocumentHubPage = () => {
         >
           ☰ Menu
         </button>
-        <button
-          type="button"
-          className={`mobile-quick-nav__btn ${drawerTab === 'compliance' ? 'is-active' : ''}`}
-          onClick={openCompliance}
-          aria-label="Open compliance drawer"
-          title="Open compliance drawer"
-        >
-          ✅ Compliance
-        </button>
-        <button
-          type="button"
-          className={`mobile-quick-nav__btn ${drawerTab === 'archive' ? 'is-active' : ''}`}
-          onClick={openArchive}
-          aria-label="Open archive drawer"
-          title="Open archive drawer"
-        >
-          🗂 Archive
-        </button>
-        <button
-          type="button"
-          className={`mobile-quick-nav__btn ${drawerTab === 'audit' ? 'is-active' : ''}`}
-          onClick={openAudit}
-          aria-label="Open audit drawer"
-          title="Open audit drawer"
-        >
-          📜 Audit
-        </button>
+        {DRAWER_ACTIONS.map((action) => (
+          <button
+            key={action.key}
+            type="button"
+            className={`mobile-quick-nav__btn ${drawerTab === action.key ? 'is-active' : ''}`}
+            onClick={drawerActionHandlers[action.key]}
+            aria-label={action.mobileAriaLabel}
+            title={action.mobileTitle}
+          >
+            {action.mobileLabel}
+          </button>
+        ))}
       </nav>
 
       <div data-overlay-shield>
@@ -225,33 +225,18 @@ const DocumentHubPage = () => {
         >
           <header className="right-drawer__topbar">
             <div className="right-drawer__tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                className={`right-drawer__tab ${drawerTab === 'compliance' ? 'is-active' : ''}`}
-                aria-selected={drawerTab === 'compliance'}
-                onClick={openCompliance}
-              >
-                Compliance
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className={`right-drawer__tab ${drawerTab === 'archive' ? 'is-active' : ''}`}
-                aria-selected={drawerTab === 'archive'}
-                onClick={openArchive}
-              >
-                Archive
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className={`right-drawer__tab ${drawerTab === 'audit' ? 'is-active' : ''}`}
-                aria-selected={drawerTab === 'audit'}
-                onClick={openAudit}
-              >
-                Audit
-              </button>
+              {DRAWER_ACTIONS.map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  role="tab"
+                  className={`right-drawer__tab ${drawerTab === action.key ? 'is-active' : ''}`}
+                  aria-selected={drawerTab === action.key}
+                  onClick={drawerActionHandlers[action.key]}
+                >
+                  {action.tabLabel}
+                </button>
+              ))}
             </div>
             <button
               type="button"
