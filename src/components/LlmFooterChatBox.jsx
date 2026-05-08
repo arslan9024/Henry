@@ -10,6 +10,14 @@ import {
   checkOllamaModelAvailable,
   fetchOllamaSuggestion,
   fetchOllamaExtraction,
+  checkGroqAvailability,
+  fetchGroqSuggestion,
+  fetchGroqExtraction,
+  getStoredProvider,
+  storeProvider,
+  getStoredGroqApiKey,
+  storeGroqApiKey,
+  GROQ_DEFAULT_MODEL,
 } from '../services/llmService';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../services/fileExtractionService';
 import FileExtractionPanel from './FileExtractionPanel';
@@ -39,6 +47,84 @@ const saveChatHistory = (messages) => {
   }
 };
 
+// ─── Groq settings panel ──────────────────────────────────────────────────────
+const GroqSettingsPanel = ({ onClose }) => {
+  const [apiKey, setApiKey] = useState(getStoredGroqApiKey);
+  const [checking, setChecking] = useState(false);
+  const [status, setStatus] = useState(null); // null | 'ok' | 'error'
+
+  const handleSave = async () => {
+    const trimmed = apiKey.trim();
+    storeGroqApiKey(trimmed);
+    if (!trimmed) {
+      setStatus(null);
+      return;
+    }
+    setChecking(true);
+    setStatus(null);
+    const ok = await checkGroqAvailability(trimmed);
+    setStatus(ok ? 'ok' : 'error');
+    setChecking(false);
+  };
+
+  return (
+    <div
+      style={{
+        padding: '12px 14px',
+        background: 'var(--color-surface, #f9fafb)',
+        borderBottom: '1px solid var(--color-border, #e5e7eb)',
+        fontSize: '0.82rem',
+      }}
+    >
+      <strong style={{ display: 'block', marginBottom: 8 }}>⚙ Groq API Settings</strong>
+      <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>
+        API Key
+        <a
+          href="https://console.groq.com/keys"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ marginLeft: 6, fontSize: '0.75rem', color: '#2563eb' }}
+        >
+          Get free key ↗
+        </a>
+      </label>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          type="password"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="gsk_…"
+          style={{
+            flex: 1,
+            padding: '5px 8px',
+            borderRadius: 6,
+            border: '1px solid var(--color-border, #d1d5db)',
+            fontSize: '0.82rem',
+          }}
+          aria-label="Groq API key"
+        />
+        <button type="button" className="utility-btn" onClick={handleSave} disabled={checking}>
+          {checking ? 'Checking…' : 'Save'}
+        </button>
+        <button type="button" className="utility-btn secondary" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      {status === 'ok' ? (
+        <p style={{ marginTop: 6, color: '#16a34a', fontWeight: 600 }}>✅ Groq key is valid and active.</p>
+      ) : status === 'error' ? (
+        <p style={{ marginTop: 6, color: '#dc2626', fontWeight: 600 }}>
+          ❌ Key rejected. Check it at console.groq.com.
+        </p>
+      ) : null}
+      <p style={{ marginTop: 8, color: '#6b7280', fontSize: '0.74rem' }}>
+        Key is stored only in your browser's localStorage. It is never sent anywhere except directly to
+        api.groq.com.
+      </p>
+    </div>
+  );
+};
+
 const LlmFooterChatBox = () => {
   const dispatch = useDispatch();
   const documentData = useSelector(selectDocument);
@@ -55,6 +141,11 @@ const LlmFooterChatBox = () => {
   const fileInputRef = useRef(null);
   const listRef = useRef(null);
 
+  // Provider state
+  const [provider, setProvider] = useState(getStoredProvider);
+  const [groqAvailable, setGroqAvailable] = useState(null);
+  const [showGroqSettings, setShowGroqSettings] = useState(false);
+
   // Persist messages to localStorage whenever they change.
   useEffect(() => {
     saveChatHistory(messages);
@@ -64,6 +155,27 @@ const LlmFooterChatBox = () => {
     (msg) => setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]),
     [],
   );
+
+  const handleProviderChange = useCallback((p) => {
+    setProvider(p);
+    storeProvider(p);
+    if (p === 'groq') {
+      const key = getStoredGroqApiKey();
+      if (!key) setShowGroqSettings(true);
+    }
+  }, []);
+
+  // Check Groq availability when provider switches to 'groq'.
+  useEffect(() => {
+    if (provider !== 'groq') return;
+    let cancelled = false;
+    checkGroqAvailability().then((ok) => {
+      if (!cancelled) setGroqAvailable(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [provider]);
 
   const activateOllama = useCallback(
     async ({ silent = false } = {}) => {
@@ -109,6 +221,7 @@ const LlmFooterChatBox = () => {
   );
 
   useEffect(() => {
+    if (provider !== 'ollama') return undefined;
     let cancelled = false;
     // Check Ollama availability on mount and activate silently if available.
     checkOllamaAvailability().then(async (ok) => {
@@ -117,8 +230,6 @@ const LlmFooterChatBox = () => {
         const modelOk = await checkOllamaModelAvailable(DEFAULT_MODEL, 2500);
         setModelReady(modelOk);
       } else if (!cancelled && !ok) {
-        // Auto-activate (silent) when the chat panel first mounts so users
-        // don't need to click "Activate Ollama" manually.
         activateOllama({ silent: true });
       }
     });
@@ -126,7 +237,7 @@ const LlmFooterChatBox = () => {
     return () => {
       cancelled = true;
     };
-  }, [activateOllama]);
+  }, [activateOllama, provider]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -144,6 +255,44 @@ const LlmFooterChatBox = () => {
     setPendingSuggestion(null);
     setIsThinking(true);
 
+    if (provider === 'groq') {
+      const key = getStoredGroqApiKey();
+      if (!key) {
+        appendMessage({
+          role: 'assistant',
+          text: '⚠️ No Groq API key set. Click ⚙ Settings above to add your free key.',
+        });
+        setIsThinking(false);
+        return;
+      }
+
+      const streamingMsgId = `${Date.now()}-stream`;
+      setMessages((prev) => [...prev, { id: streamingMsgId, role: 'assistant', text: '…' }]);
+
+      const result = await fetchGroqSuggestion({
+        userPrompt: trimmed,
+        documentData,
+        templateKey: activeTemplate,
+        apiKey: key,
+        model: GROQ_DEFAULT_MODEL,
+      });
+
+      if (!result.ok) {
+        setMessages((prev) => prev.filter((m) => m.id !== streamingMsgId));
+        appendMessage({ role: 'assistant', text: `⚠️ ${result.reason}` });
+      } else {
+        const { section, field, value, rationale } = result.suggestion;
+        setPendingSuggestion(result.suggestion);
+        const suggestionText = `Suggestion: update ${section}.${field} → ${JSON.stringify(value)}${rationale ? ` — ${rationale}` : ''}`;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === streamingMsgId ? { ...m, text: suggestionText } : m)),
+        );
+      }
+      setIsThinking(false);
+      return;
+    }
+
+    // Ollama path
     let ready = available;
     if (!ready) {
       ready = await activateOllama({ silent: true });
@@ -244,12 +393,30 @@ const LlmFooterChatBox = () => {
     });
 
     setExtractionStatus('querying');
-    const result = await fetchOllamaExtraction({
-      extractedText: extracted.text,
-      fileName: file.name,
-      fileKind: extracted.kind,
-      documentData,
-    });
+
+    let result;
+    if (provider === 'groq') {
+      const key = getStoredGroqApiKey();
+      if (!key) {
+        setExtractionStatus('error');
+        appendMessage({ role: 'assistant', text: '⚠️ No Groq API key set. Add your key in ⚙ Settings.' });
+        return;
+      }
+      result = await fetchGroqExtraction({
+        extractedText: extracted.text,
+        fileName: file.name,
+        fileKind: extracted.kind,
+        documentData,
+        apiKey: key,
+      });
+    } else {
+      result = await fetchOllamaExtraction({
+        extractedText: extracted.text,
+        fileName: file.name,
+        fileKind: extracted.kind,
+        documentData,
+      });
+    }
 
     if (!result.ok) {
       setExtractionStatus('error');
@@ -358,6 +525,30 @@ const LlmFooterChatBox = () => {
   const isBusy = isThinking || extractionStatus === 'reading' || extractionStatus === 'querying';
 
   const statusBadge = (() => {
+    if (provider === 'groq') {
+      if (groqAvailable === null) return <span className="llm-chat__status">Checking Groq…</span>;
+      if (groqAvailable) return <span className="llm-chat__status llm-chat__status--ok">Groq ready ☁</span>;
+      return (
+        <span className="llm-chat__status llm-chat__status--err">
+          Groq key missing —{' '}
+          <button
+            type="button"
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'inherit',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontSize: 'inherit',
+            }}
+            onClick={() => setShowGroqSettings(true)}
+          >
+            add key
+          </button>
+        </span>
+      );
+    }
     if (isActivating) return <span className="llm-chat__status">Activating Ollama…</span>;
     if (available === null) return <span className="llm-chat__status">Checking Ollama…</span>;
     if (available && modelReady) {
@@ -376,6 +567,33 @@ const LlmFooterChatBox = () => {
       <header className="llm-chat__header">
         <strong>Ask Henry</strong>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Provider selector */}
+          <select
+            value={provider}
+            onChange={(e) => handleProviderChange(e.target.value)}
+            aria-label="Select LLM provider"
+            style={{
+              fontSize: '0.75rem',
+              padding: '2px 6px',
+              borderRadius: 6,
+              border: '1px solid var(--color-border, #d1d5db)',
+              background: 'var(--color-surface, #fff)',
+            }}
+          >
+            <option value="ollama">Ollama (local)</option>
+            <option value="groq">Groq (cloud ☁)</option>
+          </select>
+          {provider === 'groq' ? (
+            <button
+              type="button"
+              className="utility-btn secondary"
+              onClick={() => setShowGroqSettings((v) => !v)}
+              aria-label="Groq settings"
+              title="Groq API key settings"
+            >
+              ⚙
+            </button>
+          ) : null}
           {statusBadge}
           {messages.length > 0 && (
             <button
@@ -391,7 +609,7 @@ const LlmFooterChatBox = () => {
               Clear history
             </button>
           )}
-          {!available || !modelReady ? (
+          {provider === 'ollama' && (!available || !modelReady) ? (
             <button
               type="button"
               className="utility-btn secondary"
@@ -406,10 +624,12 @@ const LlmFooterChatBox = () => {
         </div>
       </header>
 
+      {showGroqSettings ? <GroqSettingsPanel onClose={() => setShowGroqSettings(false)} /> : null}
+
       <div className="llm-chat__messages" ref={listRef} aria-live="polite">
         {messages.length === 0 ? (
           <p className="llm-chat__hint">
-            Try: <em>“Set tenant full name to Ahmed bin Mohammed”</em>, or attach a file with the 📎 button to
+            Try: <em>"Set tenant full name to Ahmed bin Mohammed"</em>, or attach a file with the 📎 button to
             extract fields automatically.
           </p>
         ) : null}
@@ -477,7 +697,7 @@ const LlmFooterChatBox = () => {
           className="llm-chat__attach-btn"
           onClick={handleAttachClick}
           disabled={isBusy}
-          title="Attach a PDF or image — files stay local, sent only to your Ollama"
+          title="Attach a PDF or image — files stay local, sent only to your LLM provider"
           aria-label="Attach file"
         >
           📎
@@ -485,7 +705,15 @@ const LlmFooterChatBox = () => {
         <input
           type="text"
           className="llm-chat__input"
-          placeholder={available === false ? 'Start Ollama to enable chat…' : 'Ask Henry to update a field…'}
+          placeholder={
+            provider === 'groq'
+              ? groqAvailable === false
+                ? 'Add Groq API key in ⚙ Settings…'
+                : 'Ask Henry to update a field…'
+              : available === false
+                ? 'Start Ollama to enable chat…'
+                : 'Ask Henry to update a field…'
+          }
           value={input}
           onChange={(event) => setInput(event.target.value)}
           aria-label="Chat input"

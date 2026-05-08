@@ -11,7 +11,36 @@ import { persistArchiveEntries } from '../records/archiveService';
 import ocrReducer from './ocrSlice';
 import uiReducer from './uiSlice';
 import uiCommandReducer, { toggleLeftRail, setLeftRail } from './uiCommandSlice';
-import { STORAGE_KEY_LEFT_RAIL } from '../constants/storageKeys';
+import { STORAGE_KEY_LEFT_RAIL, STORAGE_KEY_DOCUMENT } from '../constants/storageKeys';
+
+// ─── Document state persistence helpers ─────────────────────────────────────
+
+const persistDocumentState = (documentState) => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(STORAGE_KEY_DOCUMENT, JSON.stringify(documentState));
+    }
+  } catch {
+    /* quota exceeded or private mode — silently drop */
+  }
+};
+
+export const loadPersistedDocumentState = () => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = window.localStorage.getItem(STORAGE_KEY_DOCUMENT);
+      if (!raw) return undefined;
+      const parsed = JSON.parse(raw);
+      // Basic sanity check: must be an object with known top-level sections.
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.property) {
+        return parsed;
+      }
+    }
+  } catch {
+    /* corrupted JSON — fall through to defaults */
+  }
+  return undefined;
+};
 
 // ─── Listener middleware for localStorage side effects ──────────────────────
 // Persistence is intentionally kept out of reducers (reducers must be pure).
@@ -50,6 +79,19 @@ listenerMiddleware.startListening({
   actionCreator: clearArchiveEntries,
   effect: (_action, listenerApi) => {
     persistArchiveEntries(listenerApi.getState().archive.entries);
+  },
+});
+
+// Document state persistence (debounced: writes at most once per 800ms to avoid thrash)
+let _docPersistTimer = null;
+listenerMiddleware.startListening({
+  predicate: (action) => typeof action?.type === 'string' && action.type.startsWith('document/'),
+  effect: (_action, listenerApi) => {
+    if (_docPersistTimer) clearTimeout(_docPersistTimer);
+    _docPersistTimer = setTimeout(() => {
+      persistDocumentState(listenerApi.getState().document);
+      _docPersistTimer = null;
+    }, 800);
   },
 });
 
@@ -113,6 +155,8 @@ export const store = configureStore({
       chatOpen: false,
       printTrigger: 0,
     },
+    // Restore last-saved document state if available; fall back to slice defaults.
+    ...(loadPersistedDocumentState() ? { document: loadPersistedDocumentState() } : {}),
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware),
 });

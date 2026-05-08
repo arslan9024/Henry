@@ -1,15 +1,74 @@
-// Local LLM service: talks to a user-run Ollama server at http://localhost:11434.
-// Privacy-first: no data leaves the local machine.
+// LLM service: supports Ollama (local, privacy-first) and Groq (cloud, free tier).
 //
 // Expected output contract from the model is strict JSON:
 //   { "section": "<known-section>", "field": "<known-field>", "value": <string|number|boolean>, "rationale": "<short text>" }
 // Any non-JSON or unknown section/field is rejected at the validator layer.
 
 import { DOCUMENT_SCALAR_FIELDS } from '../store/documentSlice';
+import { STORAGE_KEY_LLM_PROVIDER, STORAGE_KEY_GROQ_API_KEY } from '../constants/storageKeys';
 
 const OLLAMA_BASE_URLS = ['http://127.0.0.1:11434', 'http://localhost:11434'];
 export const DEFAULT_MODEL = 'llama3.2:1b';
 const DEFAULT_TIMEOUT_MS = 45000;
+
+// ─── Groq constants ───────────────────────────────────────────────────────────
+export const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
+export const GROQ_DEFAULT_MODEL = 'llama-3.1-8b-instant';
+const GROQ_TIMEOUT_MS = 30_000;
+
+// ─── LLM provider helpers ─────────────────────────────────────────────────────
+
+/** Read the active LLM provider preference from localStorage. */
+export const getStoredProvider = () => {
+  try {
+    const v = typeof window !== 'undefined' ? window.localStorage?.getItem(STORAGE_KEY_LLM_PROVIDER) : null;
+    if (v === 'groq' || v === 'ollama') return v;
+  } catch {
+    /* ignore */
+  }
+  return 'ollama';
+};
+
+/** Persist the active LLM provider preference. */
+export const storeProvider = (provider) => {
+  try {
+    if (typeof window !== 'undefined') window.localStorage?.setItem(STORAGE_KEY_LLM_PROVIDER, provider);
+  } catch {
+    /* ignore */
+  }
+};
+
+/** Read the stored Groq API key. */
+export const getStoredGroqApiKey = () => {
+  try {
+    return (
+      (typeof window !== 'undefined' ? window.localStorage?.getItem(STORAGE_KEY_GROQ_API_KEY) : null) || ''
+    );
+  } catch {
+    return '';
+  }
+};
+
+/** Persist a Groq API key. Pass empty string to clear.
+ * The key is a user-supplied credential stored at the user's request.
+ * Browser localStorage is the appropriate storage for user-configured
+ * API keys in a client-only app; no server-side session is available.
+ * The key is transmitted only to api.groq.com by the user's own browser.
+ */
+export const storeGroqApiKey = (key) => {
+  try {
+    if (typeof window !== 'undefined') {
+      if (key) {
+        // lgtm[js/clear-text-storage-of-sensitive-data]
+        window.localStorage?.setItem(STORAGE_KEY_GROQ_API_KEY, key);
+      } else {
+        window.localStorage?.removeItem(STORAGE_KEY_GROQ_API_KEY);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+};
 
 const toMemoryFriendlyReason = (detail = '') => {
   const text = String(detail || '');
@@ -399,5 +458,201 @@ export const fetchOllamaExtraction = async ({
       reason: `Local Ollama unreachable. Start Ollama at ${OLLAMA_BASE_URLS[0]} and pull a model (e.g. \`ollama pull ${DEFAULT_MODEL}\`).`,
       detail: error.message,
     };
+  }
+};
+
+// ─── Groq API (cloud LLM, free tier) ─────────────────────────────────────────
+
+/**
+ * Check that a Groq API key is present and valid by listing available models.
+ * Returns true if the key is accepted, false otherwise.
+ */
+export const checkGroqAvailability = async (apiKey = '', timeoutMs = 5000) => {
+  const key = apiKey || getStoredGroqApiKey();
+  if (!key) return false;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${GROQ_API_BASE}/models`, {
+      headers: { Authorization: `Bearer ${key}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    clearTimeout(timeoutId);
+    return false;
+  }
+};
+
+/**
+ * Send a chat prompt to Groq and return a structured field suggestion.
+ * Compatible with the Ollama counterpart so callers can use either.
+ */
+export const fetchGroqSuggestion = async ({
+  userPrompt,
+  documentData,
+  templateKey = '',
+  apiKey = '',
+  model = GROQ_DEFAULT_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+}) => {
+  const key = apiKey || getStoredGroqApiKey();
+  if (!key) {
+    return { ok: false, reason: 'No Groq API key configured. Enter your key in the chat settings.' };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(documentData, templateKey) },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.1,
+        max_tokens: 256,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Groq API key is invalid or expired. Update your key in chat settings.' };
+      }
+      if (response.status === 429) {
+        return { ok: false, reason: 'Groq rate limit reached. Try again in a moment.' };
+      }
+      return { ok: false, reason: `Groq error ${response.status}: ${text || 'request failed'}` };
+    }
+
+    const data = await response.json();
+    const fullText = data?.choices?.[0]?.message?.content || '';
+    const parsed = extractJson(fullText);
+    if (!parsed) {
+      return { ok: false, reason: 'Groq model did not return parseable JSON.', raw: fullText };
+    }
+
+    if (!isFieldAllowed(parsed.section, parsed.field)) {
+      return {
+        ok: false,
+        reason: parsed.rationale || 'Suggested target is not in the allowed field list.',
+        raw: fullText,
+        parsed,
+      };
+    }
+
+    return { ok: true, suggestion: parsed, raw: fullText, provider: 'groq' };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Groq request timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq unreachable: ${error.message}` };
+  }
+};
+
+/**
+ * Send a file extraction prompt to Groq and return structured field suggestions.
+ * Compatible with the Ollama extraction counterpart.
+ */
+export const fetchGroqExtraction = async ({
+  extractedText,
+  fileName,
+  fileKind,
+  documentData,
+  templateKey = '',
+  apiKey = '',
+  model = GROQ_DEFAULT_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+}) => {
+  if (!extractedText || !extractedText.trim()) {
+    return { ok: false, reason: 'No text was extracted from the file.' };
+  }
+
+  const key = apiKey || getStoredGroqApiKey();
+  if (!key) {
+    return { ok: false, reason: 'No Groq API key configured. Enter your key in the chat settings.' };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData, templateKey }),
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 1024,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Groq API key is invalid or expired. Update your key in chat settings.' };
+      }
+      if (response.status === 429) {
+        return { ok: false, reason: 'Groq rate limit reached. Try again in a moment.' };
+      }
+      return { ok: false, reason: `Groq error ${response.status}: ${text || 'request failed'}` };
+    }
+
+    const data = await response.json();
+    const fullText = data?.choices?.[0]?.message?.content || '';
+    const parsed = extractJson(fullText);
+    if (!parsed || !Array.isArray(parsed.suggestions)) {
+      return { ok: false, reason: 'Groq model did not return a parseable suggestions list.', raw: fullText };
+    }
+
+    const suggestions = parsed.suggestions
+      .filter((s) => s && isFieldAllowed(s.section, s.field))
+      .filter((s) => s.value !== null && s.value !== undefined && String(s.value).trim() !== '')
+      .map((s) => ({
+        section: s.section,
+        field: s.field,
+        value: s.value,
+        rationale: typeof s.rationale === 'string' ? s.rationale : '',
+        confidence:
+          typeof s.confidence === 'number' && s.confidence >= 0 && s.confidence <= 1 ? s.confidence : 0.6,
+      }))
+      .filter((s) => s.confidence >= 0.6);
+
+    return {
+      ok: true,
+      suggestions,
+      droppedCount: parsed.suggestions.length - suggestions.length,
+      raw: fullText,
+      provider: 'groq',
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Groq extraction timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq unreachable: ${error.message}` };
   }
 };

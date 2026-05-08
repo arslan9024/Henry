@@ -122,3 +122,84 @@ describe('archive selectors', () => {
     expect(filtered.map((e) => e.file)).toEqual(['a.pdf', 'b.pdf']);
   });
 });
+
+// ─── selectSectionCompleteness ────────────────────────────────────────────────
+
+import { selectSectionCompleteness } from './selectors';
+import { initialState as documentInitialState } from './documentSlice';
+
+describe('selectSectionCompleteness', () => {
+  const stateWith = (documentOverride) =>
+    makeState({ document: { ...documentInitialState, ...documentOverride } });
+
+  it('returns an entry for every section of the document', () => {
+    const result = selectSectionCompleteness(stateWith({}));
+    // All top-level object sections from initialState should be present
+    expect(result).toHaveProperty('property');
+    expect(result).toHaveProperty('tenant');
+    expect(result).toHaveProperty('landlord');
+    expect(result).toHaveProperty('payments');
+    expect(result).toHaveProperty('broker');
+  });
+
+  it('counts non-empty string fields as filled', () => {
+    const result = selectSectionCompleteness(
+      stateWith({
+        tenant: {
+          fullName: 'Ahmed',
+          email: '',
+          contactNo: null,
+          emiratesId: undefined,
+          idExpiryDate: '',
+          passportNo: '',
+          address: '',
+          occupation: '',
+          poBox: '',
+          category: '',
+        },
+      }),
+    );
+    // fullName is non-empty; only that one should be filled
+    expect(result.tenant.filled).toBeGreaterThanOrEqual(1);
+    expect(result.tenant.total).toBeGreaterThan(result.tenant.filled);
+  });
+
+  it('counts boolean true fields as filled', () => {
+    const result = selectSectionCompleteness(
+      stateWith({
+        tenancy: {
+          ...documentInitialState.tenancy,
+          checklistCompleted: true,
+          subletAllowed: false,
+        },
+      }),
+    );
+    // Booleans are always counted as filled
+    expect(result.tenancy.filled).toBeGreaterThanOrEqual(1);
+  });
+
+  it('counts numeric fields as filled when they are valid numbers', () => {
+    const result = selectSectionCompleteness(
+      stateWith({
+        payments: { ...documentInitialState.payments, annualRent: 85000 },
+      }),
+    );
+    expect(result.payments.filled).toBeGreaterThan(0);
+  });
+
+  it('total equals the number of scalar fields in the section', () => {
+    const result = selectSectionCompleteness(stateWith({}));
+    // Check property section manually
+    const propertyScalarCount = Object.entries(documentInitialState.property).filter(
+      ([, v]) => !Array.isArray(v),
+    ).length;
+    expect(result.property.total).toBe(propertyScalarCount);
+  });
+
+  it('filled never exceeds total', () => {
+    const result = selectSectionCompleteness(stateWith({}));
+    for (const { filled, total } of Object.values(result)) {
+      expect(filled).toBeLessThanOrEqual(total);
+    }
+  });
+});

@@ -318,3 +318,264 @@ describe('fetchOllamaExtraction', () => {
     expect(result.ok).toBe(false);
   });
 });
+
+// ─── Groq helpers ─────────────────────────────────────────────────────────────
+
+import {
+  checkGroqAvailability,
+  fetchGroqSuggestion,
+  fetchGroqExtraction,
+  getStoredProvider,
+  storeProvider,
+  getStoredGroqApiKey,
+  storeGroqApiKey,
+  GROQ_API_BASE,
+  GROQ_DEFAULT_MODEL,
+} from './llmService';
+
+describe('getStoredProvider / storeProvider', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns "ollama" by default when nothing is stored', () => {
+    expect(getStoredProvider()).toBe('ollama');
+  });
+
+  it('returns "groq" after storing "groq"', () => {
+    storeProvider('groq');
+    expect(getStoredProvider()).toBe('groq');
+  });
+
+  it('returns "ollama" for an unrecognised stored value', () => {
+    localStorage.setItem('henry.llm.provider', 'unknown');
+    expect(getStoredProvider()).toBe('ollama');
+  });
+});
+
+describe('getStoredGroqApiKey / storeGroqApiKey', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns empty string when nothing is stored', () => {
+    expect(getStoredGroqApiKey()).toBe('');
+  });
+
+  it('stores and retrieves a key', () => {
+    storeGroqApiKey('gsk_test_key');
+    expect(getStoredGroqApiKey()).toBe('gsk_test_key');
+  });
+
+  it('removes the key when empty string is passed', () => {
+    storeGroqApiKey('gsk_test_key');
+    storeGroqApiKey('');
+    expect(getStoredGroqApiKey()).toBe('');
+  });
+});
+
+describe('checkGroqAvailability', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns true when Groq responds with 200', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    const result = await checkGroqAvailability('gsk_test_key', 500);
+    expect(result).toBe(true);
+  });
+
+  it('returns false when Groq responds with 401', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
+    const result = await checkGroqAvailability('gsk_bad_key', 500);
+    expect(result).toBe(false);
+  });
+
+  it('returns false when no API key is provided and none is stored', async () => {
+    const result = await checkGroqAvailability('', 500);
+    expect(result).toBe(false);
+  });
+
+  it('returns false when fetch throws', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+    const result = await checkGroqAvailability('gsk_key', 500);
+    expect(result).toBe(false);
+  });
+
+  it('uses stored API key when none is passed', async () => {
+    storeGroqApiKey('gsk_stored_key');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    const result = await checkGroqAvailability();
+    expect(result).toBe(true);
+    // Verify the stored key was used in the Authorization header
+    const calls = vi.mocked(fetch).mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    const [_url, init] = calls[0];
+    expect(init?.headers?.Authorization).toBe('Bearer gsk_stored_key');
+  });
+});
+
+describe('fetchGroqSuggestion', () => {
+  const validSuggestion = {
+    section: 'tenant',
+    field: 'fullName',
+    value: 'Ahmad Al Rashid',
+    rationale: 'extracted from prompt',
+  };
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  const makeGroqResponse = (content) => ({
+    ok: true,
+    json: () => Promise.resolve({ choices: [{ message: { content } }] }),
+  });
+
+  it('returns ok:false when no API key is configured', async () => {
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {} });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/api key/i);
+  });
+
+  it('returns ok:true with suggestion on valid response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeGroqResponse(JSON.stringify(validSuggestion))));
+    const result = await fetchGroqSuggestion({
+      userPrompt: 'Set tenant name to Ahmad',
+      documentData: {},
+      apiKey: 'gsk_key',
+    });
+    expect(result.ok).toBe(true);
+    expect(result.suggestion).toMatchObject({ section: 'tenant', field: 'fullName' });
+    expect(result.provider).toBe('groq');
+  });
+
+  it('returns ok:false when model returns non-JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeGroqResponse('Sorry, I cannot help.')));
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {}, apiKey: 'gsk_key' });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/parseable JSON/i);
+  });
+
+  it('returns ok:false when model targets a disallowed field', async () => {
+    const bad = { section: 'hackers', field: 'payload', value: 'x', rationale: '' };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeGroqResponse(JSON.stringify(bad))));
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {}, apiKey: 'gsk_key' });
+    expect(result.ok).toBe(false);
+  });
+
+  it('returns ok:false with 401 error message for bad key', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 401, text: () => Promise.resolve('Unauthorized') }),
+    );
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {}, apiKey: 'gsk_bad' });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/invalid or expired/i);
+  });
+
+  it('returns ok:false with rate limit message on 429', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 429, text: () => Promise.resolve('') }),
+    );
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {}, apiKey: 'gsk_key' });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/rate limit/i);
+  });
+
+  it('returns ok:false on network failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Connection refused')));
+    const result = await fetchGroqSuggestion({ userPrompt: 'test', documentData: {}, apiKey: 'gsk_key' });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/unreachable/i);
+  });
+});
+
+describe('fetchGroqExtraction', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  const makeGroqResponse = (content) => ({
+    ok: true,
+    json: () => Promise.resolve({ choices: [{ message: { content } }] }),
+  });
+
+  it('returns ok:false when extractedText is empty', async () => {
+    const result = await fetchGroqExtraction({
+      extractedText: '',
+      fileName: 'x.pdf',
+      fileKind: 'pdf',
+      documentData: {},
+      apiKey: 'gsk_key',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/no text/i);
+  });
+
+  it('returns ok:false when no API key is configured', async () => {
+    const result = await fetchGroqExtraction({
+      extractedText: 'some text',
+      fileName: 'x.pdf',
+      fileKind: 'pdf',
+      documentData: {},
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/api key/i);
+  });
+
+  it('returns ok:true with valid filtered suggestions', async () => {
+    const payload = {
+      suggestions: [
+        { section: 'tenant', field: 'fullName', value: 'Sara Lee', confidence: 0.95, rationale: '' },
+        { section: 'unknown', field: 'x', value: 'y', confidence: 0.99, rationale: '' }, // disallowed
+        { section: 'property', field: 'unit', value: '', confidence: 0.9, rationale: '' }, // empty value
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeGroqResponse(JSON.stringify(payload))));
+    const result = await fetchGroqExtraction({
+      extractedText: 'Lease doc text',
+      fileName: 'lease.pdf',
+      fileKind: 'pdf',
+      documentData: {},
+      apiKey: 'gsk_key',
+    });
+    expect(result.ok).toBe(true);
+    expect(result.provider).toBe('groq');
+    expect(result.suggestions).toHaveLength(1);
+    expect(result.suggestions[0]).toMatchObject({ section: 'tenant', field: 'fullName' });
+    expect(result.droppedCount).toBe(2);
+  });
+
+  it('returns ok:false when model returns no suggestions array', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeGroqResponse('{"section":"tenant"}')));
+    const result = await fetchGroqExtraction({
+      extractedText: 'text',
+      fileName: 'x.pdf',
+      fileKind: 'pdf',
+      documentData: {},
+      apiKey: 'gsk_key',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/parseable/i);
+  });
+
+  it('returns ok:false on network failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+    const result = await fetchGroqExtraction({
+      extractedText: 'text',
+      fileName: 'x.pdf',
+      fileKind: 'pdf',
+      documentData: {},
+      apiKey: 'gsk_key',
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toMatch(/unreachable/i);
+  });
+});

@@ -71,3 +71,27 @@ export const selectArchiveEntriesForCurrentUnit = createSelector(
 );
 
 export const selectLatestApprovedOcr = createSelector([selectOcrState], (ocrState) => ocrState.lastApproved);
+
+/**
+ * selectSectionCompleteness — for each section of the document, compute how
+ * many scalar fields are non-empty vs the total declared scalar fields.
+ * Returns an object keyed by section name: { filled: number, total: number }.
+ * Array fields (additionalTerms, etc.) are excluded (edited via slice actions).
+ */
+export const selectSectionCompleteness = createSelector([selectDocument], (document) => {
+  const result = {};
+  for (const [section, fields] of Object.entries(document)) {
+    if (typeof fields !== 'object' || fields === null || Array.isArray(fields)) continue;
+    const scalars = Object.entries(fields).filter(([, v]) => !Array.isArray(v));
+    const total = scalars.length;
+    const filled = scalars.filter(([, v]) => {
+      if (v === null || v === undefined) return false;
+      if (typeof v === 'string') return v.trim() !== '';
+      if (typeof v === 'number') return !Number.isNaN(v);
+      if (typeof v === 'boolean') return true; // booleans count as filled
+      return true;
+    }).length;
+    result[section] = { filled, total };
+  }
+  return result;
+});
