@@ -28,3 +28,9 @@ export const STORAGE_KEY_DENSITY = 'henry.ui.density';
 
 /** Theme preference ('light' | 'dark' | 'system'). */
 export const STORAGE_KEY_THEME = 'henry.ui.theme';
+
+/** LLM provider selection ('ollama' | 'groq'). */
+export const STORAGE_KEY_LLM_PROVIDER = 'henry.llm.provider';
+
+/** Groq API key (user-supplied, stored in localStorage). */
+export const STORAGE_KEY_GROQ_API_KEY = 'henry.llm.groqApiKey';
