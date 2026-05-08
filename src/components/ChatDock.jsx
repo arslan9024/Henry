@@ -181,7 +181,8 @@ const ChatDock = () => {
               },
             }}
           >
-            <span aria-hidden="true" style={{ fontSize: '1.3rem' }}>
+            {/* aria-label on the Fab is the accessible name; the emoji is decorative */}
+            <span role="img" aria-label="chat bubble" style={{ fontSize: '1.3rem' }}>
               💬
             </span>
           </Fab>

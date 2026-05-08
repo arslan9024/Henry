@@ -101,7 +101,7 @@ const TopNavbar = React.memo(() => {
             component="img"
             src="/logo.png"
             alt="White Caves Real Estate"
-            sx={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 1 }}
+            sx={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 1, flexShrink: 0 }}
           />
           <Box>
             <Typography variant="h6" component="h1" sx={{ lineHeight: 1.2, fontSize: '0.95rem' }}>
@@ -142,7 +142,7 @@ const TopNavbar = React.memo(() => {
             flexShrink: 0,
           }}
         >
-          <Box component="span" aria-hidden="true" sx={{ fontSize: '1.3rem', lineHeight: 1 }}>
+          <Box component="span" aria-hidden="true" sx={{ fontSize: '1.3rem', lineHeight: 1, flexShrink: 0 }}>
             🤵
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', minWidth: 0 }}>
