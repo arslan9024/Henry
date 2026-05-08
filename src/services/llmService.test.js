@@ -329,6 +329,7 @@ import {
   storeProvider,
   getStoredGroqApiKey,
   storeGroqApiKey,
+  resetGroqApiKeyCacheForTests,
   GROQ_API_BASE,
   GROQ_DEFAULT_MODEL,
 } from './llmService';
@@ -357,6 +358,7 @@ describe('getStoredProvider / storeProvider', () => {
 describe('getStoredGroqApiKey / storeGroqApiKey', () => {
   afterEach(() => {
     localStorage.clear();
+    resetGroqApiKeyCacheForTests();
     vi.restoreAllMocks();
   });
 
@@ -367,6 +369,7 @@ describe('getStoredGroqApiKey / storeGroqApiKey', () => {
   it('stores and retrieves a key', () => {
     storeGroqApiKey('gsk_test_key');
     expect(getStoredGroqApiKey()).toBe('gsk_test_key');
+    expect(localStorage.getItem('henry.llm.groqApiKey')).toBeNull();
   });
 
   it('removes the key when empty string is passed', () => {
@@ -374,11 +377,19 @@ describe('getStoredGroqApiKey / storeGroqApiKey', () => {
     storeGroqApiKey('');
     expect(getStoredGroqApiKey()).toBe('');
   });
+
+  it('migrates legacy localStorage key to memory and removes persisted copy', () => {
+    resetGroqApiKeyCacheForTests();
+    localStorage.setItem('henry.llm.groqApiKey', 'gsk_legacy_key');
+    expect(getStoredGroqApiKey()).toBe('gsk_legacy_key');
+    expect(localStorage.getItem('henry.llm.groqApiKey')).toBeNull();
+  });
 });
 
 describe('checkGroqAvailability', () => {
   afterEach(() => {
     localStorage.clear();
+    resetGroqApiKeyCacheForTests();
     vi.restoreAllMocks();
   });
 
@@ -428,6 +439,7 @@ describe('fetchGroqSuggestion', () => {
 
   afterEach(() => {
     localStorage.clear();
+    resetGroqApiKeyCacheForTests();
     vi.restoreAllMocks();
   });
 
@@ -499,6 +511,7 @@ describe('fetchGroqSuggestion', () => {
 describe('fetchGroqExtraction', () => {
   afterEach(() => {
     localStorage.clear();
+    resetGroqApiKeyCacheForTests();
     vi.restoreAllMocks();
   });
 

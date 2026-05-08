@@ -118,7 +118,7 @@ const GroqSettingsPanel = ({ onClose }) => {
         </p>
       ) : null}
       <p style={{ marginTop: 8, color: '#6b7280', fontSize: '0.74rem' }}>
-        Key is stored only in your browser's localStorage. It is never sent anywhere except directly to
+        Key is stored in memory for the current tab session only. It is never sent anywhere except directly to
         api.groq.com.
       </p>
     </div>

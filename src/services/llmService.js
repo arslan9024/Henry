@@ -15,6 +15,24 @@ const DEFAULT_TIMEOUT_MS = 45000;
 export const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
 export const GROQ_DEFAULT_MODEL = 'llama-3.1-8b-instant';
 const GROQ_TIMEOUT_MS = 30_000;
+let groqApiKeyMemoryCache = '';
+let groqApiKeyHydrated = false;
+
+const hydrateGroqApiKeyFromLegacyStorage = () => {
+  if (groqApiKeyHydrated) return;
+  groqApiKeyHydrated = true;
+  try {
+    if (typeof window !== 'undefined') {
+      const legacy = window.localStorage?.getItem(STORAGE_KEY_GROQ_API_KEY);
+      if (legacy) {
+        groqApiKeyMemoryCache = legacy;
+      }
+      window.localStorage?.removeItem(STORAGE_KEY_GROQ_API_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+};
 
 // ─── LLM provider helpers ─────────────────────────────────────────────────────
 
@@ -40,34 +58,33 @@ export const storeProvider = (provider) => {
 
 /** Read the stored Groq API key. */
 export const getStoredGroqApiKey = () => {
+  hydrateGroqApiKeyFromLegacyStorage();
   try {
-    return (
-      (typeof window !== 'undefined' ? window.localStorage?.getItem(STORAGE_KEY_GROQ_API_KEY) : null) || ''
-    );
+    return groqApiKeyMemoryCache || '';
   } catch {
     return '';
   }
 };
 
-/** Persist a Groq API key. Pass empty string to clear.
- * The key is a user-supplied credential stored at the user's request.
- * Browser localStorage is the appropriate storage for user-configured
- * API keys in a client-only app; no server-side session is available.
- * The key is transmitted only to api.groq.com by the user's own browser.
+/** Cache a Groq API key in memory only. Pass empty string to clear.
+ * The key is user-supplied sensitive data; we avoid persistent browser storage.
+ * Legacy localStorage values are migrated into memory and removed on first read.
  */
 export const storeGroqApiKey = (key) => {
+  groqApiKeyHydrated = true;
+  groqApiKeyMemoryCache = String(key || '').trim();
   try {
     if (typeof window !== 'undefined') {
-      if (key) {
-        // lgtm[js/clear-text-storage-of-sensitive-data]
-        window.localStorage?.setItem(STORAGE_KEY_GROQ_API_KEY, key);
-      } else {
-        window.localStorage?.removeItem(STORAGE_KEY_GROQ_API_KEY);
-      }
+      window.localStorage?.removeItem(STORAGE_KEY_GROQ_API_KEY);
     }
   } catch {
     /* ignore */
   }
+};
+
+export const resetGroqApiKeyCacheForTests = () => {
+  groqApiKeyMemoryCache = '';
+  groqApiKeyHydrated = false;
 };
 
 const toMemoryFriendlyReason = (detail = '') => {

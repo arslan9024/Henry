@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
 import templateReducer from '../store/templateSlice';
+import { setActiveTemplate } from '../store/templateSlice';
 import policyMetaReducer from '../store/policyMetaSlice';
 import henryReducer from '../store/henrySlice';
 import uiCommandReducer from '../store/uiCommandSlice';
@@ -180,5 +181,27 @@ describe('TopNavbar document action buttons', () => {
     expect(screen.getByRole('button', { name: /toggle print preview/i })).toHaveTextContent('👁 Preview');
     fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
     expect(screen.getByRole('button', { name: /close print preview/i })).toHaveTextContent('✏ Edit');
+  });
+
+  it('exits preview when switching from PDF template to non-PDF template', async () => {
+    const store = makeStore({
+      template: { activeTemplate: 'viewing' },
+      uiCommand: {
+        leftRail: 'expanded',
+        drawerTab: null,
+        chatOpen: false,
+        printTrigger: 0,
+        previewMode: true,
+      },
+    });
+    renderNavbar(store);
+    expect(screen.getByRole('button', { name: /close print preview/i })).toBeInTheDocument();
+
+    store.dispatch(setActiveTemplate('offer'));
+
+    await waitFor(() => {
+      expect(store.getState().uiCommand.previewMode).toBe(false);
+    });
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
   });
 });
