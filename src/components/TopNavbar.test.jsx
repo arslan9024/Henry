@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within, waitFor, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -197,7 +197,9 @@ describe('TopNavbar document action buttons', () => {
     renderNavbar(store);
     expect(screen.getByRole('button', { name: /close print preview/i })).toBeInTheDocument();
 
-    store.dispatch(setActiveTemplate('offer'));
+    act(() => {
+      store.dispatch(setActiveTemplate('offer'));
+    });
 
     await waitFor(() => {
       expect(store.getState().uiCommand.previewMode).toBe(false);
