@@ -9,6 +9,8 @@ import henryReducer from './henrySlice';
 import archiveReducer from './archiveSlice';
 import ocrReducer from './ocrSlice';
 import uiReducer from './uiSlice';
+import payrollReducer from './payrollSlice';
+import appRouteReducer from './appRouteSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,5 +24,7 @@ export const store = configureStore({
     archive: archiveReducer,
     ocr: ocrReducer,
     ui: uiReducer,
+    payroll: payrollReducer,
+    appRoute: appRouteReducer,
   },
 });

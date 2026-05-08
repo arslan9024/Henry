@@ -205,3 +205,83 @@ describe('documentSlice — addAddendumClause / removeAddendumClause', () => {
     expect(store.getState().document.addendum.additionalClauses).toHaveLength(1);
   });
 });
+
+describe('documentSlice — keyHandover section', () => {
+  it('exists in initial state with expected fields', () => {
+    const { document } = makeStore().getState();
+    expect(document.keyHandover).toBeDefined();
+    expect(document.keyHandover.referenceNumber).toBe('');
+    expect(document.keyHandover.handoverDate).toBe('');
+    expect(document.keyHandover.wallsCondition).toBe('Good');
+    expect(document.keyHandover.acCondition).toBe('Serviced');
+    expect(document.keyHandover.cleaningStatus).toBe('Professional');
+    expect(document.keyHandover.cleaningNotes).toBe('Ready to move');
+  });
+
+  it('setDocumentValue updates keyHandover fields', () => {
+    const store = makeStore();
+    store.dispatch(setDocumentValue({ section: 'keyHandover', field: 'handoverDate', value: '01 May 2026' }));
+    store.dispatch(
+      setDocumentValue({ section: 'keyHandover', field: 'tenantName', value: 'Ahmed Al Mansouri' }),
+    );
+    const { keyHandover } = store.getState().document;
+    expect(keyHandover.handoverDate).toBe('01 May 2026');
+    expect(keyHandover.tenantName).toBe('Ahmed Al Mansouri');
+  });
+
+  it('setDocumentValue silently ignores undeclared keyHandover fields', () => {
+    const store = makeStore();
+    const before = store.getState().document.keyHandover;
+    store.dispatch(setDocumentValue({ section: 'keyHandover', field: 'notAField', value: 'x' }));
+    expect(store.getState().document.keyHandover).toEqual(before);
+  });
+
+  it('updateDocumentSection merges keyHandover fields', () => {
+    const store = makeStore();
+    store.dispatch(
+      updateDocumentSection({
+        section: 'keyHandover',
+        values: { propertyAddress: 'Unit 449, Avencia-2, Damac Hills 2', securityDeposit: 'AED 4,250' },
+      }),
+    );
+    const { keyHandover } = store.getState().document;
+    expect(keyHandover.propertyAddress).toBe('Unit 449, Avencia-2, Damac Hills 2');
+    expect(keyHandover.securityDeposit).toBe('AED 4,250');
+    // Pre-existing defaults preserved
+    expect(keyHandover.wallsCondition).toBe('Good');
+  });
+
+  it('all 25 expected fields are declared in initial state', () => {
+    const { keyHandover } = makeStore().getState().document;
+    const expectedFields = [
+      'referenceNumber',
+      'handoverDate',
+      'tenantName',
+      'landlordName',
+      'propertyManagerName',
+      'propertyManagerPhone',
+      'propertyAddress',
+      'gracePeriodStart',
+      'gracePeriodEnd',
+      'rentStartDate',
+      'monthlyRent',
+      'paymentType',
+      'contractExpiryDate',
+      'securityDeposit',
+      'docDeadline',
+      'wallsCondition',
+      'wallsNotes',
+      'flooringCondition',
+      'flooringNotes',
+      'acCondition',
+      'acNotes',
+      'fixturesCondition',
+      'fixturesNotes',
+      'cleaningStatus',
+      'cleaningNotes',
+    ];
+    expectedFields.forEach((field) => {
+      expect(keyHandover, `missing field: ${field}`).toHaveProperty(field);
+    });
+  });
+});

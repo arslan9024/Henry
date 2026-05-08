@@ -7,8 +7,8 @@ import AuditLogPanel from './AuditLogPanel';
 import InfoArticlesPanel from './InfoArticlesPanel';
 import FooterActionBar from './FooterActionBar';
 import ChatDock from './ChatDock';
-import PrintPreview from './PrintPreview';
-import DocumentWorkAreaForm from './DocumentWorkAreaForm';
+import PrintPreviewModal from './PrintPreviewModal';
+import DocumentChecklistPanel from './DocumentChecklistPanel';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
 import { evaluateCompliance } from '../compliance/ruleEngine';
@@ -37,7 +37,7 @@ const DocumentHubPage = () => {
   const canGeneratePdf = useSelector(selectCanGeneratePdf);
   const policyVersion = useSelector((state) => state.policyMeta.version);
 
-  const [previewMode, setPreviewMode] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [leftRail, setLeftRail] = useState(readRail);
   const [drawerTab, setDrawerTab] = useState(null); // null | 'compliance' | 'archive' | 'audit'
 
@@ -62,10 +62,7 @@ const DocumentHubPage = () => {
     const onCompliance = () => setDrawerTab('compliance');
     const onArchive = () => setDrawerTab('archive');
     const onAudit = () => setDrawerTab('audit');
-    const onPrint = () => {
-      // Re-use the existing footer print button via a DOM click if present.
-      document.querySelector('.footer-print-btn')?.click();
-    };
+    const onPrint = () => setPreviewModalOpen(true);
     window.addEventListener('henry:open-compliance', onCompliance);
     window.addEventListener('henry:open-archive', onArchive);
     window.addEventListener('henry:open-audit', onAudit);
@@ -145,6 +142,8 @@ const DocumentHubPage = () => {
   const openArchive = useCallback(() => setDrawerTab('archive'), []);
   const openAudit = useCallback(() => setDrawerTab('audit'), []);
   const closeDrawer = useCallback(() => setDrawerTab(null), []);
+  const openPreviewModal = useCallback(() => setPreviewModalOpen(true), []);
+  const closePreviewModal = useCallback(() => setPreviewModalOpen(false), []);
   const toggleRail = useCallback(() => setLeftRail((s) => (s === 'expanded' ? 'collapsed' : 'expanded')), []);
 
   const railCollapsed = leftRail === 'collapsed';
@@ -154,7 +153,7 @@ const DocumentHubPage = () => {
   return (
     <main className="app-layout" id="main" tabIndex={-1}>
       <section
-        className={`hub-content hub-content--right-overlay ${railCollapsed ? 'hub-content--rail-collapsed' : ''}`}
+        className={`hub-content ${railCollapsed ? 'hub-content--rail-collapsed' : ''}`}
         data-overlay-shield
       >
         {railCollapsed ? (
@@ -247,15 +246,15 @@ const DocumentHubPage = () => {
         )}
 
         <section className="preview-area" aria-live="polite">
-          <DocumentWorkAreaForm />
-          {previewMode ? (
-            <PrintPreview />
-          ) : ActiveTemplateComponent ? (
-            <ActiveTemplateComponent />
-          ) : (
-            <p>No template selected.</p>
-          )}
+          <p className="preview-area__label" aria-hidden="true">
+            📄 Document Preview
+          </p>
+          {ActiveTemplateComponent ? <ActiveTemplateComponent /> : <p>No template selected.</p>}
         </section>
+
+        <aside className="right-panel print-hidden" aria-label="Document checklist and tools">
+          <DocumentChecklistPanel />
+        </aside>
       </section>
 
       {/* Mobile quick actions (Phase 4 step 3): faster access to rail + drawer tabs on phones */}
@@ -301,9 +300,8 @@ const DocumentHubPage = () => {
       <div data-overlay-shield>
         <FooterActionBar
           activeTemplateLabel={activeTemplateLabel}
-          previewMode={previewMode}
           canGeneratePdf={canGeneratePdf}
-          onTogglePreview={() => setPreviewMode((v) => !v)}
+          onOpenPreviewModal={openPreviewModal}
           onOpenCompliance={openCompliance}
           onRunComplianceCheck={handleComplianceCheck}
           onOpenArchive={openArchive}
@@ -376,6 +374,9 @@ const DocumentHubPage = () => {
 
       {/* Floating Ask-Henry chat */}
       <ChatDock />
+
+      {/* PDF preview modal */}
+      <PrintPreviewModal isOpen={previewModalOpen} onClose={closePreviewModal} />
     </main>
   );
 };

@@ -167,6 +167,42 @@ const initialState = {
     hrName: '',
     hrDesignation: 'HR Manager',
   },
+  // ─── Key Handover & Maintenance Confirmation ─────────────────────────────
+  // Covers the move-in handover document, property condition acceptance, and
+  // maintenance responsibility confirmation between landlord and tenant.
+  keyHandover: {
+    // Document meta
+    referenceNumber: '', // e.g. KH-2026-001
+    handoverDate: '', // ISO date or display string
+    // Parties
+    tenantName: '',
+    landlordName: '',
+    propertyManagerName: '',
+    propertyManagerPhone: '',
+    // Property
+    propertyAddress: '', // Full unit + community address
+    // Lease financial timeline
+    gracePeriodStart: '',
+    gracePeriodEnd: '',
+    rentStartDate: '',
+    monthlyRent: '', // e.g. "AED 7,083"
+    paymentType: '', // e.g. "4 Cheques"
+    contractExpiryDate: '',
+    securityDeposit: '', // e.g. "AED 4,250"
+    // Key documentation deadlines
+    docDeadline: '', // Ejari / DEWA / DAMAC permit deadline
+    // Property condition acceptance table
+    wallsCondition: 'Good',
+    wallsNotes: '',
+    flooringCondition: 'Good',
+    flooringNotes: '',
+    acCondition: 'Serviced',
+    acNotes: '',
+    fixturesCondition: 'N/A (Unfurnished)',
+    fixturesNotes: '',
+    cleaningStatus: 'Professional',
+    cleaningNotes: 'Ready to move',
+  },
   // ─── Standard Tenancy Addendum (RERA Master Config) ──────────────────────
   // Pre-populated when the “addendum” template is selected.
   // Locked defaults (securityDeposit, renewalCharges, maintenanceCap,

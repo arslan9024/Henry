@@ -79,7 +79,7 @@ export const TEMPLATE_CONFIG = [
     key: 'keyHandover',
     label: 'Key Handover and Maintenance Confirmation',
     component: KeyHandoverMaintenanceTemplate,
-    supportsPdf: false,
+    supportsPdf: true,
     sourceOfTruth: {
       immutable: true,
       governmentIssued: true,

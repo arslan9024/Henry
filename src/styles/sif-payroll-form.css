@@ -1,0 +1,1094 @@
+/* ═══════════════════════════════════════════════════════════
+   WPS SIF PAYROLL FORM STYLING
+   ═══════════════════════════════════════════════════════════ */
+
+.sif-payroll-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+/* ─ Sections ─ */
+.sif-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.sif-section__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.sif-section__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ─ Company Info Section ─ */
+.sif-company-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.sif-company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sif-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sif-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sif-input {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  background: #ffffff;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.sif-input:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 1px;
+  border-color: #0ea5e9;
+}
+
+.sif-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ─ Employees Section ─ */
+.sif-employees-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.sif-employee-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.sif-employee-header {
+  display: grid;
+  grid-template-columns: 40px 120px 150px 140px 120px 120px 120px 100px;
+  gap: 8px;
+  padding: 10px;
+  background: #f3f4f6;
+  border-bottom: 2px solid #d1d5db;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  position: sticky;
+  top: 0;
+}
+
+.sif-employee-row {
+  display: grid;
+  grid-template-columns: 40px 120px 150px 140px 120px 120px 120px 100px;
+  gap: 8px;
+  padding: 10px;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.sif-employee-row:hover {
+  background: #f9fafb;
+}
+
+.sif-employee-row--edit {
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  background: #eff6ff;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.sif-employee-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sif-employee-cell--number {
+  text-align: center;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.sif-employee-cell--amount {
+  text-align: right;
+  font-family: 'SFMono-Regular', monospace;
+  color: #374151;
+}
+
+.sif-employee-cell--total {
+  text-align: right;
+  font-weight: 600;
+  color: #111827;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.sif-employee-field {
+  display: flex;
+  gap: 6px;
+}
+
+.sif-employee-total {
+  font-weight: 600;
+  text-align: right;
+  padding: 4px 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.sif-employee-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* ─ Add Employee Form ─ */
+.sif-add-employee {
+  padding: 14px;
+  background: #ffffff;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.sif-add-employee__title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sif-add-employee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  align-items: flex-end;
+}
+
+/* ─ Buttons ─ */
+.sif-btn {
+  padding: 8px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.sif-btn:hover:not(:disabled),
+.sif-btn:focus-visible {
+  background: #f3f4f6;
+  border-color: #94a3b8;
+  outline: 2px solid #0ea5e9;
+  outline-offset: 1px;
+}
+
+.sif-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sif-btn--primary {
+  background: #0ea5e9;
+  color: #ffffff;
+  border-color: #0ea5e9;
+}
+
+.sif-btn--primary:hover:not(:disabled) {
+  background: #0284c7;
+  border-color: #0284c7;
+}
+
+.sif-btn--secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.sif-btn--success {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+.sif-btn--danger {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.sif-btn--text {
+  background: transparent;
+  border-color: transparent;
+  color: #0284c7;
+}
+
+.sif-btn--text:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.sif-btn--sm {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+.sif-btn--lg {
+  padding: 12px 20px;
+  font-size: 14px;
+}
+
+/* ─ Validation Panel ─ */
+.sif-validation-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.sif-validation-section--clean {
+  background: #f0fdf4;
+  border-color: #a7f3d0;
+}
+
+.sif-validation-success {
+  padding: 12px;
+  text-align: center;
+  color: #065f46;
+}
+
+.sif-validation-success p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sif-validation-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sif-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.sif-summary-item--company {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sif-summary-item--employee {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sif-summary-icon {
+  font-size: 14px;
+}
+
+.sif-error-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sif-error-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+}
+
+.sif-error-item--company {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.sif-error-item--employee {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.sif-error-item--employees {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.sif-error-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sif-error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  font-size: 12px;
+}
+
+.sif-error-context {
+  font-weight: 600;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.sif-error-field {
+  display: flex;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.sif-field-name {
+  font-family: 'SFMono-Regular', monospace;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.sif-error-code {
+  font-family: 'SFMono-Regular', monospace;
+  opacity: 0.75;
+}
+
+.sif-error-message {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sif-error-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.sif-error-badge--critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sif-error-badge--warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ─ History Panel ─ */
+.sif-history-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.sif-history-empty {
+  padding: 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.sif-history-empty p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.sif-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sif-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.sif-history-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sif-history-filename {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SFMono-Regular', monospace;
+}
+
+.sif-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.sif-history-date,
+.sif-history-count,
+.sif-history-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.sif-history-actions {
+  flex-shrink: 0;
+}
+
+/* ─ Generation Section ─ */
+.sif-generation-section {
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+}
+
+.sif-generation-section .sif-section__title {
+  color: #f1f5f9;
+}
+
+.sif-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+.sif-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.sif-summary-item strong {
+  color: #0ea5e9;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.sif-status--ok {
+  color: #10b981;
+}
+
+.sif-status--error {
+  color: #ef4444;
+}
+
+.sif-generation-options {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.sif-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sif-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.sif-radio input[type='radio'] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.sif-radio span {
+  color: #f1f5f9;
+}
+
+.sif-generation-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sif-input--compact {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.sif-hint {
+  margin: 0;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.sif-hint--warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-left: 3px solid #f59e0b;
+}
+
+.sif-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #0ea5e9;
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sif-company-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .sif-employee-header,
+  .sif-employee-row {
+    grid-template-columns: repeat(6, 1fr);
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sif-payroll-form {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .sif-section {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .sif-company-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sif-add-employee-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sif-employee-header,
+  .sif-employee-row {
+    grid-template-columns: repeat(4, 1fr);
+    font-size: 10px;
+  }
+
+  .sif-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TEMPLATE MANAGEMENT STYLING
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─ Save Template Form ─ */
+.sif-save-template {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sif-save-template__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+}
+
+.sif-save-template__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─ Template Manager Section ─ */
+.sif-template-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.sif-template-manager__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sif-template-manager__hint {
+  margin: 0;
+  padding: 8px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+/* ─ Template Cards ─ */
+.sif-template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.sif-template-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+.sif-template-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sif-template-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sif-template-card__meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.sif-template-card__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.sif-template-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.sif-template-card__body {
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.sif-template-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sif-template-card__info strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.sif-template-card__org {
+  margin: 0;
+  font-size: 11px;
+  color: #6b7280;
+  font-family: 'SFMono-Regular', monospace;
+}
+
+.sif-template-card__total {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.sif-template-card__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+}
+
+.sif-template-card__dropdown {
+  position: relative;
+}
+
+.sif-template-card__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.sif-template-card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.sif-template-card__menu-item:last-child {
+  border-bottom: none;
+}
+
+.sif-template-card__menu-item:hover {
+  background: #f9fafb;
+}
+
+.sif-template-card__menu-item--danger {
+  color: #ef4444;
+}
+
+.sif-template-card__menu-item--danger:hover {
+  background: #fee2e2;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIF PAYROLL PAGE STYLING
+   ═══════════════════════════════════════════════════════════ */
+
+.sif-payroll-page {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sif-payroll-page__header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.sif-payroll-page__header h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.sif-payroll-page__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.sif-payroll-page__container {
+  margin-bottom: 24px;
+}
+
+.sif-payroll-page__footer {
+  padding: 16px;
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #065f46;
+  line-height: 1.6;
+}
+
+.sif-payroll-page__footer p {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sif-payroll-page {
+    padding: 16px;
+  }
+
+  .sif-payroll-page__header h1 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sif-payroll-page {
+    padding: 12px;
+  }
+
+  .sif-payroll-page__header h1 {
+    font-size: 24px;
+  }
+
+  .sif-payroll-page__header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .sif-payroll-page__container {
+    margin-bottom: 16px;
+  }
+
+  .sif-payroll-page__subtitle {
+    font-size: 12px;
+  }
+
+  .sif-payroll-page__footer {
+    padding: 12px;
+    font-size: 12px;
+  }
+}
+
+/* ─ Template Selector Modal ─ */
+.sif-template-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.sif-template-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  max-width: 800px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sif-template-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.sif-template-modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.sif-template-modal__close {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.sif-template-modal__close:hover {
+  color: #111827;
+}
+
+.sif-template-modal__search {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  sticky: top 48px;
+}
+
+.sif-template-modal__search .sif-input {
+  width: 100%;
+}
+
+.sif-template-modal__content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sif-template-modal__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.sif-template-modal__empty-icon {
+  font-size: 48px;
+  margin: 0;
+}
+
+.sif-template-modal__empty-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sif-template-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.sif-template-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  bottom: 0;
+  flex-wrap: wrap;
+}
+
+.sif-template-modal__info {
+  margin: 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sif-template-manager__actions {
+    flex-direction: column;
+  }
+
+  .sif-template-manager__actions .sif-btn {
+    width: 100%;
+  }
+
+  .sif-template-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sif-template-modal {
+    border-radius: 12px 12px 0 0;
+    max-height: 90vh;
+  }
+
+  .sif-template-modal-overlay {
+    align-items: flex-end;
+  }
+}

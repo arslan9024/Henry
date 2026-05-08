@@ -47,6 +47,16 @@ describe('selectActiveTemplateMeta + label + canGeneratePdf', () => {
     const state = makeState({ template: { activeTemplate: 'viewing' } });
     expect(typeof selectCanGeneratePdf(state)).toBe('boolean');
   });
+
+  it('selectCanGeneratePdf is true for keyHandover (PDF enabled)', () => {
+    const state = makeState({ template: { activeTemplate: 'keyHandover' } });
+    expect(selectCanGeneratePdf(state)).toBe(true);
+  });
+
+  it('selectCanGeneratePdf is false for offer template (PDF disabled)', () => {
+    const state = makeState({ template: { activeTemplate: 'offer' } });
+    expect(selectCanGeneratePdf(state)).toBe(false);
+  });
 });
 
 describe('selectSidebarContent', () => {

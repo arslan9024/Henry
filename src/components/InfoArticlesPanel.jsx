@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import DocumentSelector from './DocumentSelector';
 import HenryOperationsPanel from './HenryOperationsPanel';
 import IdentityScanner from './IdentityScanner';
 import Disclosure from './Disclosure';
 import { useSidebarContent } from '../hooks/useSidebarContent';
+import { selectCanGeneratePdf } from '../store/selectors';
 
 const InfoArticlesPanel = () => {
   const { activeTemplateLabel, highlights, articles, lastUpdated } = useSidebarContent();
+  const canGeneratePdf = useSelector(selectCanGeneratePdf);
+  const activeTemplate = useSelector((state) => state.template.activeTemplate);
+  const [downloading, setDownloading] = useState(false);
+  const [dlError, setDlError] = useState('');
+
+  const handleBlankDownload = async () => {
+    try {
+      setDownloading(true);
+      setDlError('');
+      const { downloadBlankTemplate } = await import('../pdf/generateQuotationPdf');
+      await downloadBlankTemplate(activeTemplate);
+    } catch (err) {
+      setDlError(err?.message || 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <aside className="info-articles-panel print-hidden" aria-label="Henry's guidance sidebar">
@@ -25,6 +44,21 @@ const InfoArticlesPanel = () => {
 
       <Disclosure title="Templates" icon="📄" defaultOpen>
         <DocumentSelector />
+        {canGeneratePdf && (
+          <div className="blank-dl-wrap">
+            <button
+              type="button"
+              className="blank-download-btn"
+              onClick={handleBlankDownload}
+              disabled={downloading}
+              title="Download an empty, unsigned version of this template for staff"
+              aria-label="Download blank template"
+            >
+              {downloading ? '⏳ Preparing…' : '⬇ Download Blank Template'}
+            </button>
+            {dlError && <p className="blank-download-error">{dlError}</p>}
+          </div>
+        )}
       </Disclosure>
 
       <Disclosure title="Operations" icon="⚙️">

@@ -144,6 +144,189 @@ const DocumentWorkAreaForm = () => {
         </div>
       </Disclosure>
 
+      {activeTemplate === 'keyHandover' ? (
+        <Disclosure title="Key Handover Details" icon="🔑" defaultOpen>
+          <div className="viewing-grid">
+            <FormField label="Reference Number">
+              <Input
+                value={documentData.keyHandover?.referenceNumber || ''}
+                onChange={setField('keyHandover', 'referenceNumber')}
+                placeholder="KH-2026-001"
+              />
+            </FormField>
+            <FormField label="Handover Date">
+              <Input
+                value={documentData.keyHandover?.handoverDate || ''}
+                onChange={setField('keyHandover', 'handoverDate')}
+                placeholder="01 May 2026"
+              />
+            </FormField>
+            <FormField label="Property Address">
+              <Input
+                value={documentData.keyHandover?.propertyAddress || ''}
+                onChange={setField('keyHandover', 'propertyAddress')}
+                placeholder="Unit 449, Avencia-2, Damac Hills 2"
+              />
+            </FormField>
+            <FormField label="Tenant Name">
+              <Input
+                value={documentData.keyHandover?.tenantName || ''}
+                onChange={setField('keyHandover', 'tenantName')}
+              />
+            </FormField>
+            <FormField label="Landlord Name">
+              <Input
+                value={documentData.keyHandover?.landlordName || ''}
+                onChange={setField('keyHandover', 'landlordName')}
+              />
+            </FormField>
+            <FormField label="Property Manager Name">
+              <Input
+                value={documentData.keyHandover?.propertyManagerName || ''}
+                onChange={setField('keyHandover', 'propertyManagerName')}
+              />
+            </FormField>
+            <FormField label="Property Manager Phone">
+              <Input
+                value={documentData.keyHandover?.propertyManagerPhone || ''}
+                onChange={setField('keyHandover', 'propertyManagerPhone')}
+                placeholder="+971 XX XXX XXXX"
+              />
+            </FormField>
+            <FormField label="Grace Period Start">
+              <Input
+                value={documentData.keyHandover?.gracePeriodStart || ''}
+                onChange={setField('keyHandover', 'gracePeriodStart')}
+                placeholder="01 May 2026"
+              />
+            </FormField>
+            <FormField label="Grace Period End">
+              <Input
+                value={documentData.keyHandover?.gracePeriodEnd || ''}
+                onChange={setField('keyHandover', 'gracePeriodEnd')}
+                placeholder="14 May 2026"
+              />
+            </FormField>
+            <FormField label="Rent Start Date">
+              <Input
+                value={documentData.keyHandover?.rentStartDate || ''}
+                onChange={setField('keyHandover', 'rentStartDate')}
+                placeholder="15 May 2026"
+              />
+            </FormField>
+            <FormField label="Monthly Rent">
+              <Input
+                value={documentData.keyHandover?.monthlyRent || ''}
+                onChange={setField('keyHandover', 'monthlyRent')}
+                placeholder="AED 7,083"
+              />
+            </FormField>
+            <FormField label="Payment Type">
+              <Input
+                value={documentData.keyHandover?.paymentType || ''}
+                onChange={setField('keyHandover', 'paymentType')}
+                placeholder="4 Cheques"
+              />
+            </FormField>
+            <FormField label="Contract Expiry">
+              <Input
+                value={documentData.keyHandover?.contractExpiryDate || ''}
+                onChange={setField('keyHandover', 'contractExpiryDate')}
+                placeholder="30 April 2027"
+              />
+            </FormField>
+            <FormField label="Security Deposit">
+              <Input
+                value={documentData.keyHandover?.securityDeposit || ''}
+                onChange={setField('keyHandover', 'securityDeposit')}
+                placeholder="AED 4,250"
+              />
+            </FormField>
+            <FormField label="Document Deadline (Ejari/DEWA/DAMAC)">
+              <Input
+                value={documentData.keyHandover?.docDeadline || ''}
+                onChange={setField('keyHandover', 'docDeadline')}
+                placeholder="30 May 2026"
+              />
+            </FormField>
+          </div>
+        </Disclosure>
+      ) : null}
+
+      {activeTemplate === 'keyHandover' ? (
+        <Disclosure title="Property Condition" icon="✅">
+          <div className="viewing-grid">
+            <FormField label="Walls Condition">
+              <Input
+                value={documentData.keyHandover?.wallsCondition || ''}
+                onChange={setField('keyHandover', 'wallsCondition')}
+                placeholder="Good"
+              />
+            </FormField>
+            <FormField label="Walls Notes">
+              <Input
+                value={documentData.keyHandover?.wallsNotes || ''}
+                onChange={setField('keyHandover', 'wallsNotes')}
+                placeholder="Freshly painted"
+              />
+            </FormField>
+            <FormField label="Flooring Condition">
+              <Input
+                value={documentData.keyHandover?.flooringCondition || ''}
+                onChange={setField('keyHandover', 'flooringCondition')}
+                placeholder="Good"
+              />
+            </FormField>
+            <FormField label="Flooring Notes">
+              <Input
+                value={documentData.keyHandover?.flooringNotes || ''}
+                onChange={setField('keyHandover', 'flooringNotes')}
+              />
+            </FormField>
+            <FormField label="AC Condition">
+              <Input
+                value={documentData.keyHandover?.acCondition || ''}
+                onChange={setField('keyHandover', 'acCondition')}
+                placeholder="Serviced"
+              />
+            </FormField>
+            <FormField label="AC Notes">
+              <Input
+                value={documentData.keyHandover?.acNotes || ''}
+                onChange={setField('keyHandover', 'acNotes')}
+              />
+            </FormField>
+            <FormField label="Fixtures Condition">
+              <Input
+                value={documentData.keyHandover?.fixturesCondition || ''}
+                onChange={setField('keyHandover', 'fixturesCondition')}
+                placeholder="N/A (Unfurnished)"
+              />
+            </FormField>
+            <FormField label="Fixtures Notes">
+              <Input
+                value={documentData.keyHandover?.fixturesNotes || ''}
+                onChange={setField('keyHandover', 'fixturesNotes')}
+              />
+            </FormField>
+            <FormField label="Cleaning Status">
+              <Input
+                value={documentData.keyHandover?.cleaningStatus || ''}
+                onChange={setField('keyHandover', 'cleaningStatus')}
+                placeholder="Professional"
+              />
+            </FormField>
+            <FormField label="Cleaning Notes">
+              <Input
+                value={documentData.keyHandover?.cleaningNotes || ''}
+                onChange={setField('keyHandover', 'cleaningNotes')}
+                placeholder="Ready to move"
+              />
+            </FormField>
+          </div>
+        </Disclosure>
+      ) : null}
+
       {activeTemplate === 'salaryCertificate' ? (
         <Disclosure title="Salary Certificate Fields" icon="📄" defaultOpen>
           <div className="viewing-grid">

@@ -15,8 +15,6 @@ import archiveReducer from '../store/archiveSlice';
 import ocrReducer from '../store/ocrSlice';
 import uiReducer from '../store/uiSlice';
 
-const printClickSpy = vi.fn();
-
 vi.mock('./ComplianceChecklistPanel', () => ({
   default: () => <div>Compliance Panel Stub</div>,
 }));
@@ -32,8 +30,8 @@ vi.mock('./InfoArticlesPanel', () => ({
 vi.mock('./ChatDock', () => ({
   default: () => null,
 }));
-vi.mock('./PrintPreview', () => ({
-  default: () => <div>Preview Stub</div>,
+vi.mock('./PrintPreviewModal', () => ({
+  default: ({ isOpen }) => (isOpen ? <div data-testid="preview-modal">Modal Preview</div> : null),
 }));
 vi.mock('../hooks/useFocusTrap', () => ({
   default: () => ({ current: null }),
@@ -64,13 +62,7 @@ vi.mock('../templates/registry', () => ({
 }));
 
 vi.mock('./FooterActionBar', () => ({
-  default: () => (
-    <div>
-      <button type="button" className="footer-print-btn" onClick={printClickSpy}>
-        Mock Print
-      </button>
-    </div>
-  ),
+  default: () => <div>Mock Footer</div>,
 }));
 
 import DocumentHubPage from './DocumentHubPage';
@@ -104,10 +96,6 @@ const renderHub = () => {
     </Provider>,
   );
 };
-
-beforeEach(() => {
-  printClickSpy.mockClear();
-});
 
 afterEach(() => {
   cleanup();
@@ -145,14 +133,16 @@ describe('DocumentHubPage command events', () => {
     expect(screen.getByText('Audit Panel Stub')).toBeInTheDocument();
   });
 
-  it('triggers footer print button when henry:trigger-print event is dispatched', () => {
+  it('opens preview modal when henry:trigger-print event is dispatched', () => {
     renderHub();
+
+    expect(screen.queryByTestId('preview-modal')).not.toBeInTheDocument();
 
     act(() => {
       window.dispatchEvent(new Event('henry:trigger-print'));
     });
 
-    expect(printClickSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('preview-modal')).toBeInTheDocument();
   });
 
   it('closes drawer on Escape key', () => {
