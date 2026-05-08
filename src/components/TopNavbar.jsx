@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
-import { toggleLeftRail } from '../store/uiCommandSlice';
+import { selectCurrentPage, goToPayroll, goToDocumentHub } from '../store/appRouteSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -22,6 +22,7 @@ const TopNavbar = React.memo(() => {
   const policyMeta = useSelector(selectPolicyMeta);
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const henry = useSelector(selectHenry);
+  const currentPage = useSelector(selectCurrentPage);
   const { density, toggle: toggleDensity } = useDensity();
   const { mode: themeMode, resolved: themeResolved, cycle: cycleTheme } = useTheme();
   const [identityOpen, setIdentityOpen] = useState(false);
@@ -30,6 +31,14 @@ const TopNavbar = React.memo(() => {
   const openCommandPalette = useCallback(() => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
   }, []);
+
+  const togglePage = useCallback(() => {
+    if (currentPage === 'payroll') {
+      dispatch(goToDocumentHub());
+    } else {
+      dispatch(goToPayroll());
+    }
+  }, [currentPage, dispatch]);
 
   useEffect(() => {
     if (!identityOpen) return undefined;
@@ -61,7 +70,7 @@ const TopNavbar = React.memo(() => {
       <button
         type="button"
         className="top-navbar__hamburger"
-        onClick={() => dispatch(toggleLeftRail())}
+        onClick={() => window.dispatchEvent(new CustomEvent('henry:toggle-left-rail'))}
         aria-label="Toggle sidebar"
         title="Toggle sidebar"
       >
@@ -153,6 +162,28 @@ const TopNavbar = React.memo(() => {
         >
           ⌘ Search
         </button>
+        {currentPage === 'documentHub' && (
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={togglePage}
+            aria-label="Navigate to WPS SIF Payroll Generator"
+            title="WPS SIF Payroll Generator"
+          >
+            💳 Payroll
+          </button>
+        )}
+        {currentPage === 'payroll' && (
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={togglePage}
+            aria-label="Navigate back to Documents"
+            title="Back to Documents"
+          >
+            📄 Documents
+          </button>
+        )}
         <button
           type="button"
           className="density-toggle"

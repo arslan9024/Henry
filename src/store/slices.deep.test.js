@@ -8,6 +8,7 @@
  *   - ocrSlice      (chain operations, null safety, idempotent clears)
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit';
 
 // ── mock archiveService before any slice imports ──────────────────────────────
 vi.mock('../records/archiveService', () => ({
@@ -164,34 +165,53 @@ describe('archiveSlice — entry field preservation', () => {
   });
 });
 
+/** Helper: Redux store with listener middleware (mirrors production store) */
+const makeArchiveStore = () => {
+  const lm = createListenerMiddleware();
+  lm.startListening({
+    actionCreator: addArchiveEntry,
+    effect: (_, api) => persistArchiveEntries(api.getState().archive.entries),
+  });
+  lm.startListening({
+    actionCreator: clearArchiveEntries,
+    effect: (_, api) => persistArchiveEntries(api.getState().archive.entries),
+  });
+  return configureStore({
+    reducer: { archive: archiveReducer },
+    middleware: (gd) => gd().prepend(lm.middleware),
+  });
+};
+
 describe('archiveSlice — persistence contracts', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('persistArchiveEntries called once per addArchiveEntry dispatch', () => {
-    let state = { entries: [] };
-    state = archiveReducer(state, addArchiveEntry({ id: 'a' }));
+    const store = makeArchiveStore();
+    store.dispatch(addArchiveEntry({ id: 'a' }));
     expect(persistArchiveEntries).toHaveBeenCalledTimes(1);
-    state = archiveReducer(state, addArchiveEntry({ id: 'b' }));
+    store.dispatch(addArchiveEntry({ id: 'b' }));
     expect(persistArchiveEntries).toHaveBeenCalledTimes(2);
   });
 
   it('persistArchiveEntries called with the updated entries array after add', () => {
-    let state = { entries: [] };
-    state = archiveReducer(state, addArchiveEntry({ id: 'x' }));
+    const store = makeArchiveStore();
+    store.dispatch(addArchiveEntry({ id: 'x' }));
     expect(persistArchiveEntries).toHaveBeenLastCalledWith([{ id: 'x' }]);
   });
 
   it('clearArchiveEntries calls persistArchiveEntries with empty array', () => {
-    let state = archiveReducer({ entries: [] }, addArchiveEntry({ id: 'x' }));
+    const store = makeArchiveStore();
+    store.dispatch(addArchiveEntry({ id: 'x' }));
     vi.clearAllMocks();
-    state = archiveReducer(state, clearArchiveEntries());
+    store.dispatch(clearArchiveEntries());
     expect(persistArchiveEntries).toHaveBeenCalledTimes(1);
     expect(persistArchiveEntries).toHaveBeenCalledWith([]);
   });
 
   it('clearArchiveEntries on already-empty state persists empty array', () => {
-    const state = archiveReducer({ entries: [] }, clearArchiveEntries());
-    expect(state.entries).toEqual([]);
+    const store = makeArchiveStore();
+    store.dispatch(clearArchiveEntries());
+    expect(store.getState().archive.entries).toEqual([]);
     expect(persistArchiveEntries).toHaveBeenCalledWith([]);
   });
 

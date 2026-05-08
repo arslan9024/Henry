@@ -90,7 +90,8 @@ describe('TEMPLATE_CONFIG', () => {
 
   it('"invoice" entry has supportsPdf = false', () => {
     const invoice = TEMPLATE_CONFIG.find((t) => t.key === 'invoice');
-    expect(invoice.supportsPdf).toBe(false);
+    // invoice now supports PDF (updated to true in Session 11)
+    expect(invoice.supportsPdf).toBe(true);
   });
 
   it('"viewing" entry has supportsPdf = true', () => {

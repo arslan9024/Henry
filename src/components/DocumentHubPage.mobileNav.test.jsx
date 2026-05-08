@@ -109,6 +109,8 @@ describe('DocumentHubPage mobile drawer navigation (T-42)', () => {
   };
 
   it('renders mobile quick navigation actions', () => {
+    // Set localStorage so component's useState reads collapsed state
+    localStorage.setItem('henry.ui.leftRail', 'collapsed');
     renderHub(collapsedState);
     const nav = screen.getByRole('navigation', { name: /mobile drawer navigation/i });
 
@@ -146,6 +148,7 @@ describe('DocumentHubPage mobile drawer navigation (T-42)', () => {
   });
 
   it('menu action expands collapsed left rail', () => {
+    localStorage.setItem('henry.ui.leftRail', 'collapsed');
     renderHub(collapsedState);
     expect(screen.queryByText('Info Articles Stub')).not.toBeInTheDocument();
 

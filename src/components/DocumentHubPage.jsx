@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { TEMPLATE_MAP } from '../templates/registry';
 import ComplianceChecklistPanel from './ComplianceChecklistPanel';
@@ -7,56 +7,153 @@ import AuditLogPanel from './AuditLogPanel';
 import InfoArticlesPanel from './InfoArticlesPanel';
 import FooterActionBar from './FooterActionBar';
 import ChatDock from './ChatDock';
-import PrintPreview from './PrintPreview';
-import DocumentWorkAreaForm from './DocumentWorkAreaForm';
+import PrintPreviewModal from './PrintPreviewModal';
+import DocumentChecklistPanel from './DocumentChecklistPanel';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
-import { useDrawer } from '../hooks/useDrawer';
-import { useComplianceBadge } from '../hooks/useComplianceBadge';
-import { selectCanGeneratePdf, selectActiveTemplateLabel } from '../store/selectors';
-import {
-  toggleLeftRail as toggleLeftRailAction,
-  setLeftRail as setLeftRailAction,
-  selectLeftRail,
-  selectPrintTrigger,
-} from '../store/uiCommandSlice';
+import { evaluateCompliance } from '../compliance/ruleEngine';
+import { setWarningsForTemplate } from '../store/complianceSlice';
+import { addAuditLog } from '../store/auditSlice';
+import { pushToast } from '../store/uiSlice';
+import { selectDocument, selectCanGeneratePdf, selectActiveTemplateLabel } from '../store/selectors';
+
+const RAIL_KEY = 'henry.ui.leftRail';
+const readRail = () => {
+  try {
+    const v = localStorage.getItem(RAIL_KEY);
+    if (v === 'collapsed' || v === 'expanded') return v;
+  } catch {
+    /* ignore */
+  }
+  // Default expanded so template selector is always visible for operators.
+  return 'expanded';
+};
 
 const DocumentHubPage = () => {
   const dispatch = useDispatch();
   const activeTemplate = useSelector((state) => state.template.activeTemplate);
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
+  const documentData = useSelector(selectDocument);
   const canGeneratePdf = useSelector(selectCanGeneratePdf);
   const policyVersion = useSelector((state) => state.policyMeta.version);
-  const leftRail = useSelector(selectLeftRail);
-  const printTrigger = useSelector(selectPrintTrigger);
 
-  const [previewMode, setPreviewMode] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [leftRail, setLeftRail] = useState(readRail);
+  const [drawerTab, setDrawerTab] = useState(null); // null | 'compliance' | 'archive' | 'audit'
 
-  // Watch printTrigger to fire the print dialog.
-  const prevPrintTrigger = useRef(printTrigger);
+  // Persist rail state.
   useEffect(() => {
-    if (printTrigger !== prevPrintTrigger.current) {
-      prevPrintTrigger.current = printTrigger;
-      document.querySelector('.footer-print-btn')?.click();
+    try {
+      localStorage.setItem(RAIL_KEY, leftRail);
+    } catch {
+      /* ignore */
     }
-  }, [printTrigger]);
+  }, [leftRail]);
 
-  const { drawerTab, openCompliance, openArchive, openAudit, closeDrawer } = useDrawer();
-  const { badgeTone, badgeLabel, badgeTitle, handleComplianceCheck } = useComplianceBadge(
-    activeTemplate,
-    policyVersion,
-  );
+  // Listen for hamburger from TopNavbar (small viewports).
+  useEffect(() => {
+    const onToggle = () => setLeftRail((s) => (s === 'expanded' ? 'collapsed' : 'expanded'));
+    window.addEventListener('henry:toggle-left-rail', onToggle);
+    return () => window.removeEventListener('henry:toggle-left-rail', onToggle);
+  }, []);
+
+  // T-41 — command palette can open specific drawer tabs via custom events.
+  useEffect(() => {
+    const onCompliance = () => setDrawerTab('compliance');
+    const onArchive = () => setDrawerTab('archive');
+    const onAudit = () => setDrawerTab('audit');
+    const onPrint = () => setPreviewModalOpen(true);
+    window.addEventListener('henry:open-compliance', onCompliance);
+    window.addEventListener('henry:open-archive', onArchive);
+    window.addEventListener('henry:open-audit', onAudit);
+    window.addEventListener('henry:trigger-print', onPrint);
+    return () => {
+      window.removeEventListener('henry:open-compliance', onCompliance);
+      window.removeEventListener('henry:open-archive', onArchive);
+      window.removeEventListener('henry:open-audit', onAudit);
+      window.removeEventListener('henry:trigger-print', onPrint);
+    };
+  }, []);
+
+  // Esc closes drawer.
+  useEffect(() => {
+    if (!drawerTab) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setDrawerTab(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [drawerTab]);
 
   const ActiveTemplateComponent = TEMPLATE_MAP[activeTemplate]?.component;
+
+  // Live compliance counts for the toolbar badge.
+  const liveWarnings = useMemo(
+    () => evaluateCompliance(activeTemplate, documentData),
+    [activeTemplate, documentData],
+  );
+  const criticalCount = liveWarnings.filter((w) => w.severity === 'critical').length;
+  const importantCount = liveWarnings.filter((w) => w.severity === 'important').length;
+  const totalCount = liveWarnings.length;
+
+  const badgeTone = criticalCount > 0 ? 'critical' : importantCount > 0 ? 'important' : 'clear';
+  const badgeLabel =
+    criticalCount > 0
+      ? `${criticalCount} critical`
+      : importantCount > 0
+        ? `${importantCount} to review`
+        : 'All clear';
+  const badgeTitle =
+    totalCount === 0
+      ? 'No outstanding compliance warnings — click to view checklist.'
+      : `${criticalCount} critical, ${importantCount} important — click for details.`;
+
+  const handleComplianceCheck = useCallback(() => {
+    dispatch(setWarningsForTemplate({ templateKey: activeTemplate, warnings: liveWarnings }));
+    dispatch(
+      addAuditLog({
+        type: 'COMPLIANCE_CHECK_RUN',
+        template: activeTemplate,
+        policyVersion,
+        timestamp: new Date().toISOString(),
+        warningCount: liveWarnings.length,
+        criticalCount,
+      }),
+    );
+    dispatch(
+      pushToast({
+        tone: criticalCount > 0 ? 'error' : importantCount > 0 ? 'warning' : 'success',
+        title:
+          criticalCount > 0
+            ? `${criticalCount} critical issue${criticalCount === 1 ? '' : 's'}`
+            : importantCount > 0
+              ? `${importantCount} item${importantCount === 1 ? '' : 's'} to review`
+              : 'Compliance clear',
+        body:
+          liveWarnings.length === 0
+            ? 'All RERA / DLD checks pass for this document.'
+            : 'Drawer opened with full checklist.',
+      }),
+    );
+    setDrawerTab('compliance');
+  }, [activeTemplate, liveWarnings, criticalCount, importantCount, dispatch, policyVersion]);
+
+  const openCompliance = useCallback(() => setDrawerTab('compliance'), []);
+  const openArchive = useCallback(() => setDrawerTab('archive'), []);
+  const openAudit = useCallback(() => setDrawerTab('audit'), []);
+  const closeDrawer = useCallback(() => setDrawerTab(null), []);
+  const openPreviewModal = useCallback(() => setPreviewModalOpen(true), []);
+  const closePreviewModal = useCallback(() => setPreviewModalOpen(false), []);
+  const toggleRail = useCallback(() => setLeftRail((s) => (s === 'expanded' ? 'collapsed' : 'expanded')), []);
+
   const railCollapsed = leftRail === 'collapsed';
-  const toggleRail = () => dispatch(toggleLeftRailAction());
   const drawerTrapRef = useFocusTrap(Boolean(drawerTab));
   useBackgroundInert(Boolean(drawerTab));
 
   return (
     <main className="app-layout" id="main" tabIndex={-1}>
       <section
-        className={`hub-content hub-content--right-overlay ${railCollapsed ? 'hub-content--rail-collapsed' : ''}`}
+        className={`hub-content ${railCollapsed ? 'hub-content--rail-collapsed' : ''}`}
         data-overlay-shield
       >
         {railCollapsed ? (
@@ -74,7 +171,9 @@ const DocumentHubPage = () => {
             <button
               type="button"
               className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
+              onClick={() => {
+                setLeftRail('expanded');
+              }}
               aria-label="Templates"
               title="Templates"
             >
@@ -83,7 +182,9 @@ const DocumentHubPage = () => {
             <button
               type="button"
               className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
+              onClick={() => {
+                setLeftRail('expanded');
+              }}
               aria-label="Highlights"
               title="Highlights"
             >
@@ -92,7 +193,9 @@ const DocumentHubPage = () => {
             <button
               type="button"
               className="icon-rail__btn"
-              onClick={() => dispatch(setLeftRailAction('expanded'))}
+              onClick={() => {
+                setLeftRail('expanded');
+              }}
               aria-label="Articles"
               title="Articles"
             >
@@ -143,18 +246,18 @@ const DocumentHubPage = () => {
         )}
 
         <section className="preview-area" aria-live="polite">
-          <DocumentWorkAreaForm />
-          {previewMode ? (
-            <PrintPreview />
-          ) : ActiveTemplateComponent ? (
-            <ActiveTemplateComponent />
-          ) : (
-            <p>No template selected.</p>
-          )}
+          <p className="preview-area__label" aria-hidden="true">
+            📄 Document Preview
+          </p>
+          {ActiveTemplateComponent ? <ActiveTemplateComponent /> : <p>No template selected.</p>}
         </section>
+
+        <aside className="right-panel print-hidden" aria-label="Document checklist and tools">
+          <DocumentChecklistPanel />
+        </aside>
       </section>
 
-      {/* Mobile quick actions: faster access to rail + drawer tabs on phones */}
+      {/* Mobile quick actions (Phase 4 step 3): faster access to rail + drawer tabs on phones */}
       <nav className="mobile-quick-nav print-hidden" aria-label="Mobile drawer navigation">
         <button
           type="button"
@@ -197,9 +300,8 @@ const DocumentHubPage = () => {
       <div data-overlay-shield>
         <FooterActionBar
           activeTemplateLabel={activeTemplateLabel}
-          previewMode={previewMode}
           canGeneratePdf={canGeneratePdf}
-          onTogglePreview={() => setPreviewMode((v) => !v)}
+          onOpenPreviewModal={openPreviewModal}
           onOpenCompliance={openCompliance}
           onRunComplianceCheck={handleComplianceCheck}
           onOpenArchive={openArchive}
@@ -272,6 +374,9 @@ const DocumentHubPage = () => {
 
       {/* Floating Ask-Henry chat */}
       <ChatDock />
+
+      {/* PDF preview modal */}
+      <PrintPreviewModal isOpen={previewModalOpen} onClose={closePreviewModal} />
     </main>
   );
 };
