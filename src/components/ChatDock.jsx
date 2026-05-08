@@ -1,13 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import LlmFooterChatBox from './LlmFooterChatBox';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
+import { STORAGE_KEY_CHAT_DOCK } from '../constants/storageKeys';
+import { openChat, closeChat, toggleChat, selectChatOpen } from '../store/uiCommandSlice';
 
-const STORAGE_KEY = 'henry.ui.chatDock';
-
-const readInitial = () => {
+const readInitialOpen = () => {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'open';
+    return localStorage.getItem(STORAGE_KEY_CHAT_DOCK) === 'open';
   } catch {
     return false;
   }
@@ -19,48 +20,48 @@ const readInitial = () => {
  * Closed: 56 px circular FAB (bottom-right). Open: 380×560 panel that
  * lazy-mounts the LlmFooterChatBox the first time it's opened.
  *
- * State persists to localStorage so refresh doesn't lose the user's choice.
+ * Open/closed state is managed in Redux (selectChatOpen) and persisted to
+ * localStorage via a useEffect so refresh doesn't lose the user's choice.
  */
 const ChatDock = () => {
-  const [open, setOpen] = useState(readInitial);
-  const [hasOpened, setHasOpened] = useState(open);
+  const dispatch = useDispatch();
+  const open = useSelector(selectChatOpen);
+  const [hasOpened, setHasOpened] = useState(readInitialOpen);
 
+  // Bootstrap Redux from persisted value on mount (single-time only).
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    if (readInitialOpen()) dispatch(openChat());
+  }, [dispatch]);
+
+  // Persist open state.
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, open ? 'open' : 'closed');
+      localStorage.setItem(STORAGE_KEY_CHAT_DOCK, open ? 'open' : 'closed');
     } catch {
       /* ignore quota/private-mode errors */
     }
+    if (open) setHasOpened(true);
   }, [open]);
 
   const handleOpen = useCallback(() => {
-    setOpen(true);
+    dispatch(openChat());
     setHasOpened(true);
-    window.dispatchEvent(
-      new CustomEvent('henry:activate-ollama', {
-        detail: { source: 'chat-dock-open', at: new Date().toISOString() },
-      }),
-    );
-  }, []);
-
-  useEffect(() => {
-    const onOpenChat = () => handleOpen();
-    window.addEventListener('henry:open-chat', onOpenChat);
-    return () => window.removeEventListener('henry:open-chat', onOpenChat);
-  }, [handleOpen]);
+  }, [dispatch]);
 
   // Esc closes the panel; Ctrl+/ (or Cmd+/) toggles it from anywhere.
   useEffect(() => {
     const onKey = (e) => {
       if (open && e.key === 'Escape') {
-        setOpen(false);
+        dispatch(closeChat());
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        // Avoid hijacking text-input slashes — require modifier only.
         e.preventDefault();
         if (open) {
-          setOpen(false);
+          dispatch(closeChat());
         } else {
           handleOpen();
         }
@@ -68,7 +69,7 @@ const ChatDock = () => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, handleOpen]);
+  }, [open, handleOpen, dispatch]);
 
   const trapRef = useFocusTrap(open);
   useBackgroundInert(open);
@@ -89,7 +90,7 @@ const ChatDock = () => {
             <button
               type="button"
               className="chat-dock__close"
-              onClick={() => setOpen(false)}
+              onClick={() => dispatch(closeChat())}
               aria-label="Close chat"
               title="Close (Esc)"
             >

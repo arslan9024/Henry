@@ -1,10 +1,32 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
-import auditReducer, { addAuditLog, clearAuditLogs, restoreAuditLogs } from './auditSlice';
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit';
+import auditReducer, { addAuditLog, clearAuditLogs, restoreAuditLogs, persistAuditLogs } from './auditSlice';
+import { STORAGE_KEY_AUDIT } from '../constants/storageKeys';
 
-const STORAGE_KEY = 'henry.audit.logs';
+const STORAGE_KEY = STORAGE_KEY_AUDIT;
 
 const makeStore = () => configureStore({ reducer: { audit: auditReducer } });
+
+/** Store that includes listener middleware for persistence — mirrors the real store. */
+const makeStoreWithPersistence = () => {
+  const lm = createListenerMiddleware();
+  lm.startListening({
+    actionCreator: addAuditLog,
+    effect: (_, api) => persistAuditLogs(api.getState().audit.logs),
+  });
+  lm.startListening({
+    actionCreator: clearAuditLogs,
+    effect: (_, api) => persistAuditLogs(api.getState().audit.logs),
+  });
+  lm.startListening({
+    actionCreator: restoreAuditLogs,
+    effect: (_, api) => persistAuditLogs(api.getState().audit.logs),
+  });
+  return configureStore({
+    reducer: { audit: auditReducer },
+    middleware: (gd) => gd().prepend(lm.middleware),
+  });
+};
 
 const sampleEntry = (overrides = {}) => ({
   type: 'PRINT',
@@ -74,17 +96,18 @@ describe('auditSlice — localStorage persistence', () => {
     window.localStorage.clear();
   });
 
-  it('mirrors writes to localStorage on every add', () => {
-    const store = makeStore();
+  it('mirrors writes to localStorage on every add', async () => {
+    const store = makeStoreWithPersistence();
     store.dispatch(addAuditLog(sampleEntry({ template: 'persisted' })));
+    // Listener middleware runs synchronously in tests.
     const raw = window.localStorage.getItem(STORAGE_KEY);
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw);
     expect(parsed[0].template).toBe('persisted');
   });
 
-  it('writes [] on clear', () => {
-    const store = makeStore();
+  it('writes [] on clear', async () => {
+    const store = makeStoreWithPersistence();
     store.dispatch(addAuditLog(sampleEntry()));
     store.dispatch(clearAuditLogs());
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY))).toEqual([]);

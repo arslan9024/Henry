@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { STORAGE_KEY_DENSITY } from '../constants/storageKeys';
 
-const KEY = 'henry.ui.density';
 const VALUES = ['comfortable', 'compact'];
 
 const read = () => {
   try {
-    const v = localStorage.getItem(KEY);
+    const v = localStorage.getItem(STORAGE_KEY_DENSITY);
     if (VALUES.includes(v)) return v;
   } catch {
     /* ignore */
@@ -29,7 +29,7 @@ export default function useDensity() {
   useEffect(() => {
     apply(density);
     try {
-      localStorage.setItem(KEY, density);
+      localStorage.setItem(STORAGE_KEY_DENSITY, density);
     } catch {
       /* ignore */
     }

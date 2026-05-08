@@ -12,11 +12,11 @@ const archiveSlice = createSlice({
     addArchiveEntry: (state, action) => {
       state.entries.unshift(action.payload);
       state.entries = state.entries.slice(0, 100);
-      persistArchiveEntries(state.entries);
+      // Side effect (localStorage + backend persistence) handled by listener middleware.
     },
     clearArchiveEntries: (state) => {
       state.entries = [];
-      persistArchiveEntries(state.entries);
+      // Side effect handled by listener middleware.
     },
   },
 });

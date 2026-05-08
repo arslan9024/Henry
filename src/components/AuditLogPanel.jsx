@@ -77,6 +77,10 @@ const AuditLogPanel = () => {
   const [expanded, setExpanded] = useState(() => new Set());
   const fileInputRef = useRef(null);
 
+  // Inline confirmation state (replaces window.confirm for accessibility).
+  const [clearPending, setClearPending] = useState(false);
+  const [importPendingData, setImportPendingData] = useState(null); // { valid, fileName, snapshot }
+
   const toggleExpanded = (key) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -144,9 +148,11 @@ const AuditLogPanel = () => {
 
   const handleClear = () => {
     if (!logs.length) return;
-    // eslint-disable-next-line no-alert
-    if (!window.confirm(`Clear all ${logs.length} audit log entries? You'll have ~10 seconds to undo.`))
-      return;
+    setClearPending(true);
+  };
+
+  const handleClearConfirm = () => {
+    setClearPending(false);
     const snapshot = logs.slice();
     dispatch(clearAuditLogs());
     dispatch(
@@ -184,49 +190,47 @@ const AuditLogPanel = () => {
       const valid = parsed.filter((p) => p && typeof p === 'object' && typeof p.type === 'string');
       if (!valid.length) throw new Error('No valid entries found in file.');
 
-      // eslint-disable-next-line no-alert
-      const merge = window.confirm(
-        `Found ${valid.length} entr${valid.length === 1 ? 'y' : 'ies'} in ${file.name}.\n\n` +
-          `OK = Merge with current ${logs.length} entr${logs.length === 1 ? 'y' : 'ies'} (newest first, capped at 100)\n` +
-          `Cancel = Replace current log entirely`,
-      );
-
-      const snapshot = logs.slice();
-      const next = merge
-        ? // De-dup by timestamp+type when merging — imports often overlap exports
-          (() => {
-            const seen = new Set(logs.map((l) => `${l.timestamp}|${l.type}`));
-            const additions = valid.filter((v) => !seen.has(`${v.timestamp}|${v.type}`));
-            // Sort newest-first by timestamp string (ISO sorts lexicographically)
-            return [...logs, ...additions].sort((a, b) =>
-              (b.timestamp || '').localeCompare(a.timestamp || ''),
-            );
-          })()
-        : valid.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-
-      dispatch(restoreAuditLogs(next));
-      dispatch(
-        pushToast({
-          tone: 'success',
-          title: merge ? 'Audit log merged' : 'Audit log replaced',
-          body: `${file.name} → ${Math.min(next.length, 100)} entr${next.length === 1 ? 'y' : 'ies'} now in log.`,
-          durationMs: 10000,
-          action: {
-            label: 'Undo',
-            type: restoreAuditLogs.type,
-            payload: snapshot,
-          },
-        }),
-      );
+      // Show inline merge/replace confirmation dialog.
+      setImportPendingData({ valid, fileName: file.name, snapshot: logs.slice() });
     } catch (err) {
-      dispatch(
-        pushToast({
-          tone: 'error',
-          title: 'Import failed',
-          body: String(err?.message || err),
-        }),
-      );
+      dispatch(pushToast({ tone: 'error', title: 'Import failed', body: String(err?.message || err) }));
     }
+  };
+
+  const handleImportConfirm = (merge) => {
+    if (!importPendingData) return;
+    const { valid, fileName, snapshot } = importPendingData;
+    setImportPendingData(null);
+
+    const next = merge
+      ? // De-dup: use `id` when present (new entries), also match by timestamp|type for legacy.
+        (() => {
+          const seenIds = new Set(logs.filter((l) => l.id).map((l) => l.id));
+          // Only use legacy dedup for logs that don't have an id (backward compatibility).
+          const seenLegacy = new Set(logs.filter((l) => !l.id).map((l) => `${l.timestamp}|${l.type}`));
+          const additions = valid.filter((v) => {
+            if (v.id && seenIds.has(v.id)) return false;
+            if (seenLegacy.has(`${v.timestamp}|${v.type}`)) return false;
+            return true;
+          });
+          return [...logs, ...additions].sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        })()
+      : valid.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+    dispatch(restoreAuditLogs(next));
+    dispatch(
+      pushToast({
+        tone: 'success',
+        title: merge ? 'Audit log merged' : 'Audit log replaced',
+        body: `${fileName} → ${Math.min(next.length, 100)} entr${next.length === 1 ? 'y' : 'ies'} now in log.`,
+        durationMs: 10000,
+        action: {
+          label: 'Undo',
+          type: restoreAuditLogs.type,
+          payload: snapshot,
+        },
+      }),
+    );
   };
 
   return (
@@ -288,6 +292,56 @@ const AuditLogPanel = () => {
           ✕ Clear
         </button>
       </header>
+
+      {/* Inline confirmation — replaces window.confirm for accessibility */}
+      {clearPending && (
+        <div
+          role="alertdialog"
+          aria-modal="false"
+          aria-label="Confirm clear audit log"
+          className="audit-panel__confirm"
+        >
+          <span>Clear all {logs.length} audit log entries?</span>
+          <button
+            type="button"
+            className="audit-panel__btn audit-panel__btn--danger"
+            onClick={handleClearConfirm}
+          >
+            Confirm
+          </button>
+          <button type="button" className="audit-panel__btn" onClick={() => setClearPending(false)}>
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Inline merge/replace confirmation */}
+      {importPendingData && (
+        <div
+          role="alertdialog"
+          aria-modal="false"
+          aria-label="Confirm import mode"
+          className="audit-panel__confirm"
+        >
+          <span>
+            Found {importPendingData.valid.length} entr{importPendingData.valid.length === 1 ? 'y' : 'ies'} in{' '}
+            {importPendingData.fileName}. Merge or replace?
+          </span>
+          <button type="button" className="audit-panel__btn" onClick={() => handleImportConfirm(true)}>
+            Merge
+          </button>
+          <button
+            type="button"
+            className="audit-panel__btn audit-panel__btn--danger"
+            onClick={() => handleImportConfirm(false)}
+          >
+            Replace
+          </button>
+          <button type="button" className="audit-panel__btn" onClick={() => setImportPendingData(null)}>
+            Cancel
+          </button>
+        </div>
+      )}
 
       {!logs.length ? (
         <EmptyState

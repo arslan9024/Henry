@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { evaluateCompliance } from '../compliance/ruleEngine';
 import { knowledgeBaseMeta } from '../compliance/knowledgeBase';
-import { acknowledgeChecklist, setWarningsForTemplate } from '../store/complianceSlice';
+import { acknowledgeChecklist } from '../store/complianceSlice';
 import { useComplianceCheck } from '../hooks/useComplianceCheck';
-import { useDocumentData } from '../hooks/useDocumentData';
 import Disclosure from './Disclosure';
 
 const SEVERITY_ORDER = ['critical', 'important', 'info'];
@@ -24,16 +22,12 @@ const groupBySeverity = (warnings) => {
 const ComplianceChecklistPanel = () => {
   const dispatch = useDispatch();
   const { activeTemplate, warnings, summary } = useComplianceCheck();
-  const documentData = useDocumentData();
   const acknowledged = useSelector(
     (state) => state.compliance.checklistAcknowledgedByTemplate[activeTemplate] || false,
   );
 
-  // Keep the slice in sync with current document state. (Same behaviour as before.)
-  useEffect(() => {
-    const result = evaluateCompliance(activeTemplate, documentData);
-    dispatch(setWarningsForTemplate({ templateKey: activeTemplate, warnings: result }));
-  }, [activeTemplate, documentData, dispatch]);
+  // Warnings are kept up-to-date by DocumentHubPage's useEffect which dispatches
+  // setWarningsForTemplate on every document/template change. No re-evaluation here.
 
   const groups = useMemo(() => groupBySeverity(warnings), [warnings]);
 

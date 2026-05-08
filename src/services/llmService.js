@@ -1,13 +1,26 @@
-// Local LLM service: talks to a user-run Ollama server at http://localhost:11434.
-// Privacy-first: no data leaves the local machine.
+// LLM service layer — supports two providers:
+//   1. Ollama  (local, privacy-first — talks to http://localhost:11434)
+//   2. Groq    (free cloud API — https://api.groq.com, requires an API key)
+//
+// Both providers share the same prompt-building helpers and JSON-contract
+// validator.  The caller selects the provider; no network traffic leaves the
+// machine unless the user explicitly configures the Groq provider.
 //
 // Expected output contract from the model is strict JSON:
 //   { "section": "<known-section>", "field": "<known-field>", "value": <string|number|boolean>, "rationale": "<short text>" }
 // Any non-JSON or unknown section/field is rejected at the validator layer.
 
+import { DOCUMENT_SCALAR_FIELDS } from '../store/documentSlice';
+
+// ── Ollama ────────────────────────────────────────────────────────────────────
 const OLLAMA_BASE_URLS = ['http://127.0.0.1:11434', 'http://localhost:11434'];
 export const DEFAULT_MODEL = 'llama3.2:1b';
 const DEFAULT_TIMEOUT_MS = 45000;
+
+// ── Groq ──────────────────────────────────────────────────────────────────────
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
+export const DEFAULT_GROQ_MODEL = 'llama-3.1-8b-instant';
+const GROQ_TIMEOUT_MS = 30_000;
 
 const toMemoryFriendlyReason = (detail = '') => {
   const text = String(detail || '');
@@ -39,137 +52,15 @@ const requestOllamaWithFallback = async ({ path, options, timeoutMs }) => {
   throw new Error(errors.join(' | '));
 };
 
-export const ALLOWED_FIELDS = {
-  company: ['name', 'dedLicense', 'role', 'city'],
-  property: [
-    'referenceNo',
-    'documentDate',
-    'unit',
-    'cluster',
-    'community',
-    'city',
-    'description',
-    'size',
-    'parking',
-    'condition',
-    'usage',
-    'plotNo',
-    'makaniNo',
-    'dewaPremisesNo',
-    'projectName',
-    'buildingNumber',
-    'ownersAssociationNo',
-    'propertyStatus',
-    'parkingCount',
-    'propertyType',
-  ],
-  tenant: [
-    'fullName',
-    'emiratesId',
-    'idExpiryDate',
-    'contactNo',
-    'occupation',
-    'category',
-    'email',
-    'passportNo',
-    'address',
-    'poBox',
-  ],
-  landlord: ['name', 'emiratesId', 'idExpiryDate', 'iban', 'bank', 'swift', 'email', 'phone'],
-  broker: [
-    'orn',
-    'companyName',
-    'commercialLicenseNumber',
-    'brokerName',
-    'brn',
-    'phone',
-    'mobile',
-    'address',
-    'email',
-  ],
-  viewing: [
-    'agreementNumber',
-    'rentalBudget',
-    'additionalInfo',
-    'servicesNotes',
-    'viewingDate',
-    'viewingTime',
-  ],
-  payments: [
-    'moveInDate',
-    'contractStartDate',
-    'contractEndDate',
-    'signingDeadline',
-    'annualRent',
-    'securityDeposit',
-    'agencyFee',
-    'ejariFee',
-    'total',
-    'modeOfPayment',
-  ],
-  renewal: ['currentRent', 'proposedRent', 'marketRent', 'renewalDate', 'noticeSentDate', 'noticeChannel'],
-  occupancy: ['isSharedHousing', 'sharedHousingPermitNumber', 'ejariOccupantsRegistered', 'occupants'],
-  eviction: ['reason', 'noticeDate', 'noticeMethod'],
-  tenancy: [
-    'specialConditions',
-    'maintenanceObligation',
-    'subletAllowed',
-    'petsAllowed',
-    'includedUtilities',
-    'ejariNumber',
-    'ejariRegistrationDate',
-    'noticePeriodDays',
-    'gracePeriodDays',
-    'checklistCompleted',
-    'keyHandoverDate',
-    'moveInInspectionNotes',
-  ],
-  // Scalar addendum fields (arrays landlordServices / additionalClauses are
-  // edited via updateDocumentSection, not the scalar setDocumentValue path).
-  addendum: [
-    'originalContractRef',
-    'originalContractDate',
-    'effectiveDate',
-    'securityDeposit',
-    'renewalCharges',
-    'maintenanceCap',
-    'maintenanceTenantResponsibility',
-    'maintenanceLandlordResponsibility',
-    'noticePeriodDays',
-    'legalReference',
-    'witnessName',
-    'witnessIdNo',
-  ],
-  salaryCertificate: [
-    'referenceNumber',
-    'issueDate',
-    'issuedTo',
-    'validityDays',
-    'employeeName',
-    'employeeId',
-    'designation',
-    'department',
-    'joiningDate',
-    'employmentType',
-    'nationality',
-    'idType',
-    'idNumber',
-    'passportNo',
-    'currency',
-    'basicSalary',
-    'housingAllowance',
-    'transportAllowance',
-    'otherAllowance',
-    'otherAllowanceLabel',
-    'totalSalary',
-    'salaryWordAmount',
-    'bankName',
-    'bankAccountNo',
-    'iban',
-    'hrName',
-    'hrDesignation',
-  ],
-};
+/**
+ * ALLOWED_FIELDS — derived at module load from documentSlice.initialState via
+ * DOCUMENT_SCALAR_FIELDS.  Only scalar (non-array) fields are included;
+ * array fields (additionalTerms, landlordServices, additionalClauses) are
+ * intentionally excluded because they are edited via dedicated slice actions,
+ * not setDocumentValue.  Adding a new field to documentSlice.initialState
+ * automatically makes it LLM-accessible here.
+ */
+export const ALLOWED_FIELDS = DOCUMENT_SCALAR_FIELDS;
 
 export const formatAllowedFieldsForPrompt = () => JSON.stringify(ALLOWED_FIELDS, null, 0);
 
@@ -186,6 +77,27 @@ field=null, value=null and a rationale explaining the field is locked by policy.
 --- END MASTER ADDENDUM CONFIGURATION ---
 `;
 
+/**
+ * Build a compact context projection of the document for prompt injection.
+ * Only includes non-empty scalar fields (skips arrays, empty strings, null, etc.)
+ * to keep token count low for small models like llama3.2:1b.
+ */
+const buildDocumentContext = (documentData, templateKey) => {
+  const ctx = {};
+  // Always include the template key so the model knows the active form type.
+  ctx._template = templateKey || 'unknown';
+  for (const [section, value] of Object.entries(documentData || {})) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) continue;
+    const relevant = {};
+    for (const [field, fVal] of Object.entries(value)) {
+      if (fVal === null || fVal === undefined || fVal === '' || Array.isArray(fVal)) continue;
+      relevant[field] = fVal;
+    }
+    if (Object.keys(relevant).length > 0) ctx[section] = relevant;
+  }
+  return JSON.stringify(ctx);
+};
+
 const buildSystemPrompt = (
   documentData,
   templateKey = '',
@@ -200,8 +112,8 @@ ${formatAllowedFieldsForPrompt()}
 If the user request is ambiguous or targets a field not in the allowed list, respond with:
 {"section":null,"field":null,"value":null,"rationale":"<why you cannot apply>"}
 ${templateKey === 'addendum' ? ADDENDUM_LOCKED_RULES : ''}
-Current document state (for context only — do not echo back):
-${JSON.stringify(documentData)}
+Current document state (non-empty fields only — for context, do not echo back):
+${buildDocumentContext(documentData, templateKey)}
 `;
 
 const buildExtractionPrompt = ({
@@ -209,6 +121,7 @@ const buildExtractionPrompt = ({
   fileName,
   fileKind,
   documentData,
+  templateKey = '',
 }) => `You are Henry, a real-estate document field extractor.
 
 You will be given OCR/PDF text from a file the user uploaded. Identify any fields you can confidently extract for a White Caves Real Estate document.
@@ -224,8 +137,8 @@ ${formatAllowedFieldsForPrompt()}
 - Do not invent values. If nothing is confidently extractable, return {"suggestions":[]}.
 - Do not echo or summarise the source text. Only return the JSON object.
 
-Current document state (for de-duplication context only — do not echo back):
-${JSON.stringify(documentData)}
+Current document state (non-empty fields only — for de-duplication, do not echo back):
+${buildDocumentContext(documentData, templateKey)}
 
 File name: ${fileName}
 File kind: ${fileKind}
@@ -252,12 +165,75 @@ const extractJson = (text = '') => {
   }
 };
 
+/**
+ * Read an Ollama streaming response (NDJSON, one JSON object per line).
+ * Each line has shape: {"model":"…","response":"<token>","done":false|true}
+ * Accumulates all `response` tokens and returns the full concatenated string.
+ * Falls back to non-streaming parse if the body is not a ReadableStream.
+ *
+ * @param {Response} response - The fetch Response object with stream:true
+ * @param {(token: string) => void} [onToken] - Optional callback for incremental tokens
+ * @returns {Promise<string>}
+ */
+const readStreamedResponse = async (response, onToken) => {
+  // Fallback for environments without ReadableStream (e.g., jsdom in tests).
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    const data = await response.json();
+    return String(data?.response || '');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = '';
+  let buffer = '';
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    // eslint-disable-next-line no-await-in-loop
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    // Lines are separated by '\n'; process complete lines.
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? ''; // last partial line stays in buffer
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const obj = JSON.parse(trimmed);
+        const token = String(obj?.response || '');
+        accumulated += token;
+        if (onToken && token) onToken(token);
+        if (obj?.done) {
+          // Stream is complete — flush any remaining buffer and return.
+          return accumulated;
+        }
+      } catch {
+        // Malformed line — skip silently.
+      }
+    }
+  }
+
+  // Process any remaining buffer content.
+  if (buffer.trim()) {
+    try {
+      const obj = JSON.parse(buffer.trim());
+      accumulated += String(obj?.response || '');
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return accumulated;
+};
+
 export const fetchOllamaSuggestion = async ({
   userPrompt,
   documentData,
   templateKey = '',
   model = DEFAULT_MODEL,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  onToken,
 }) => {
   try {
     const { response, baseUrl } = await requestOllamaWithFallback({
@@ -269,7 +245,7 @@ export const fetchOllamaSuggestion = async ({
         body: JSON.stringify({
           model,
           prompt: `${buildSystemPrompt(documentData, templateKey)}\nUser: ${userPrompt}\nAssistant:`,
-          stream: false,
+          stream: true,
         }),
       },
     });
@@ -283,13 +259,13 @@ export const fetchOllamaSuggestion = async ({
       throw new Error(`Ollama HTTP ${response.status}: ${message || 'request failed'}`);
     }
 
-    const data = await response.json();
-    const parsed = extractJson(data.response);
+    const fullText = await readStreamedResponse(response, onToken);
+    const parsed = extractJson(fullText);
     if (!parsed) {
       return {
         ok: false,
         reason: 'Model did not return parseable JSON.',
-        raw: data.response || '',
+        raw: fullText,
       };
     }
 
@@ -297,7 +273,7 @@ export const fetchOllamaSuggestion = async ({
       return {
         ok: false,
         reason: parsed.rationale || 'Suggested target is not in the allowed field list.',
-        raw: data.response || '',
+        raw: fullText,
         parsed,
       };
     }
@@ -305,7 +281,7 @@ export const fetchOllamaSuggestion = async ({
     return {
       ok: true,
       suggestion: parsed,
-      raw: data.response || '',
+      raw: fullText,
       endpoint: baseUrl,
     };
   } catch (error) {
@@ -355,6 +331,210 @@ export const checkOllamaModelAvailable = async (model = DEFAULT_MODEL, timeoutMs
 
 const EXTRACTION_TIMEOUT_MS = 45_000;
 
+// ── Groq helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Read an OpenAI-compatible chat completion response.
+ * Returns the content string from choices[0].message.content.
+ */
+const readChatCompletionContent = async (response) => {
+  const data = await response.json();
+  return String(data?.choices?.[0]?.message?.content ?? '');
+};
+
+/**
+ * Check that a Groq API key is valid by hitting the /models endpoint.
+ * Returns true if the key is accepted (HTTP 200), false otherwise.
+ */
+export const checkGroqAvailability = async (apiKey, timeoutMs = 5000) => {
+  if (!apiKey || !apiKey.trim()) return false;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    clearTimeout(timeoutId);
+    return false;
+  }
+};
+
+/**
+ * Ask the Groq API to suggest a single field update for the current document.
+ * Uses `response_format: {type:"json_object"}` to guarantee structured output.
+ *
+ * @param {object} params
+ * @param {string} params.userPrompt
+ * @param {object} params.documentData
+ * @param {string} [params.templateKey]
+ * @param {string} params.apiKey               - Groq API key
+ * @param {string} [params.model]              - defaults to DEFAULT_GROQ_MODEL
+ * @param {number} [params.timeoutMs]
+ * @param {(token: string) => void} [params.onToken]
+ */
+export const fetchGroqSuggestion = async ({
+  userPrompt,
+  documentData,
+  templateKey = '',
+  apiKey,
+  model = DEFAULT_GROQ_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+  onToken,
+}) => {
+  if (!apiKey || !apiKey.trim()) {
+    return {
+      ok: false,
+      reason:
+        'No Groq API key configured. Add your free key from console.groq.com in the Ask Henry settings.',
+    };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(documentData, templateKey) },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Invalid Groq API key. Check your key in Ask Henry settings.' };
+      }
+      return { ok: false, reason: `Groq API error ${response.status}: ${message || 'request failed'}` };
+    }
+
+    const content = await readChatCompletionContent(response);
+    if (onToken && content) onToken(content);
+
+    const parsed = extractJson(content);
+    if (!parsed) {
+      return { ok: false, reason: 'Model did not return parseable JSON.', raw: content };
+    }
+
+    if (!isFieldAllowed(parsed.section, parsed.field)) {
+      return {
+        ok: false,
+        reason: parsed.rationale || 'Suggested target is not in the allowed field list.',
+        raw: content,
+        parsed,
+      };
+    }
+
+    return { ok: true, suggestion: parsed, raw: content };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Request timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq request failed: ${error.message}`, detail: error.message };
+  }
+};
+
+/**
+ * Ask the Groq API to extract document fields from uploaded-file text.
+ * Mirrors fetchOllamaExtraction but targets the Groq chat completions endpoint.
+ */
+export const fetchGroqExtraction = async ({
+  extractedText,
+  fileName,
+  fileKind,
+  documentData,
+  apiKey,
+  model = DEFAULT_GROQ_MODEL,
+  timeoutMs = GROQ_TIMEOUT_MS,
+  onToken,
+}) => {
+  if (!extractedText || !extractedText.trim()) {
+    return { ok: false, reason: 'No text was extracted from the file.' };
+  }
+  if (!apiKey || !apiKey.trim()) {
+    return { ok: false, reason: 'No Groq API key configured.' };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData }),
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      if (response.status === 401) {
+        return { ok: false, reason: 'Invalid Groq API key.' };
+      }
+      return { ok: false, reason: `Groq API error ${response.status}: ${message || 'request failed'}` };
+    }
+
+    const content = await readChatCompletionContent(response);
+    if (onToken && content) onToken(content);
+
+    const parsed = extractJson(content);
+    if (!parsed || !Array.isArray(parsed.suggestions)) {
+      return { ok: false, reason: 'Model did not return a parseable suggestions list.', raw: content };
+    }
+
+    const suggestions = parsed.suggestions
+      .filter((s) => s && isFieldAllowed(s.section, s.field))
+      .filter((s) => s.value !== null && s.value !== undefined && String(s.value).trim() !== '')
+      .map((s) => ({
+        section: s.section,
+        field: s.field,
+        value: s.value,
+        rationale: typeof s.rationale === 'string' ? s.rationale : '',
+        confidence:
+          typeof s.confidence === 'number' && s.confidence >= 0 && s.confidence <= 1 ? s.confidence : 0.6,
+      }))
+      .filter((s) => s.confidence >= 0.6);
+
+    return {
+      ok: true,
+      suggestions,
+      droppedCount: parsed.suggestions.length - suggestions.length,
+      raw: content,
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      return { ok: false, reason: `Extraction timed out after ${timeoutMs}ms.` };
+    }
+    return { ok: false, reason: `Groq request failed: ${error.message}`, detail: error.message };
+  }
+};
+
 export const fetchOllamaExtraction = async ({
   extractedText,
   fileName,
@@ -362,6 +542,7 @@ export const fetchOllamaExtraction = async ({
   documentData,
   model = DEFAULT_MODEL,
   timeoutMs = EXTRACTION_TIMEOUT_MS,
+  onToken,
 }) => {
   if (!extractedText || !extractedText.trim()) {
     return { ok: false, reason: 'No text was extracted from the file.' };
@@ -377,7 +558,7 @@ export const fetchOllamaExtraction = async ({
         body: JSON.stringify({
           model,
           prompt: buildExtractionPrompt({ extractedText, fileName, fileKind, documentData }),
-          stream: false,
+          stream: true,
         }),
       },
     });
@@ -391,13 +572,13 @@ export const fetchOllamaExtraction = async ({
       throw new Error(`Ollama HTTP ${response.status}: ${message || 'request failed'}`);
     }
 
-    const data = await response.json();
-    const parsed = extractJson(data.response);
+    const fullText = await readStreamedResponse(response, onToken);
+    const parsed = extractJson(fullText);
     if (!parsed || !Array.isArray(parsed.suggestions)) {
       return {
         ok: false,
         reason: 'Model did not return a parseable suggestions list.',
-        raw: data.response || '',
+        raw: fullText,
       };
     }
 
@@ -418,7 +599,7 @@ export const fetchOllamaExtraction = async ({
       ok: true,
       suggestions,
       droppedCount: parsed.suggestions.length - suggestions.length,
-      raw: data.response || '',
+      raw: fullText,
     };
   } catch (error) {
     const memoryReason = toMemoryFriendlyReason(error?.message);

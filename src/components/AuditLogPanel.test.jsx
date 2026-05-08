@@ -91,11 +91,12 @@ describe('<AuditLogPanel />', () => {
   it('clear pushes a warning toast carrying an Undo action descriptor', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT' }), entry({ type: 'PRINT' })]);
-    // Stub confirm so the destructive path runs.
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderWithStore(<AuditLogPanel />, { store });
 
-    await user.click(screen.getByRole('button', { name: /clear/i }));
+    // First click shows inline confirmation dialog.
+    await user.click(screen.getByRole('button', { name: /✕ Clear/i }));
+    // Second click on the "Confirm" button in the alertdialog.
+    await user.click(screen.getByRole('button', { name: /^Confirm$/i }));
 
     // Logs are gone, but a toast with Undo action should have been pushed.
     expect(store.getState().audit.logs).toEqual([]);
@@ -106,7 +107,6 @@ describe('<AuditLogPanel />', () => {
       action: { label: 'Undo', type: 'audit/restoreAuditLogs' },
     });
     expect(toasts[0].action.payload).toHaveLength(2);
-    confirmSpy.mockRestore();
   });
 
   it('export creates a JSON blob and triggers an <a download> click + success toast', async () => {
@@ -141,7 +141,6 @@ describe('<AuditLogPanel />', () => {
   it('import (replace mode) parses the JSON file, restores entries, and offers Undo', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' })]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // false = Replace
     renderWithStore(<AuditLogPanel />, { store });
 
     const importedEntries = [
@@ -167,6 +166,9 @@ describe('<AuditLogPanel />', () => {
       await Promise.resolve();
     });
 
+    // Inline confirmation dialog is now showing — click "Replace".
+    await user.click(screen.getByRole('button', { name: /^Replace$/i }));
+
     // Replace mode → only the 2 imported entries remain.
     const finalLogs = store.getState().audit.logs;
     expect(finalLogs).toHaveLength(2);
@@ -178,8 +180,6 @@ describe('<AuditLogPanel />', () => {
     expect(toasts[0].title).toMatch(/replaced/i);
     expect(toasts[0].action).toMatchObject({ label: 'Undo', type: 'audit/restoreAuditLogs' });
     expect(toasts[0].action.payload).toHaveLength(1);
-
-    confirmSpy.mockRestore();
   });
 
   it('import error path: malformed JSON pushes an error toast and leaves logs untouched', async () => {
@@ -218,15 +218,16 @@ describe('<AuditLogPanel />', () => {
   it('cancelling the clear confirm dialog leaves logs intact', async () => {
     const user = userEvent.setup();
     const store = seed([entry({ type: 'PRINT' })]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // cancel
     renderWithStore(<AuditLogPanel />, { store });
 
-    await user.click(screen.getByRole('button', { name: /clear/i }));
+    // First click shows the inline alertdialog.
+    await user.click(screen.getByRole('button', { name: /✕ Clear/i }));
+    // Click "Cancel" in the inline dialog.
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
 
     // Logs should be unchanged.
     expect(store.getState().audit.logs).toHaveLength(1);
     expect(store.getState().ui.toasts).toHaveLength(0);
-    confirmSpy.mockRestore();
   });
 
   it('export error path pushes an error toast when URL.createObjectURL throws', async () => {
@@ -267,11 +268,10 @@ describe('<AuditLogPanel />', () => {
     const user = userEvent.setup();
     const existing = entry({ type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' });
     const store = seed([existing]);
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true); // true = Merge
     renderWithStore(<AuditLogPanel />, { store });
 
     const importedEntries = [
-      // Duplicate of existing — should be de-duped.
+      // Duplicate of existing — should be de-duped (same timestamp+type).
       { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z' },
       // New entry.
       { type: 'PDF_GENERATED', fileName: 'merged.pdf', timestamp: '2026-04-23T09:00:00Z' },
@@ -287,6 +287,9 @@ describe('<AuditLogPanel />', () => {
       await Promise.resolve();
     });
 
+    // Inline confirmation dialog is now showing — click "Merge".
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
     // Only 2 unique entries (not 3).
     expect(store.getState().audit.logs).toHaveLength(2);
     const types = store.getState().audit.logs.map((l) => l.type);
@@ -295,7 +298,6 @@ describe('<AuditLogPanel />', () => {
 
     const toasts = store.getState().ui.toasts;
     expect(toasts[0].title).toMatch(/merged/i);
-    confirmSpy.mockRestore();
   });
 
   it('import error path: valid JSON but non-array pushes an error toast', async () => {
@@ -334,6 +336,84 @@ describe('<AuditLogPanel />', () => {
 
     expect(store.getState().audit.logs).toHaveLength(1);
     expect(store.getState().ui.toasts[0].tone).toBe('error');
+  });
+
+  it('import (merge mode) de-dups entries sharing the same id when both have ids', async () => {
+    const user = userEvent.setup();
+    // existing entry has a known id
+    const existingEntry = { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z', id: 'existing-id-123' };
+    const store = seed([existingEntry]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [
+      // Same id → should be de-duped
+      { type: 'PRINT', timestamp: '2026-04-22T10:00:00Z', id: 'existing-id-123' },
+      // Different id → should be kept
+      { type: 'PDF_GENERATED', timestamp: '2026-04-23T09:00:00Z', id: 'new-id-456' },
+    ];
+    const fakeFile = { name: 'merge.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
+    // 2 unique entries (existing + new)
+    expect(store.getState().audit.logs).toHaveLength(2);
+    const ids = store.getState().audit.logs.map((l) => l.id);
+    expect(ids).toContain('existing-id-123');
+    expect(ids).toContain('new-id-456');
+  });
+
+  it('import sort order: merged entries are sorted newest-first by timestamp', async () => {
+    const user = userEvent.setup();
+    const store = seed([{ type: 'PRINT', timestamp: '2026-04-20T10:00:00Z' }]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [
+      { type: 'PDF_GENERATED', timestamp: '2026-04-22T10:00:00Z' },
+      { type: 'CHAT_FILE_UPLOADED', timestamp: '2026-04-18T10:00:00Z' },
+    ];
+    const fakeFile = { name: 'sort.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await user.click(screen.getByRole('button', { name: /^Merge$/i }));
+
+    const logs = store.getState().audit.logs;
+    expect(logs).toHaveLength(3);
+    // Verify descending timestamp order
+    for (let i = 1; i < logs.length; i++) {
+      expect(logs[i - 1].timestamp >= logs[i].timestamp).toBe(true);
+    }
+  });
+
+  it('import cancel dialog leaves logs and no toast', async () => {
+    const user = userEvent.setup();
+    const store = seed([entry({ type: 'PRINT' })]);
+    renderWithStore(<AuditLogPanel />, { store });
+
+    const importedEntries = [{ type: 'PDF_GENERATED', timestamp: '2026-04-22T12:00:00Z' }];
+    const fakeFile = { name: 'cancel.json', text: () => Promise.resolve(JSON.stringify(importedEntries)) };
+    const fileInput = document.querySelector('input[type="file"]');
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [fakeFile] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Cancel the dialog
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
+
+    expect(store.getState().audit.logs).toHaveLength(1);
+    expect(store.getState().ui.toasts).toHaveLength(0);
   });
 
   it('search handles JSON.stringify failure (BigInt payload) without crashing', async () => {

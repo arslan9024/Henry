@@ -14,6 +14,7 @@ import henryReducer from '../store/henrySlice';
 import archiveReducer from '../store/archiveSlice';
 import ocrReducer from '../store/ocrSlice';
 import uiReducer from '../store/uiSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 vi.mock('./ComplianceChecklistPanel', () => ({
   default: () => <div>Compliance Panel Stub</div>,
@@ -66,7 +67,7 @@ vi.mock('../templates/registry', () => ({
 
 import DocumentHubPage from './DocumentHubPage';
 
-const makeStore = () =>
+const makeStore = (preloadedState = {}) =>
   configureStore({
     reducer: {
       template: templateReducer,
@@ -79,11 +80,13 @@ const makeStore = () =>
       archive: archiveReducer,
       ocr: ocrReducer,
       ui: uiReducer,
+      uiCommand: uiCommandReducer,
     },
+    preloadedState,
   });
 
-const renderHub = () => {
-  const store = makeStore();
+const renderHub = (storeOverrides = {}) => {
+  const store = makeStore(storeOverrides);
   return render(
     <Provider store={store}>
       <DocumentHubPage />
@@ -101,16 +104,12 @@ afterEach(() => {
 });
 
 describe('DocumentHubPage mobile drawer navigation (T-42)', () => {
-  beforeEach(() => {
-    try {
-      localStorage.setItem('henry.ui.leftRail', 'collapsed');
-    } catch {
-      // noop
-    }
-  });
+  const collapsedState = {
+    uiCommand: { leftRail: 'collapsed', drawerTab: null, chatOpen: false, printTrigger: 0 },
+  };
 
   it('renders mobile quick navigation actions', () => {
-    renderHub();
+    renderHub(collapsedState);
     const nav = screen.getByRole('navigation', { name: /mobile drawer navigation/i });
 
     expect(within(nav).getByRole('button', { name: /open left rail/i })).toBeInTheDocument();
@@ -147,7 +146,7 @@ describe('DocumentHubPage mobile drawer navigation (T-42)', () => {
   });
 
   it('menu action expands collapsed left rail', () => {
-    renderHub();
+    renderHub(collapsedState);
     expect(screen.queryByText('Info Articles Stub')).not.toBeInTheDocument();
 
     const nav = screen.getByRole('navigation', { name: /mobile drawer navigation/i });

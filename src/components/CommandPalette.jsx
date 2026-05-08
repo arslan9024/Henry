@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setActiveTemplate } from '../store/templateSlice';
 import { addAuditLog } from '../store/auditSlice';
 import { selectArchiveEntries } from '../store/selectors';
+import { openDrawer, triggerPrint } from '../store/uiCommandSlice';
 import { TEMPLATE_CONFIG } from '../templates/registry';
 
 /**
@@ -21,29 +22,35 @@ import { TEMPLATE_CONFIG } from '../templates/registry';
  *   • Visited item is announced via the live-region "combo" pattern
  */
 
-// Static action items — these trigger events the parent page listens to.
+// Static action items — use Redux action ids instead of window events.
 const STATIC_ACTIONS = [
   {
     id: 'action-compliance',
     kind: 'action',
     label: 'Open Compliance Checklist',
     icon: '✅',
-    event: 'henry:open-compliance',
+    reduxAction: 'openDrawer:compliance',
   },
   {
     id: 'action-archive',
     kind: 'action',
     label: 'Open Archive History',
     icon: '📁',
-    event: 'henry:open-archive',
+    reduxAction: 'openDrawer:archive',
   },
-  { id: 'action-audit', kind: 'action', label: 'Open Audit Log', icon: '📜', event: 'henry:open-audit' },
+  {
+    id: 'action-audit',
+    kind: 'action',
+    label: 'Open Audit Log',
+    icon: '📜',
+    reduxAction: 'openDrawer:audit',
+  },
   {
     id: 'action-print',
     kind: 'action',
     label: 'Print / Export PDF',
     icon: '🖨',
-    event: 'henry:trigger-print',
+    reduxAction: 'triggerPrint',
   },
 ];
 
@@ -191,7 +198,10 @@ const CommandPalette = () => {
           }),
         );
       } else if (item.kind === 'action' || item.kind === 'archive') {
-        window.dispatchEvent(new CustomEvent(item.event || 'henry:noop'));
+        if (item.reduxAction === 'openDrawer:compliance') dispatch(openDrawer('compliance'));
+        else if (item.reduxAction === 'openDrawer:archive') dispatch(openDrawer('archive'));
+        else if (item.reduxAction === 'openDrawer:audit') dispatch(openDrawer('audit'));
+        else if (item.reduxAction === 'triggerPrint') dispatch(triggerPrint());
       }
       close();
     },

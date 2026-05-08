@@ -14,6 +14,7 @@ import henryReducer from '../store/henrySlice';
 import archiveReducer from '../store/archiveSlice';
 import ocrReducer from '../store/ocrSlice';
 import uiReducer from '../store/uiSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 vi.mock('./ComplianceChecklistPanel', () => ({
   default: () => <div>Compliance Panel Stub</div>,
@@ -79,6 +80,7 @@ const makeStore = () =>
       archive: archiveReducer,
       ocr: ocrReducer,
       ui: uiReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState: {
       template: {

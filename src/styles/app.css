@@ -1181,6 +1181,77 @@ body {
   margin-top: 4px;
 }
 
+/* ── Provider settings panel ──────────────────────────────────────────────── */
+.llm-chat__settings {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  background: var(--surface-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.llm-chat__settings-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.llm-chat__settings-legend {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.llm-chat__settings-label {
+  font-size: var(--fs-sm);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.llm-chat__settings-link {
+  font-size: var(--fs-xs);
+  color: var(--accent);
+}
+
+.llm-chat__settings-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.llm-chat__settings-option input[type='radio'] {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.llm-chat__settings-err {
+  font-size: var(--fs-xs);
+  color: var(--danger);
+  margin: 4px 0 0;
+}
+
+.llm-chat__input--key {
+  font-family: monospace;
+  letter-spacing: 0.02em;
+}
+
+.llm-chat__settings-input-row {
+  display: flex;
+  gap: 6px;
+}
+
 .llm-chat__form {
   display: flex;
   gap: 6px;

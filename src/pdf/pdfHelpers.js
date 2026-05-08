@@ -74,11 +74,35 @@ export const buildGeneratedCopyFileName = (baseFileName, options = {}) => {
   return `${safeBase}__COPY_${suffix}.pdf`;
 };
 
+export const buildInvoiceFileName = (documentData) => {
+  const unit = sanitizeFileNameSegment(documentData?.property?.unit || 'Unit');
+  const dateValue = sanitizeFileNameSegment(
+    formatDateDisplay(documentData?.property?.documentDate || new Date()).replace(/\s+/g, '-'),
+  );
+  return `Invoice_${unit}_${dateValue}.pdf`;
+};
+
+export const buildKeyHandoverFileName = (documentData) => {
+  const unit = sanitizeFileNameSegment(
+    documentData?.byTemplate?.keyHandover?.unit || documentData?.property?.unit || 'Unit',
+  );
+  const dateValue = sanitizeFileNameSegment(
+    formatDateDisplay(
+      documentData?.byTemplate?.keyHandover?.handoverDate ||
+        documentData?.property?.documentDate ||
+        new Date(),
+    ).replace(/\s+/g, '-'),
+  );
+  return `KeyHandover_${unit}_${dateValue}.pdf`;
+};
+
 export const buildPdfFileName = (templateKey, documentData) => {
   if (templateKey === 'viewing') return buildViewingAgreementFileName(documentData);
   if (templateKey === 'tenancy') return buildEjariFileName(documentData);
   if (templateKey === 'addendum') return buildAddendumFileName(documentData);
   if (templateKey === 'salaryCertificate') return buildSalaryCertificateFileName(documentData);
+  if (templateKey === 'invoice') return buildInvoiceFileName(documentData);
+  if (templateKey === 'keyHandover') return buildKeyHandoverFileName(documentData);
   return buildQuotationFileName(documentData);
 };
 

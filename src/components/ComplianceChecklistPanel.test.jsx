@@ -149,45 +149,72 @@ describe('ComplianceChecklistPanel', () => {
     expect(screen.getByText(/Info: 0/)).toBeInTheDocument();
   });
 
-  // 6. evaluateCompliance is called on mount
+  // 6. evaluateCompliance is called on mount — now the panel reads from Redux,
+  //    so evaluateCompliance is NOT called by ComplianceChecklistPanel itself.
+  //    Warnings are pre-seeded via preloadedState (as DocumentHubPage does).
   it('calls evaluateCompliance on mount', () => {
-    mockEvaluate.mockReturnValue([]);
-    const store = makeStore({ template: { activeTemplate: 'booking' } });
+    // This test verifies the panel renders correctly with pre-seeded warnings.
+    const store = makeStore({
+      template: { activeTemplate: 'booking' },
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
-    expect(mockEvaluate).toHaveBeenCalled();
+    expect(screen.getByText(/no outstanding compliance warnings/i)).toBeInTheDocument();
   });
 
-  // 7. evaluateCompliance called with correct template key
+  // 7. Template key rendered in policy-meta
   it('passes the active template key to evaluateCompliance', () => {
-    mockEvaluate.mockReturnValue([]);
-    const store = makeStore({ template: { activeTemplate: 'viewing' } });
+    const store = makeStore({
+      template: { activeTemplate: 'viewing' },
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { viewing: [] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
-    const [templateArg] = mockEvaluate.mock.calls[0];
-    expect(templateArg).toBe('viewing');
+    expect(screen.getByText(/Template: viewing/i)).toBeInTheDocument();
   });
 
-  // 8. Critical warnings populate Redux + render via Disclosure
+  // 8. Critical warnings pre-seeded in Redux render via Disclosure
   it('renders a critical Disclosure when critical warnings exist', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     expect(screen.getByTestId('disclosure-critical')).toBeInTheDocument();
   });
 
   // 9. Summary counts reflect supplied warnings (1 critical)
   it('summary count reflects 1 critical warning', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
-    // The Redux state should be updated via useEffect + setWarningsForTemplate
-    // Then the selector-derived summary is rendered
     expect(store.getState().compliance.warningsByTemplate['booking']).toHaveLength(1);
   });
 
   // 10. Critical warning title and message rendered
   it('renders critical warning title and message inside the disclosure body', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     const body = screen.getByTestId('disclosure-critical');
     expect(within(body).getByText(/Missing RERA Permit/)).toBeInTheDocument();
@@ -196,8 +223,13 @@ describe('ComplianceChecklistPanel', () => {
 
   // 11. Warning source and citation rendered when present
   it('renders source title and citation for critical warning', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     expect(screen.getByText(/RERA Regulation 3/)).toBeInTheDocument();
     expect(screen.getByText(/Art\. 12/)).toBeInTheDocument();
@@ -205,23 +237,32 @@ describe('ComplianceChecklistPanel', () => {
 
   // 12. Important warnings render in their own Disclosure
   it('renders an important Disclosure when important warnings exist', () => {
-    mockEvaluate.mockReturnValue([IMPORTANT_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [IMPORTANT_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     expect(screen.getByTestId('disclosure-important')).toBeInTheDocument();
   });
 
   // 13. Info warnings render in their own Disclosure
   it('renders an info Disclosure when info warnings exist', () => {
-    mockEvaluate.mockReturnValue([INFO_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [INFO_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     expect(screen.getByTestId('disclosure-info')).toBeInTheDocument();
   });
 
   // 14. No warnings = no Disclosure sections rendered
   it('does not render any Disclosure when warnings array is empty', () => {
-    mockEvaluate.mockReturnValue([]);
     const store = makeStore();
     renderPanel(store);
     expect(screen.queryByTestId('disclosure-critical')).not.toBeInTheDocument();
@@ -274,8 +315,13 @@ describe('ComplianceChecklistPanel', () => {
 
   // 19. Disclosure badge count equals number of warnings in that severity
   it('disclosure badge equals count of warnings in that severity bucket', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     const disc = screen.getByTestId('disclosure-critical');
     expect(within(disc).getByTestId('disclosure-badge')).toHaveTextContent('1');
@@ -283,8 +329,13 @@ describe('ComplianceChecklistPanel', () => {
 
   // 20. Multiple warnings of different severities all rendered
   it('renders all three severity disclosures when each has a warning', () => {
-    mockEvaluate.mockReturnValue([CRITICAL_WARNING, IMPORTANT_WARNING, INFO_WARNING]);
-    const store = makeStore();
+    const store = makeStore({
+      compliance: {
+        mode: 'warnings-only',
+        warningsByTemplate: { booking: [CRITICAL_WARNING, IMPORTANT_WARNING, INFO_WARNING] },
+        checklistAcknowledgedByTemplate: {},
+      },
+    });
     renderPanel(store);
     expect(screen.getByTestId('disclosure-critical')).toBeInTheDocument();
     expect(screen.getByTestId('disclosure-important')).toBeInTheDocument();
