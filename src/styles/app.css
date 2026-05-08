@@ -1200,6 +1200,11 @@ body {
   letter-spacing: 0.02em;
 }
 
+.llm-chat__settings-input-row {
+  display: flex;
+  gap: 6px;
+}
+
 .llm-chat__form {
   display: flex;
   gap: 6px;

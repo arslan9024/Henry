@@ -585,7 +585,7 @@ const LlmFooterChatBox = () => {
                   (get a free key)
                 </a>
               </label>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div className="llm-chat__settings-input-row">
                 <input
                   id="groq-api-key"
                   type="password"
