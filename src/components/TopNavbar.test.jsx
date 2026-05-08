@@ -8,6 +8,8 @@ import templateReducer from '../store/templateSlice';
 import policyMetaReducer from '../store/policyMetaSlice';
 import henryReducer from '../store/henrySlice';
 import uiCommandReducer from '../store/uiCommandSlice';
+import documentReducer from '../store/documentSlice';
+import complianceReducer from '../store/complianceSlice';
 
 vi.mock('../hooks/useDensity', () => ({
   default: () => ({ density: 'comfortable', toggle: vi.fn() }),
@@ -30,6 +32,8 @@ const makeStore = (preloadedState = {}) =>
       policyMeta: policyMetaReducer,
       henry: henryReducer,
       uiCommand: uiCommandReducer,
+      document: documentReducer,
+      compliance: complianceReducer,
     },
     preloadedState,
   });
@@ -96,5 +100,66 @@ describe('TopNavbar Henry identity popover (T-43)', () => {
     expect(dispatchSpy).toHaveBeenCalled();
     expect(screen.queryByRole('dialog', { name: /henry identity details/i })).toBeNull();
     dispatchSpy.mockRestore();
+  });
+});
+
+describe('TopNavbar document action buttons', () => {
+  it('renders Preview, Compliance, Archive, Audit action buttons', () => {
+    renderNavbar();
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open compliance checklist/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open archive history/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open audit log/i })).toBeInTheDocument();
+  });
+
+  it('preview button is disabled when template has no PDF support', () => {
+    const store = makeStore({ template: { activeTemplate: 'offer' } });
+    renderNavbar(store);
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
+  });
+
+  it('preview button is enabled for PDF-supporting templates', () => {
+    const store = makeStore({ template: { activeTemplate: 'viewing' } });
+    renderNavbar(store);
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeEnabled();
+  });
+
+  it('clicking Preview dispatches togglePreview to Redux', () => {
+    const store = makeStore({ template: { activeTemplate: 'viewing' } });
+    renderNavbar(store);
+
+    expect(store.getState().uiCommand.previewMode).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
+    expect(store.getState().uiCommand.previewMode).toBe(true);
+  });
+
+  it('clicking Compliance dispatches openDrawer("compliance")', () => {
+    const store = makeStore();
+    renderNavbar(store);
+    fireEvent.click(screen.getByRole('button', { name: /open compliance checklist/i }));
+    expect(store.getState().uiCommand.drawerTab).toBe('compliance');
+  });
+
+  it('clicking Archive dispatches openDrawer("archive")', () => {
+    const store = makeStore();
+    renderNavbar(store);
+    fireEvent.click(screen.getByRole('button', { name: /open archive history/i }));
+    expect(store.getState().uiCommand.drawerTab).toBe('archive');
+  });
+
+  it('clicking Audit dispatches openDrawer("audit")', () => {
+    const store = makeStore();
+    renderNavbar(store);
+    fireEvent.click(screen.getByRole('button', { name: /open audit log/i }));
+    expect(store.getState().uiCommand.drawerTab).toBe('audit');
+  });
+
+  it('shows Edit label when preview is active, Preview label otherwise', () => {
+    const store = makeStore({ template: { activeTemplate: 'viewing' } });
+    renderNavbar(store);
+
+    expect(screen.getByRole('button', { name: /toggle print preview/i })).toHaveTextContent('👁 Preview');
+    fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
+    expect(screen.getByRole('button', { name: /close print preview/i })).toHaveTextContent('✏ Edit');
   });
 });

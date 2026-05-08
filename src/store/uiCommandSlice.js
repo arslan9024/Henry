@@ -25,6 +25,8 @@ const initialState = {
   chatOpen: false,
   /** Incrementing counter; a useEffect watches it to trigger window.print() */
   printTrigger: 0,
+  /** Whether the print-preview panel is visible in the main content area */
+  previewMode: false,
 };
 
 const uiCommandSlice = createSlice({
@@ -56,6 +58,12 @@ const uiCommandSlice = createSlice({
     triggerPrint: (state) => {
       state.printTrigger += 1;
     },
+    togglePreview: (state) => {
+      state.previewMode = !state.previewMode;
+    },
+    setPreviewMode: (state, action) => {
+      state.previewMode = Boolean(action.payload);
+    },
   },
 });
 
@@ -68,6 +76,8 @@ export const {
   closeChat,
   toggleChat,
   triggerPrint,
+  togglePreview,
+  setPreviewMode,
 } = uiCommandSlice.actions;
 
 // Selectors
@@ -75,5 +85,6 @@ export const selectLeftRail = (state) => state.uiCommand.leftRail;
 export const selectDrawerTab = (state) => state.uiCommand.drawerTab;
 export const selectChatOpen = (state) => state.uiCommand.chatOpen;
 export const selectPrintTrigger = (state) => state.uiCommand.printTrigger;
+export const selectPreviewMode = (state) => state.uiCommand.previewMode;
 
 export default uiCommandSlice.reducer;

@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 export const CANONICAL_LANDLORD_NAME = 'MUHAMMAD NAEEM MUHAMMAD H K KHAN';
 
-const initialState = {
+export const initialState = {
   company: {
     name: 'White Caves Real Estate L.L.C',
     dedLicense: '1388443',

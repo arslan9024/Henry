@@ -7,12 +7,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import DocumentWorkAreaForm from './DocumentWorkAreaForm';
 import templateReducer from '../store/templateSlice';
 import documentReducer from '../store/documentSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 const makeStore = (preloadedState = {}) =>
   configureStore({
     reducer: {
       template: templateReducer,
       document: documentReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState,
   });
@@ -47,6 +49,19 @@ describe('DocumentWorkAreaForm', () => {
     fireEvent.change(input, { target: { value: 'Ahmed Ali' } });
 
     expect(store.getState().document.tenant.fullName).toBe('Ahmed Ali');
+  });
+
+  it('clicking "Open Ask Henry chat" dispatches openChat to Redux', () => {
+    const store = makeStore();
+    render(
+      <Provider store={store}>
+        <DocumentWorkAreaForm />
+      </Provider>,
+    );
+
+    expect(store.getState().uiCommand.chatOpen).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: /Open Ask Henry chat/i }));
+    expect(store.getState().uiCommand.chatOpen).toBe(true);
   });
 
   it('shows salary certificate section when active template is salaryCertificate', () => {

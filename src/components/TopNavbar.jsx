@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
-import { toggleLeftRail } from '../store/uiCommandSlice';
+import {
+  selectActiveTemplateLabel,
+  selectPolicyMeta,
+  selectHenry,
+  selectCanGeneratePdf,
+} from '../store/selectors';
+import { toggleLeftRail, openDrawer, togglePreview, selectPreviewMode } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -32,6 +37,8 @@ const TopNavbar = React.memo(() => {
   const policyMeta = useSelector(selectPolicyMeta);
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const henry = useSelector(selectHenry);
+  const canGeneratePdf = useSelector(selectCanGeneratePdf);
+  const previewMode = useSelector(selectPreviewMode);
   const { density, toggle: toggleDensity } = useDensity();
   const { mode: themeMode, resolved: themeResolved, cycle: cycleTheme } = useTheme();
   const [identityOpen, setIdentityOpen] = useState(false);
@@ -110,11 +117,7 @@ const TopNavbar = React.memo(() => {
             <Typography variant="caption" component="p" sx={{ color: 'text.secondary', lineHeight: 1.3 }}>
               White Caves Real Estate L.L.C · Dubai · DLD/RERA Workflow
             </Typography>
-            <Typography
-              variant="caption"
-              component="small"
-              sx={{ color: 'text.secondary', opacity: 0.75 }}
-            >
+            <Typography variant="caption" component="small" sx={{ color: 'text.secondary', opacity: 0.75 }}>
               Policy {policyMeta.version} · Reviewed {policyMeta.reviewedAt}
             </Typography>
           </Box>
@@ -270,6 +273,71 @@ const TopNavbar = React.memo(() => {
           aria-label="Document actions"
           sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}
         >
+          {/* ── Document action buttons ─────────────────────────────────── */}
+          <Tooltip
+            title={
+              canGeneratePdf
+                ? previewMode
+                  ? 'Close print preview and return to editing'
+                  : 'Toggle A4 print preview for current template'
+                : 'PDF preview not available for this template'
+            }
+            placement="bottom"
+          >
+            <span>
+              <MuiButton
+                size="small"
+                variant={previewMode ? 'contained' : 'outlined'}
+                color={previewMode ? 'primary' : 'inherit'}
+                onClick={() => dispatch(togglePreview())}
+                disabled={!canGeneratePdf && !previewMode}
+                aria-pressed={previewMode}
+                aria-label={previewMode ? 'Close print preview, return to edit form' : 'Toggle print preview'}
+                sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
+              >
+                {previewMode ? '✏ Edit' : '👁 Preview'}
+              </MuiButton>
+            </span>
+          </Tooltip>
+
+          <Tooltip title="Open compliance checklist (DLD/RERA)" placement="bottom">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={() => dispatch(openDrawer('compliance'))}
+              aria-label="Open compliance checklist"
+              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
+            >
+              ✅ Compliance
+            </MuiButton>
+          </Tooltip>
+
+          <Tooltip title="Open archive history" placement="bottom">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={() => dispatch(openDrawer('archive'))}
+              aria-label="Open archive history"
+              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
+            >
+              🗂 Archive
+            </MuiButton>
+          </Tooltip>
+
+          <Tooltip title="Open audit log" placement="bottom">
+            <MuiButton
+              size="small"
+              variant="outlined"
+              onClick={() => dispatch(openDrawer('audit'))}
+              aria-label="Open audit log"
+              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
+            >
+              📜 Audit
+            </MuiButton>
+          </Tooltip>
+
+          <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.75 }} />
+
           <Typography
             component="p"
             className="top-navbar__active-doc"
@@ -283,7 +351,7 @@ const TopNavbar = React.memo(() => {
               textOverflow: 'ellipsis',
             }}
           >
-            Active Document: {activeTemplateLabel}
+            {activeTemplateLabel}
           </Typography>
           <AutosaveIndicator />
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.75 }} />
@@ -299,10 +367,7 @@ const TopNavbar = React.memo(() => {
               sx={{ fontWeight: 600, fontSize: '0.72rem', cursor: 'pointer' }}
             />
           </Tooltip>
-          <Tooltip
-            title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`}
-            placement="bottom"
-          >
+          <Tooltip title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`} placement="bottom">
             <Chip
               size="small"
               component="button"

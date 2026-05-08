@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { TEMPLATE_MAP } from '../templates/registry';
 import ComplianceChecklistPanel from './ComplianceChecklistPanel';
@@ -19,6 +19,8 @@ import {
   setLeftRail as setLeftRailAction,
   selectLeftRail,
   selectPrintTrigger,
+  selectPreviewMode,
+  togglePreview,
 } from '../store/uiCommandSlice';
 
 const DocumentHubPage = () => {
@@ -29,8 +31,7 @@ const DocumentHubPage = () => {
   const policyVersion = useSelector((state) => state.policyMeta.version);
   const leftRail = useSelector(selectLeftRail);
   const printTrigger = useSelector(selectPrintTrigger);
-
-  const [previewMode, setPreviewMode] = useState(false);
+  const previewMode = useSelector(selectPreviewMode);
 
   // Watch printTrigger to fire the print dialog.
   const prevPrintTrigger = useRef(printTrigger);
@@ -199,7 +200,7 @@ const DocumentHubPage = () => {
           activeTemplateLabel={activeTemplateLabel}
           previewMode={previewMode}
           canGeneratePdf={canGeneratePdf}
-          onTogglePreview={() => setPreviewMode((v) => !v)}
+          onTogglePreview={() => dispatch(togglePreview())}
           onOpenCompliance={openCompliance}
           onRunComplianceCheck={handleComplianceCheck}
           onOpenArchive={openArchive}
