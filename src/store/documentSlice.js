@@ -60,6 +60,7 @@ export const initialState = {
     category: 'government-military',
     email: '',
     passportNo: '',
+    nationality: '',
     address: '',
     poBox: '',
   },

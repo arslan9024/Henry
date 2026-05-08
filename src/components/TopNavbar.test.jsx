@@ -105,12 +105,12 @@ describe('TopNavbar Henry identity popover (T-43)', () => {
 });
 
 describe('TopNavbar document action buttons', () => {
-  it('renders Preview, Compliance, Archive, Audit action buttons', () => {
+  it('renders Preview action button (Compliance/Archive/Audit moved to footer)', () => {
     renderNavbar();
     expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /open compliance checklist/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /open archive history/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /open audit log/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /open compliance checklist/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /open archive history/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /open audit log/i })).toBeNull();
   });
 
   it('preview button is disabled when template has no PDF support', () => {
@@ -151,27 +151,6 @@ describe('TopNavbar document action buttons', () => {
     expect(store.getState().uiCommand.previewMode).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
     expect(store.getState().uiCommand.previewMode).toBe(true);
-  });
-
-  it('clicking Compliance dispatches openDrawer("compliance")', () => {
-    const store = makeStore();
-    renderNavbar(store);
-    fireEvent.click(screen.getByRole('button', { name: /open compliance checklist/i }));
-    expect(store.getState().uiCommand.drawerTab).toBe('compliance');
-  });
-
-  it('clicking Archive dispatches openDrawer("archive")', () => {
-    const store = makeStore();
-    renderNavbar(store);
-    fireEvent.click(screen.getByRole('button', { name: /open archive history/i }));
-    expect(store.getState().uiCommand.drawerTab).toBe('archive');
-  });
-
-  it('clicking Audit dispatches openDrawer("audit")', () => {
-    const store = makeStore();
-    renderNavbar(store);
-    fireEvent.click(screen.getByRole('button', { name: /open audit log/i }));
-    expect(store.getState().uiCommand.drawerTab).toBe('audit');
   });
 
   it('shows Edit label when preview is active, Preview label otherwise', () => {

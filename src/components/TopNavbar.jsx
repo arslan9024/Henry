@@ -8,7 +8,6 @@ import {
 } from '../store/selectors';
 import {
   toggleLeftRail,
-  openDrawer,
   togglePreview,
   selectPreviewMode,
   setPreviewMode,
@@ -310,42 +309,6 @@ const TopNavbar = React.memo(() => {
                 {previewMode ? '✏ Edit' : '👁 Preview'}
               </MuiButton>
             </span>
-          </Tooltip>
-
-          <Tooltip title="Open compliance checklist (DLD/RERA)" placement="bottom">
-            <MuiButton
-              size="small"
-              variant="outlined"
-              onClick={() => dispatch(openDrawer('compliance'))}
-              aria-label="Open compliance checklist"
-              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
-            >
-              ✅ Compliance
-            </MuiButton>
-          </Tooltip>
-
-          <Tooltip title="Open archive history" placement="bottom">
-            <MuiButton
-              size="small"
-              variant="outlined"
-              onClick={() => dispatch(openDrawer('archive'))}
-              aria-label="Open archive history"
-              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
-            >
-              🗂 Archive
-            </MuiButton>
-          </Tooltip>
-
-          <Tooltip title="Open audit log" placement="bottom">
-            <MuiButton
-              size="small"
-              variant="outlined"
-              onClick={() => dispatch(openDrawer('audit'))}
-              aria-label="Open audit log"
-              sx={{ fontSize: '0.72rem', whiteSpace: 'nowrap', minWidth: 0 }}
-            >
-              📜 Audit
-            </MuiButton>
           </Tooltip>
 
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.75 }} />
