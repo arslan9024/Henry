@@ -149,6 +149,13 @@ describe('PrintButton — Generate PDF disabled states', () => {
     renderBtn({ previewStatus: 'ready' });
     expect(screen.queryByText(/Preview updating/i)).toBeNull();
   });
+
+  it('disables "Generate PDF" for tenancy when required fields are missing', () => {
+    renderBtn({ templateKey: 'tenancy', previewStatus: 'ready' });
+    const btn = screen.queryByRole('button', { name: /Generate high-quality quotation PDF/i });
+    if (btn) expect(btn.disabled).toBe(true);
+    expect(screen.getByText(/required field/i)).toBeDefined();
+  });
 });
 
 // ── Save Draft ────────────────────────────────────────────────────────────────

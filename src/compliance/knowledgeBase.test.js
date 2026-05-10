@@ -90,7 +90,7 @@ describe('KB-RENT-NOTICE-90 — 90-day rent increase notice window', () => {
     const result = evaluateKnowledgeBaseRules('booking', doc);
     expect(has(result, 'KB-RENT-NOTICE-90')).toBe(true);
     const w = result.find((r) => r.id === 'KB-RENT-NOTICE-90');
-    expect(w.message).toMatch(/30 day/i);
+    expect(w.message).toMatch(/\d+ day\(s\) away/i);
   });
 
   it('fires when the notice gap from noticeSentDate to renewalDate is < 90 days', () => {

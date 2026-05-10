@@ -3,6 +3,9 @@ import {
   selectActiveTemplateMeta,
   selectActiveTemplateLabel,
   selectCanGeneratePdf,
+  selectRequiredFieldsForActiveTemplate,
+  selectBlockingMissingRequiredFields,
+  selectDocumentReadiness,
   selectSidebarContent,
   selectActiveTemplateWarnings,
   selectComplianceSummary,
@@ -130,5 +133,54 @@ describe('archive selectors', () => {
     const filtered = selectArchiveEntriesForCurrentUnit(state);
     expect(filtered).toHaveLength(2);
     expect(filtered.map((e) => e.file)).toEqual(['a.pdf', 'b.pdf']);
+  });
+});
+
+describe('required fields + readiness selectors', () => {
+  it('returns tenancy required fields as an ordered numbered list', () => {
+    const state = makeState({ template: { activeTemplate: 'tenancy' } });
+    const fields = selectRequiredFieldsForActiveTemplate(state);
+    expect(Array.isArray(fields)).toBe(true);
+    expect(fields.length).toBeGreaterThan(0);
+    expect(fields[0]).toMatchObject({ order: 1, path: 'tenant.fullName' });
+  });
+
+  it('returns [] for templates without phase-1 registry entries', () => {
+    const state = makeState({ template: { activeTemplate: 'booking' } });
+    expect(selectRequiredFieldsForActiveTemplate(state)).toEqual([]);
+  });
+
+  it('detects missing blocking fields for tenancy', () => {
+    const state = makeState({
+      template: { activeTemplate: 'tenancy' },
+      document: {
+        property: { unit: 'A-1', community: 'Downtown' },
+        tenant: { fullName: '' },
+        landlord: { name: 'Owner Name' },
+        payments: { contractStartDate: '', contractEndDate: '', annualRent: 0 },
+      },
+    });
+    const missing = selectBlockingMissingRequiredFields(state);
+    expect(missing.some((f) => f.path === 'tenant.fullName')).toBe(true);
+    expect(missing.some((f) => f.path === 'payments.contractStartDate')).toBe(true);
+  });
+
+  it('marks readiness as true when no blocking fields are missing', () => {
+    const state = makeState({
+      template: { activeTemplate: 'tenancy' },
+      document: {
+        property: { unit: 'A-1', community: 'Downtown' },
+        tenant: { fullName: 'Ahmed Ali' },
+        landlord: { name: 'Owner Name' },
+        payments: {
+          contractStartDate: '2026-05-01',
+          contractEndDate: '2027-04-30',
+          annualRent: 85000,
+        },
+      },
+    });
+    const readiness = selectDocumentReadiness(state);
+    expect(readiness.isReadyForGeneration).toBe(true);
+    expect(readiness.missingBlockingFields).toEqual([]);
   });
 });
