@@ -206,6 +206,12 @@ describe('generateSIFFilename', () => {
     expect(name).toMatch(/^9999000000000_\d{14}\.SIF$/);
   });
 
+  it('matches instruction format exactly for fixed timestamp', () => {
+    const ts = new Date('2026-05-10T12:34:56.000Z');
+    const name = generateSIFFilename('1234567890123', ts);
+    expect(name).toBe('1234567890123_20260510123456.SIF');
+  });
+
   it('uses current time when no timestamp provided', () => {
     const before = new Date().toISOString().substring(0, 4); // year
     const name = generateSIFFilename('111');
@@ -273,14 +279,14 @@ describe('generateTXTVerification', () => {
 // ─── downloadSIFFile / downloadTXTFile ───────────────────────────────────────
 
 describe('downloadSIFFile', () => {
-  let appendSpy, removeSpy, createSpy, revokeUrlSpy;
+  let appendSpy, removeSpy, createSpy, revokeUrlSpy, mockLink;
 
   beforeEach(() => {
     // jsdom does not ship URL.createObjectURL / revokeObjectURL — define them
     URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
     URL.revokeObjectURL = vi.fn();
 
-    const mockLink = { href: '', download: '', click: vi.fn() };
+    mockLink = { href: '', download: '', click: vi.fn() };
     createSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
     appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => {});
     removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => {});
@@ -307,6 +313,19 @@ describe('downloadSIFFile', () => {
   it('calls revokeObjectURL to clean up', () => {
     downloadSIFFile('SIF CONTENT', 'test.SIF');
     expect(revokeUrlSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets anchor download filename and triggers click', () => {
+    downloadSIFFile('SIF CONTENT', '1234567890123_20260510123456.SIF');
+    expect(mockLink.download).toBe('1234567890123_20260510123456.SIF');
+    expect(mockLink.click).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates an object URL from a Blob payload', () => {
+    downloadSIFFile('SIF CONTENT', 'test.SIF');
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blobArg = URL.createObjectURL.mock.calls[0][0];
+    expect(blobArg).toBeInstanceOf(Blob);
   });
 });
 
@@ -359,6 +378,11 @@ describe('generateAndDownloadSIFFile', () => {
   it('returns sifFilename in result', async () => {
     const result = await generateAndDownloadSIFFile(EMPLOYEES, COMPANY);
     expect(result.sifFilename).toMatch(/\.SIF$/);
+  });
+
+  it('returns instruction-compliant filename structure', async () => {
+    const result = await generateAndDownloadSIFFile(EMPLOYEES, COMPANY, { downloadSif: false });
+    expect(result.sifFilename).toMatch(/^\d{13}_\d{14}\.SIF$/);
   });
 
   it('returns sifContent in result', async () => {
