@@ -139,8 +139,8 @@ const DocumentChecklistPanel = () => {
 
       <section className="dc-hero" aria-label="Document control summary">
         <div className="dc-hero__card">
-          <strong>{overallPct}%</strong>
-          <span>Completion</span>
+          <strong>{overallPct}</strong>
+          <span>Completion score</span>
         </div>
         <div className="dc-hero__card">
           <strong>{criticalCount}</strong>
