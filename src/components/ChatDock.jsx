@@ -1,74 +1,40 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import LlmFooterChatBox from './LlmFooterChatBox';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useBackgroundInert from '../hooks/useBackgroundInert';
+import {
+  closeChat,
+  openChat,
+  selectChatActivationKey,
+  selectChatOpen,
+  toggleChat,
+} from '../store/uiCommandSlice';
 
-const STORAGE_KEY = 'henry.ui.chatDock';
-
-const readInitial = () => {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === 'open';
-  } catch {
-    return false;
-  }
-};
-
-/**
- * ChatDock — floating Intercom-style bubble that hosts the Ask-Henry chat.
- *
- * Closed: 56 px circular FAB (bottom-right). Open: 380×560 panel that
- * lazy-mounts the LlmFooterChatBox the first time it's opened.
- *
- * State persists to localStorage so refresh doesn't lose the user's choice.
- */
 const ChatDock = () => {
-  const [open, setOpen] = useState(readInitial);
+  const dispatch = useDispatch();
+  const open = useSelector(selectChatOpen);
+  const activationKey = useSelector(selectChatActivationKey);
   const [hasOpened, setHasOpened] = useState(open);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, open ? 'open' : 'closed');
-    } catch {
-      /* ignore quota/private-mode errors */
-    }
+    if (open) setHasOpened(true);
   }, [open]);
 
-  const handleOpen = useCallback(() => {
-    setOpen(true);
-    setHasOpened(true);
-    window.dispatchEvent(
-      new CustomEvent('henry:activate-ollama', {
-        detail: { source: 'chat-dock-open', at: new Date().toISOString() },
-      }),
-    );
-  }, []);
-
-  useEffect(() => {
-    const onOpenChat = () => handleOpen();
-    window.addEventListener('henry:open-chat', onOpenChat);
-    return () => window.removeEventListener('henry:open-chat', onOpenChat);
-  }, [handleOpen]);
-
-  // Esc closes the panel; Ctrl+/ (or Cmd+/) toggles it from anywhere.
   useEffect(() => {
     const onKey = (e) => {
       if (open && e.key === 'Escape') {
-        setOpen(false);
+        dispatch(closeChat());
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        // Avoid hijacking text-input slashes — require modifier only.
         e.preventDefault();
-        if (open) {
-          setOpen(false);
-        } else {
-          handleOpen();
-        }
+        dispatch(toggleChat({ activate: true }));
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, handleOpen]);
+  }, [dispatch, open]);
 
   const trapRef = useFocusTrap(open);
   useBackgroundInert(open);
@@ -89,20 +55,22 @@ const ChatDock = () => {
             <button
               type="button"
               className="chat-dock__close"
-              onClick={() => setOpen(false)}
+              onClick={() => dispatch(closeChat())}
               aria-label="Close chat"
               title="Close (Esc)"
             >
               ✕
             </button>
           </header>
-          <div className="chat-dock__body">{hasOpened ? <LlmFooterChatBox /> : null}</div>
+          <div className="chat-dock__body">
+            {hasOpened ? <LlmFooterChatBox activationKey={activationKey} /> : null}
+          </div>
         </section>
       ) : (
         <button
           type="button"
           className="chat-dock__fab"
-          onClick={handleOpen}
+          onClick={() => dispatch(openChat({ activate: true }))}
           aria-label="Open Ask Henry chat"
           title="Ask Henry"
         >

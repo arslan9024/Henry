@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -215,10 +215,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const draftButton = screen.getByLabelText('Save a draft snapshot to the archive');
 
-    await act(async () => {
-      fireEvent.click(draftButton);
-      // Wait for async state updates
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    fireEvent.click(draftButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries.some((entry) => entry.isDraft)).toBe(true);
     });
 
     const state = store.getState();
@@ -239,9 +238,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const draftButton = screen.getByLabelText('Save a draft snapshot to the archive');
 
-    await act(async () => {
-      fireEvent.click(draftButton);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    fireEvent.click(draftButton);
+    await waitFor(() => {
+      expect(store.getState().audit.logs.some((log) => log.type === 'DRAFT_SAVED')).toBe(true);
     });
 
     const state = store.getState();
@@ -261,9 +260,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const draftButton = screen.getByLabelText('Save a draft snapshot to the archive');
 
-    await act(async () => {
-      fireEvent.click(draftButton);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    fireEvent.click(draftButton);
+    await waitFor(() => {
+      expect(store.getState().ui.toasts.some((toast) => toast.title === 'Draft saved')).toBe(true);
     });
 
     const state = store.getState();
@@ -306,13 +305,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      // Wait for async operations
-      await waitFor(() => {
-        const state = store.getState();
-        return state.archive.entries.length > 0;
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries.length).toBeGreaterThan(0);
     });
 
     expect(downloadQuotationPdf).toHaveBeenCalledOnce();
@@ -353,12 +348,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const state = store.getState();
-        return state.audit.logs.some((log) => log.type === 'PDF_GENERATED');
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().audit.logs.some((log) => log.type === 'PDF_GENERATED')).toBe(true);
     });
 
     const state = store.getState();
@@ -397,12 +389,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const state = store.getState();
-        return state.ui.toasts.some((t) => t.title === 'PDF generated');
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().ui.toasts.some((toast) => toast.title === 'PDF generated')).toBe(true);
     });
 
     const state = store.getState();
@@ -441,12 +430,11 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const state = store.getState();
-        return state.ui.toasts.some((t) => t.title === 'PDF generated (not archived)');
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().ui.toasts.some((toast) => toast.title === 'PDF generated (not archived)')).toBe(
+        true,
+      );
     });
 
     const state = store.getState();
@@ -493,15 +481,15 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
-    await act(async () => {
-      fireEvent.click(pdfButton);
-    });
+    fireEvent.click(pdfButton);
 
     // Button should be disabled while generating
     expect(pdfButton).toBeDisabled();
 
-    // Cleanup
     resolve();
+    await waitFor(() => {
+      expect(pdfButton).not.toBeDisabled();
+    });
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -566,9 +554,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     const printButton = screen.getByLabelText('Print selected document to PDF');
 
-    await act(async () => {
-      fireEvent.click(printButton);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    fireEvent.click(printButton);
+    await waitFor(() => {
+      expect(store.getState().audit.logs.some((log) => log.type === 'PRINT')).toBe(true);
     });
 
     const state = store.getState();
@@ -618,13 +606,13 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
       try {
         // Should not throw
-        await act(async () => {
-          fireEvent.click(pdfButton);
-          await new Promise((resolve) => setTimeout(resolve, 100));
+        fireEvent.click(pdfButton);
+        await waitFor(() => {
+          expect(pdfButton).not.toBeDisabled();
         });
 
         // Button should be re-enabled after error
-        expect(pdfButton).not.toBeDisabled();
+        expect(pdfButton).toBeEnabled();
       } finally {
         consoleErrorSpy.mockRestore();
       }
@@ -665,9 +653,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     // First: Save draft
     const draftButton = screen.getByLabelText('Save a draft snapshot to the archive');
-    await act(async () => {
-      fireEvent.click(draftButton);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    fireEvent.click(draftButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries).toHaveLength(1);
     });
 
     let state = store.getState();
@@ -676,12 +664,9 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
 
     // Second: Generate PDF
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const s = store.getState();
-        return s.archive.entries.length > 1;
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries.length).toBeGreaterThan(1);
     });
 
     state = store.getState();
@@ -733,21 +718,15 @@ describe('DocumentHubPage.printPreview — print/PDF export integration', () => 
     const pdfButton = screen.getByLabelText('Generate high-quality quotation PDF');
 
     // First click
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const state = store.getState();
-        return state.archive.entries.length === 1;
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries).toHaveLength(1);
     });
 
     // Second click
-    await act(async () => {
-      fireEvent.click(pdfButton);
-      await waitFor(() => {
-        const state = store.getState();
-        return state.archive.entries.length === 2;
-      });
+    fireEvent.click(pdfButton);
+    await waitFor(() => {
+      expect(store.getState().archive.entries).toHaveLength(2);
     });
 
     const state = store.getState();

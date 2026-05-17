@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
 import { selectCurrentPage, goToPayroll, goToDocumentHub } from '../store/appRouteSlice';
+import { openCommandPalette as openCommandPaletteCommand, toggleLeftRail } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -29,8 +30,8 @@ const TopNavbar = React.memo(() => {
   const identityRef = useRef(null);
 
   const openCommandPalette = useCallback(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
-  }, []);
+    dispatch(openCommandPaletteCommand());
+  }, [dispatch]);
 
   const togglePage = useCallback(() => {
     if (currentPage === 'payroll') {
@@ -67,24 +68,32 @@ const TopNavbar = React.memo(() => {
       aria-label="Main navigation"
       data-overlay-shield
     >
-      <button
-        type="button"
-        className="top-navbar__hamburger"
-        onClick={() => window.dispatchEvent(new CustomEvent('henry:toggle-left-rail'))}
-        aria-label="Toggle sidebar"
-        title="Toggle sidebar"
-      >
-        ☰
-      </button>
+      <div className="top-navbar__primary">
+        <div className="top-navbar__utility-row">
+          <button
+            type="button"
+            className="top-navbar__hamburger"
+            onClick={() => dispatch(toggleLeftRail())}
+            aria-label="Toggle sidebar"
+            title="Toggle sidebar"
+          >
+            ☰
+          </button>
+          <span className="top-navbar__workspace-badge">4× upgraded workspace</span>
+        </div>
 
-      <div className="top-navbar__brand">
-        <img src="/logo.png" alt="White Caves Real Estate" className="top-navbar__logo" />
-        <div>
-          <h1>Henry — Document Operations</h1>
-          <p>White Caves Real Estate L.L.C · Dubai · DLD/RERA Workflow</p>
-          <small>
-            Policy {policyMeta.version} · Reviewed {policyMeta.reviewedAt}
-          </small>
+        <div className="top-navbar__brand">
+          <img src="/logo.png" alt="White Caves Real Estate" className="top-navbar__logo" />
+          <div className="top-navbar__brand-copy">
+            <h1>Henry — Document Operations</h1>
+            <p>White Caves Real Estate L.L.C · Dubai · DLD/RERA Workflow</p>
+            <div className="top-navbar__meta-row">
+              <small>
+                Policy {policyMeta.version} · Reviewed {policyMeta.reviewedAt}
+              </small>
+              <span className="top-navbar__meta-pill">Precision filing cockpit</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -151,57 +160,55 @@ const TopNavbar = React.memo(() => {
       </div>
 
       <div className="top-navbar__actions" aria-label="Document actions">
-        <p className="top-navbar__active-doc">Active Document: {activeTemplateLabel}</p>
+        <div className="top-navbar__active-doc-wrap">
+          <p className="top-navbar__active-doc">Active Document: {activeTemplateLabel}</p>
+          <span className="top-navbar__active-doc-chip">
+            {currentPage === 'payroll' ? 'Payroll workspace' : 'Live document workspace'}
+          </span>
+        </div>
         <AutosaveIndicator />
-        <button
-          type="button"
-          className="density-toggle"
-          onClick={openCommandPalette}
-          aria-label="Open command palette (Ctrl+K)"
-          title="Command palette (Ctrl+K)"
-        >
-          ⌘ Search
-        </button>
-        {currentPage === 'documentHub' && (
+        <div className="top-navbar__action-grid">
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={openCommandPalette}
+            aria-label="Open command palette (Ctrl+K)"
+            title="Command palette (Ctrl+K)"
+          >
+            ⌘ Search
+          </button>
           <button
             type="button"
             className="density-toggle payroll-nav-btn"
             onClick={togglePage}
-            aria-label="Navigate to WPS SIF Payroll Generator"
-            title="WPS SIF Payroll Generator"
+            aria-label={
+              currentPage === 'payroll'
+                ? 'Navigate back to Documents'
+                : 'Navigate to WPS SIF Payroll Generator'
+            }
+            title={currentPage === 'payroll' ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
           >
-            💳 Payroll
+            {currentPage === 'payroll' ? '📄 Documents' : '💳 Payroll'}
           </button>
-        )}
-        {currentPage === 'payroll' && (
           <button
             type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={togglePage}
-            aria-label="Navigate back to Documents"
-            title="Back to Documents"
+            className="density-toggle"
+            onClick={cycleTheme}
+            aria-label={`Theme: ${themeMode} (resolved ${themeResolved}). Click to switch to ${THEME_NEXT[themeMode]}.`}
+            title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`}
           >
-            📄 Documents
+            {THEME_LABEL[themeMode]}
           </button>
-        )}
-        <button
-          type="button"
-          className="density-toggle"
-          onClick={cycleTheme}
-          aria-label={`Theme: ${themeMode} (resolved ${themeResolved}). Click to switch to ${THEME_NEXT[themeMode]}.`}
-          title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`}
-        >
-          {THEME_LABEL[themeMode]}
-        </button>
-        <button
-          type="button"
-          className="density-toggle"
-          onClick={toggleDensity}
-          aria-pressed={density === 'compact'}
-          title={density === 'compact' ? 'Switch to comfortable density' : 'Switch to compact density'}
-        >
-          {density === 'compact' ? '▤ Compact' : '▣ Comfortable'}
-        </button>
+          <button
+            type="button"
+            className="density-toggle"
+            onClick={toggleDensity}
+            aria-pressed={density === 'compact'}
+            title={density === 'compact' ? 'Switch to comfortable density' : 'Switch to compact density'}
+          >
+            {density === 'compact' ? '▤ Compact' : '▣ Comfortable'}
+          </button>
+        </div>
       </div>
     </header>
   );

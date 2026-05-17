@@ -3,7 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setActiveTemplate } from '../store/templateSlice';
 import { addAuditLog } from '../store/auditSlice';
 import { selectArchiveEntries } from '../store/selectors';
-import { openDrawer, triggerPrint } from '../store/uiCommandSlice';
+import {
+  closeCommandPalette,
+  openDrawer,
+  openChat,
+  selectCommandPaletteOpen,
+  toggleCommandPalette,
+  triggerPrint,
+} from '../store/uiCommandSlice';
 import { TEMPLATE_CONFIG } from '../templates/registry';
 
 /**
@@ -51,6 +58,13 @@ const STATIC_ACTIONS = [
     label: 'Print / Export PDF',
     icon: '🖨',
     reduxAction: 'triggerPrint',
+  },
+  {
+    id: 'action-chat',
+    kind: 'action',
+    label: 'Open Ask Henry Chat',
+    icon: '💬',
+    reduxAction: 'openChat',
   },
 ];
 
@@ -111,8 +125,8 @@ const PaletteItem = forwardRef(function PaletteItem({ item, active, onActivate, 
 const CommandPalette = () => {
   const dispatch = useDispatch();
   const archiveEntries = useSelector(selectArchiveEntries);
+  const open = useSelector(selectCommandPaletteOpen);
 
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -164,12 +178,12 @@ const CommandPalette = () => {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        dispatch(toggleCommandPalette());
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [dispatch]);
 
   // Focus input when opening.
   useEffect(() => {
@@ -181,7 +195,7 @@ const CommandPalette = () => {
     }
   }, [open]);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => dispatch(closeCommandPalette()), [dispatch]);
 
   // ── Item activation ─────────────────────────────────────────────────────────
 
@@ -202,6 +216,7 @@ const CommandPalette = () => {
         else if (item.reduxAction === 'openDrawer:archive') dispatch(openDrawer('archive'));
         else if (item.reduxAction === 'openDrawer:audit') dispatch(openDrawer('audit'));
         else if (item.reduxAction === 'triggerPrint') dispatch(triggerPrint());
+        else if (item.reduxAction === 'openChat') dispatch(openChat({ activate: true }));
       }
       close();
     },

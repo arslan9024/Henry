@@ -137,9 +137,27 @@ const DocumentChecklistPanel = () => {
       {/* ── Blank Template Download ─────────────────────────────── */}
       <DownloadBlankButton templateKey={activeTemplate} canGeneratePdf={canGeneratePdf} />
 
+      <section className="dc-hero" aria-label="Document control summary">
+        <div className="dc-hero__card">
+          <strong>{overallPct}</strong>
+          <span>Completion score</span>
+        </div>
+        <div className="dc-hero__card">
+          <strong>{criticalCount}</strong>
+          <span>Critical</span>
+        </div>
+        <div className="dc-hero__card">
+          <strong>{importantCount}</strong>
+          <span>Review</span>
+        </div>
+      </section>
+
       {/* ── Overall completion ──────────────────────────────────── */}
       <section className="dc-section">
         <h4 className="dc-section__title">✅ Document Completion</h4>
+        <p className="dc-section__intro">
+          Track readiness at a glance before you preview, print, or push the document into the archive trail.
+        </p>
         <div className="dc-overall">
           <span className="dc-overall__pct">{overallPct}%</span>
           <span className="dc-overall__count">

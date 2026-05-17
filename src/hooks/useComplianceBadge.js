@@ -13,7 +13,7 @@ import { setWarningsForTemplate } from '../store/complianceSlice';
 import { addAuditLog } from '../store/auditSlice';
 import { pushToast } from '../store/uiSlice';
 import { openDrawer } from '../store/uiCommandSlice';
-import { selectDocument, selectActiveTemplateWarnings } from '../store/selectors';
+import { selectDocument } from '../store/selectors';
 
 /**
  * @returns {{

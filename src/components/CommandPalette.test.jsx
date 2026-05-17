@@ -7,6 +7,7 @@ import uiReducer from '../store/uiSlice';
 import archiveReducer from '../store/archiveSlice';
 import auditReducer from '../store/auditSlice';
 import templateReducer from '../store/templateSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 import CommandPalette from './CommandPalette';
 
 const makeStore = (preloaded = {}) =>
@@ -16,6 +17,7 @@ const makeStore = (preloaded = {}) =>
       archive: archiveReducer,
       audit: auditReducer,
       template: templateReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState: preloaded,
   });

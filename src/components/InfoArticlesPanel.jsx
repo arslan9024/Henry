@@ -42,6 +42,25 @@ const InfoArticlesPanel = () => {
       <p className="policy-meta">Active document: {activeTemplateLabel}</p>
       <p className="policy-meta">Guidance updated: {lastUpdated}</p>
 
+      <div className="info-articles-panel__summary" aria-label="Guidance summary">
+        <div className="info-articles-panel__stat">
+          <strong>{highlights.length}</strong>
+          <span>Highlights</span>
+        </div>
+        <div className="info-articles-panel__stat">
+          <strong>{articles.length}</strong>
+          <span>Articles</span>
+        </div>
+        <div className="info-articles-panel__stat">
+          <strong>{canGeneratePdf ? 'Yes' : 'No'}</strong>
+          <span>PDF export</span>
+        </div>
+      </div>
+
+      <p className="info-articles-panel__note">
+        Keep this rail open for template context, operational shortcuts, and filing guidance while editing.
+      </p>
+
       <Disclosure title="Templates" icon="📄" defaultOpen>
         <DocumentSelector />
         {canGeneratePdf && (

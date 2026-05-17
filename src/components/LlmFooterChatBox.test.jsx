@@ -52,11 +52,11 @@ const makeStore = () =>
 
 // ── helper ───────────────────────────────────────────────────────────────────
 
-const renderChat = () => {
+const renderChat = (props = {}) => {
   const store = makeStore();
   return render(
     <Provider store={store}>
-      <LlmFooterChatBox />
+      <LlmFooterChatBox {...props} />
     </Provider>,
   );
 };
@@ -184,18 +184,22 @@ describe('LlmFooterChatBox', () => {
     expect(llmService.fetchOllamaSuggestion).not.toHaveBeenCalled();
   }, 10000);
 
-  it('henry:activate-ollama window event triggers checkOllamaAvailability', async () => {
-    renderChat();
+  it('activationKey triggers Ollama activation flow', async () => {
+    const view = renderChat();
     await waitFor(() => screen.getByRole('region', { name: /Henry AI assistant chat/i }));
 
     vi.clearAllMocks();
     vi.mocked(llmService.checkOllamaAvailability).mockResolvedValue(false);
 
-    await act(async () => {
-      window.dispatchEvent(new CustomEvent('henry:activate-ollama'));
-    });
+    view.rerender(
+      <Provider store={makeStore()}>
+        <LlmFooterChatBox activationKey={1} />
+      </Provider>,
+    );
 
-    expect(llmService.checkOllamaAvailability).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(llmService.checkOllamaAvailability).toHaveBeenCalled();
+    });
   });
 
   it('shows "Checking Ollama…" status before availability resolves', () => {

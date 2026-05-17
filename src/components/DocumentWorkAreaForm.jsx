@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDocumentValue } from '../store/documentSlice';
+import { openChat } from '../store/uiCommandSlice';
 import Disclosure from './Disclosure';
 import DocumentSelector from './DocumentSelector';
 import { FormField, Input, Textarea } from './ui';
@@ -37,9 +38,7 @@ const DocumentWorkAreaForm = () => {
         <button
           type="button"
           className="utility-btn secondary"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('henry:open-chat'));
-          }}
+          onClick={() => dispatch(openChat({ activate: true }))}
           aria-label="Open Ask Henry chat"
         >
           💬 Open Ask Henry

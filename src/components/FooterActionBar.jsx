@@ -19,8 +19,8 @@ const FooterActionBar = ({
       role="contentinfo"
       aria-label="Document footer actions"
     >
-      {/* LEFT: template name + live compliance badge */}
       <div className="footer-action-bar__left">
+        <p className="footer-action-bar__eyebrow">Command strip</p>
         <span className="footer-doc-label" title={activeTemplateLabel}>
           📄 {activeTemplateLabel}
         </span>
@@ -33,9 +33,11 @@ const FooterActionBar = ({
         >
           {badgeTone === 'clear' ? '✓' : badgeTone === 'critical' ? '✕' : '!'} {badgeLabel}
         </button>
+        <p className="footer-action-bar__hint">
+          Preview, validate, archive, and print from one persistent action rail.
+        </p>
       </div>
 
-      {/* RIGHT: action buttons */}
       <div className="footer-action-bar__right">
         <button
           type="button"

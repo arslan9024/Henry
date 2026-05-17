@@ -5,7 +5,7 @@
  * functions, not that they render correctly (rendering lives elsewhere).
  */
 import { describe, it, expect } from 'vitest';
-import { TEMPLATE_CONFIG, TEMPLATE_MAP, getTemplateSourcePolicy } from './registry';
+import { TEMPLATE_CONFIG, TEMPLATE_MAP, getTemplatePdfConfig, getTemplateSourcePolicy } from './registry';
 
 // ── TEMPLATE_CONFIG shape ─────────────────────────────────────────────────────
 
@@ -43,6 +43,14 @@ describe('TEMPLATE_CONFIG', () => {
   it('every entry has a boolean supportsPdf field', () => {
     TEMPLATE_CONFIG.forEach((t) => {
       expect(typeof t.supportsPdf).toBe('boolean');
+    });
+  });
+
+  it('every entry exposes a pdfComponent when supportsPdf is true', () => {
+    TEMPLATE_CONFIG.forEach((t) => {
+      if (t.supportsPdf) {
+        expect(t.pdfComponent).toBeDefined();
+      }
     });
   });
 
@@ -196,5 +204,20 @@ describe('getTemplateSourcePolicy', () => {
   it('returns governmentIssued=false for "offer"', () => {
     const policy = getTemplateSourcePolicy('offer');
     expect(policy.governmentIssued).toBe(false);
+  });
+});
+
+describe('getTemplatePdfConfig', () => {
+  it('returns pdf metadata for invoice', () => {
+    const config = getTemplatePdfConfig('invoice');
+    expect(config.supportsPdf).toBe(true);
+    expect(config.pdfComponent).toBeDefined();
+    expect(config.blankPdfLabel).toBe('Invoice');
+  });
+
+  it('returns disabled pdf metadata for unknown keys', () => {
+    const config = getTemplatePdfConfig('missing');
+    expect(config.supportsPdf).toBe(false);
+    expect(config.pdfComponent).toBeNull();
   });
 });

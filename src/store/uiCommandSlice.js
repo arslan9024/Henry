@@ -1,37 +1,50 @@
-/**
- * uiCommandSlice.js — Redux-managed UI command state.
- *
- * Replaces the custom `window.dispatchEvent` / `window.addEventListener`
- * event bus that was previously used to communicate between components
- * (henry:toggle-left-rail, henry:open-compliance, etc.).  Moving these
- * into Redux makes the flow testable, traceable in DevTools, and
- * eliminates the global window coupling.
- *
- * Slices managed here:
- *   leftRailOpen  — sidebar expanded/collapsed state (was RAIL_KEY)
- *   drawerTab     — which drawer panel is open (compliance/archive/audit/null)
- *   chatOpen      — floating Ask-Henry chat panel
- *   printTrigger  — incrementing counter watched by DocumentHubPage to fire print
- */
-
 import { createSlice } from '@reduxjs/toolkit';
+import { STORAGE_KEY_CHAT_DOCK, STORAGE_KEY_LEFT_RAIL } from '../constants/storageKeys';
 
-const initialState = {
-  /** Sidebar rail open/collapsed ('expanded' | 'collapsed') */
-  leftRail: 'expanded',
-  /** Active drawer tab: null | 'compliance' | 'archive' | 'audit' */
-  drawerTab: null,
-  /** Whether the Ask-Henry chat panel is open */
-  chatOpen: false,
-  /** Incrementing counter; a useEffect watches it to trigger window.print() */
-  printTrigger: 0,
+const readPersistedUiCommandState = () => {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return { leftRail: 'expanded', chatOpen: false };
+  }
+
+  try {
+    const persistedLeftRail = window.localStorage.getItem(STORAGE_KEY_LEFT_RAIL);
+    return {
+      leftRail: persistedLeftRail === 'collapsed' ? 'collapsed' : 'expanded',
+      chatOpen: window.localStorage.getItem(STORAGE_KEY_CHAT_DOCK) === 'open',
+    };
+  } catch {
+    return { leftRail: 'expanded', chatOpen: false };
+  }
+};
+
+export const persistUiCommandState = ({ leftRail, chatOpen }) => {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY_LEFT_RAIL, leftRail);
+    window.localStorage.setItem(STORAGE_KEY_CHAT_DOCK, chatOpen ? 'open' : 'closed');
+  } catch {
+    /* ignore */
+  }
+};
+
+const createInitialState = () => {
+  const persistedState = readPersistedUiCommandState();
+  return {
+    leftRail: persistedState.leftRail,
+    drawerTab: null,
+    chatOpen: persistedState.chatOpen,
+    chatActivationKey: 0,
+    printTrigger: 0,
+    previewMode: false,
+    commandPaletteOpen: false,
+  };
 };
 
 const uiCommandSlice = createSlice({
   name: 'uiCommand',
-  initialState,
+  initialState: createInitialState,
   reducers: {
-    /** Toggle the left sidebar rail between expanded and collapsed. */
     toggleLeftRail: (state) => {
       state.leftRail = state.leftRail === 'expanded' ? 'collapsed' : 'expanded';
     },
@@ -39,22 +52,54 @@ const uiCommandSlice = createSlice({
       state.leftRail = action.payload === 'collapsed' ? 'collapsed' : 'expanded';
     },
     openDrawer: (state, action) => {
-      state.drawerTab = action.payload; // 'compliance' | 'archive' | 'audit'
+      state.drawerTab = action.payload;
     },
     closeDrawer: (state) => {
       state.drawerTab = null;
     },
-    openChat: (state) => {
+    openChat: (state, action) => {
       state.chatOpen = true;
+      if (action.payload?.activate) {
+        state.chatActivationKey += 1;
+      }
     },
     closeChat: (state) => {
       state.chatOpen = false;
     },
-    toggleChat: (state) => {
+    toggleChat: (state, action) => {
       state.chatOpen = !state.chatOpen;
+      if (state.chatOpen && action.payload?.activate) {
+        state.chatActivationKey += 1;
+      }
+    },
+    requestChatActivation: (state) => {
+      state.chatOpen = true;
+      state.chatActivationKey += 1;
     },
     triggerPrint: (state) => {
       state.printTrigger += 1;
+      state.previewMode = true;
+    },
+    openPreview: (state) => {
+      state.previewMode = true;
+    },
+    closePreview: (state) => {
+      state.previewMode = false;
+    },
+    togglePreview: (state) => {
+      state.previewMode = !state.previewMode;
+    },
+    setPreviewMode: (state, action) => {
+      state.previewMode = Boolean(action.payload);
+    },
+    openCommandPalette: (state) => {
+      state.commandPaletteOpen = true;
+    },
+    closeCommandPalette: (state) => {
+      state.commandPaletteOpen = false;
+    },
+    toggleCommandPalette: (state) => {
+      state.commandPaletteOpen = !state.commandPaletteOpen;
     },
   },
 });
@@ -67,13 +112,23 @@ export const {
   openChat,
   closeChat,
   toggleChat,
+  requestChatActivation,
   triggerPrint,
+  openPreview,
+  closePreview,
+  togglePreview,
+  setPreviewMode,
+  openCommandPalette,
+  closeCommandPalette,
+  toggleCommandPalette,
 } = uiCommandSlice.actions;
 
-// Selectors
 export const selectLeftRail = (state) => state.uiCommand.leftRail;
 export const selectDrawerTab = (state) => state.uiCommand.drawerTab;
 export const selectChatOpen = (state) => state.uiCommand.chatOpen;
+export const selectChatActivationKey = (state) => state.uiCommand.chatActivationKey;
 export const selectPrintTrigger = (state) => state.uiCommand.printTrigger;
+export const selectPreviewMode = (state) => state.uiCommand.previewMode;
+export const selectCommandPaletteOpen = (state) => state.uiCommand.commandPaletteOpen;
 
 export default uiCommandSlice.reducer;
