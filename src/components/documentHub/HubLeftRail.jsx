@@ -1,6 +1,12 @@
 import React from 'react';
 import InfoArticlesPanel from '../InfoArticlesPanel';
 
+const RAIL_EXPAND_ACTIONS = [
+  { icon: '📄', label: 'templates' },
+  { icon: '💡', label: 'highlights' },
+  { icon: '📚', label: 'articles' },
+];
+
 const HubLeftRail = ({
   railCollapsed,
   drawerTab,
@@ -22,33 +28,18 @@ const HubLeftRail = ({
           ☰
         </button>
         <span className="icon-rail__divider" />
-        <button
-          type="button"
-          className="icon-rail__btn"
-          onClick={onToggleRail}
-          aria-label="Expand sidebar to view templates"
-          title="Expand sidebar to view templates"
-        >
-          📄
-        </button>
-        <button
-          type="button"
-          className="icon-rail__btn"
-          onClick={onToggleRail}
-          aria-label="Expand sidebar to view highlights"
-          title="Expand sidebar to view highlights"
-        >
-          💡
-        </button>
-        <button
-          type="button"
-          className="icon-rail__btn"
-          onClick={onToggleRail}
-          aria-label="Expand sidebar to view articles"
-          title="Expand sidebar to view articles"
-        >
-          📚
-        </button>
+        {RAIL_EXPAND_ACTIONS.map((action) => (
+          <button
+            key={action.label}
+            type="button"
+            className="icon-rail__btn"
+            onClick={onToggleRail}
+            aria-label={`Expand sidebar to view ${action.label}`}
+            title={`Expand sidebar to view ${action.label}`}
+          >
+            {action.icon}
+          </button>
+        ))}
         <span className="icon-rail__divider" />
         <button
           type="button"

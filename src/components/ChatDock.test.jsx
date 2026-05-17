@@ -53,9 +53,10 @@ describe('ChatDock', () => {
   });
 
   it('opens the chat dialog on FAB click', () => {
-    renderChatDock();
+    const { store } = renderChatDock();
     fireEvent.click(screen.getByRole('button', { name: /Open Ask Henry chat/i }));
     expect(screen.getByRole('dialog', { name: /Ask Henry chat/i })).toBeInTheDocument();
+    expect(store.getState().uiCommand.chatOpen).toBe(true);
   });
 
   it('closes on close button click', () => {

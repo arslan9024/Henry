@@ -13,15 +13,15 @@ const createDownloadLink = (blob, fileName) => {
 };
 
 export const generateQuotationPdfBlob = async ({ documentData, templateKey }) => {
-  const { pdfComponent: Component } = getTemplatePdfConfig(templateKey);
-  if (!Component) {
+  const { pdfComponent: renderer } = getTemplatePdfConfig(templateKey);
+  if (!renderer) {
     throw new Error(
       `No dedicated PDF renderer for template "${templateKey}". Export blocked to preserve source design.`,
     );
   }
 
   const instance = pdf(
-    React.createElement(Component, {
+    React.createElement(renderer, {
       documentData,
       templateKey,
     }),
@@ -161,8 +161,8 @@ const createBlankDocumentData = () => ({
 });
 
 export const downloadBlankTemplate = async (templateKey) => {
-  const { pdfComponent, blankPdfLabel } = getTemplatePdfConfig(templateKey);
-  if (!pdfComponent) {
+  const { pdfComponent: renderer, blankPdfLabel } = getTemplatePdfConfig(templateKey);
+  if (!renderer) {
     throw new Error(
       `No PDF renderer available for template "${templateKey}". Cannot download blank template.`,
     );
