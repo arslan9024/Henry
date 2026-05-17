@@ -14,7 +14,7 @@ import { Disclosure } from '../components/ui';
 
 const KeyHandoverMaintenanceTemplate = () => {
   const documentData = useSelector(selectDocument);
-  const doc = documentData.byTemplate?.keyHandover || {};
+  const doc = documentData.keyHandover || {};
 
   return (
     <PrintLayout documentType="keyHandover" documentTitle="Key Handover & Maintenance Confirmation">

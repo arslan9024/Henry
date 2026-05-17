@@ -29,15 +29,8 @@ export const STORAGE_KEY_DENSITY = 'henry.ui.density';
 /** Theme preference ('light' | 'dark' | 'system'). */
 export const STORAGE_KEY_THEME = 'henry.ui.theme';
 
-/** LLM provider preference ('ollama' | 'groq'). */
+/** LLM provider selection ('ollama' | 'groq'). */
 export const STORAGE_KEY_LLM_PROVIDER = 'henry.llm.provider';
 
-/** Groq API key (user-supplied, stored in localStorage, never leaves the browser). */
+/** Groq API key (user-supplied, stored in localStorage). */
 export const STORAGE_KEY_GROQ_API_KEY = 'henry.llm.groqApiKey';
-
-/**
- * Persisted document state (serialised JSON of the document Redux slice).
- * Version suffix policy: bump `.vN` only for breaking schema changes and
- * migrate from the previous key at app boot before removing older keys.
- */
-export const STORAGE_KEY_DOCUMENT = 'henry.document.state.v1';

@@ -4,7 +4,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addAuditLog } from '../store/auditSlice';
 import { addArchiveEntry } from '../store/archiveSlice';
 import { pushToast } from '../store/uiSlice';
-import { selectActiveTemplateLabel, selectCanGeneratePdf, selectDocument } from '../store/selectors';
+import {
+  selectActiveTemplateLabel,
+  selectCanGeneratePdf,
+  selectDocument,
+  selectDocumentReadiness,
+} from '../store/selectors';
 import { selectIsPreviewReady, selectPreviewState } from '../store/uiSlice';
 import { useActiveTemplate } from '../hooks/useActiveTemplate';
 import { buildLogicalRecordPath } from '../records/pathBuilder';
@@ -18,11 +23,15 @@ const PrintButton = () => {
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const canGeneratePdf = useSelector(selectCanGeneratePdf);
   const documentData = useSelector(selectDocument);
+  const readiness = useSelector(selectDocumentReadiness);
   const isPreviewReady = useSelector(selectIsPreviewReady);
   const previewState = useSelector(selectPreviewState);
   const archiveEntries = useSelector((state) => state.archive.entries || []);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+  const missingBlockingCount = readiness.missingBlockingFields.length;
+  const generateDisabled = isGenerating || !isPreviewReady || !readiness.isReadyForGeneration;
 
   // Draft-first workflow: snapshot the current document state to the archive
   // without triggering a PDF download.  Operators use this to preserve an
@@ -209,9 +218,13 @@ const PrintButton = () => {
               className="print-btn"
               onClick={handleGeneratePdf}
               aria-label="Generate high-quality quotation PDF"
-              disabled={isGenerating || !isPreviewReady}
+              disabled={generateDisabled}
               title={
-                !isPreviewReady ? 'Wait for the preview to finish rendering before exporting.' : undefined
+                !isPreviewReady
+                  ? 'Wait for the preview to finish rendering before exporting.'
+                  : !readiness.isReadyForGeneration
+                    ? `Complete ${missingBlockingCount} required field${missingBlockingCount === 1 ? '' : 's'} before generating PDF.`
+                    : undefined
               }
             >
               {isGenerating ? (
@@ -222,6 +235,13 @@ const PrintButton = () => {
                 'Generate PDF'
               )}
             </button>
+
+            {!readiness.isReadyForGeneration && (
+              <p className="print-preview-stale-hint" role="status">
+                ⚠ Complete {missingBlockingCount} required field{missingBlockingCount === 1 ? '' : 's'} before
+                generating a sign-ready PDF.
+              </p>
+            )}
           </>
         ) : null}
         <button

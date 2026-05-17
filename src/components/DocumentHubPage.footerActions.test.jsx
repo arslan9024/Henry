@@ -31,8 +31,8 @@ vi.mock('./InfoArticlesPanel', () => ({
 vi.mock('./ChatDock', () => ({
   default: () => null,
 }));
-vi.mock('./PrintPreview', () => ({
-  default: () => <div>Preview Stub</div>,
+vi.mock('./PrintPreviewModal', () => ({
+  default: ({ isOpen }) => (isOpen ? <div data-testid="preview-modal">Modal Preview</div> : null),
 }));
 vi.mock('../hooks/useFocusTrap', () => ({
   default: () => ({ current: null }),
@@ -71,7 +71,7 @@ vi.mock('../templates/registry', () => ({
 
 vi.mock('./FooterActionBar', () => ({
   default: ({
-    onTogglePreview,
+    onOpenPreviewModal,
     onOpenCompliance,
     onRunComplianceCheck,
     onOpenArchive,
@@ -80,8 +80,8 @@ vi.mock('./FooterActionBar', () => ({
   }) => (
     <div>
       <p data-testid="footer-badge-label">{badgeLabel}</p>
-      <button type="button" onClick={onTogglePreview}>
-        Footer Toggle Preview
+      <button type="button" onClick={onOpenPreviewModal}>
+        Footer Open Modal
       </button>
       <button type="button" onClick={onOpenCompliance}>
         Footer Open Compliance
@@ -152,16 +152,13 @@ describe('DocumentHubPage footer action integration', () => {
     expect(screen.getByText('Audit Panel Stub')).toBeInTheDocument();
   });
 
-  it('toggles preview mode through footer action', () => {
+  it('opens preview modal through footer action', () => {
     renderHub();
 
-    expect(screen.getByText('Viewing Template Stub')).toBeInTheDocument();
+    expect(screen.queryByTestId('preview-modal')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /footer toggle preview/i }));
-    expect(screen.getByText('Preview Stub')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /footer toggle preview/i }));
-    expect(screen.getByText('Viewing Template Stub')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /footer open modal/i }));
+    expect(screen.getByTestId('preview-modal')).toBeInTheDocument();
   });
 
   it('runs compliance check from footer and updates compliance/audit/toast state', () => {

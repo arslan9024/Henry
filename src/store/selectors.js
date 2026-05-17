@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { TEMPLATE_MAP } from '../templates/registry';
+import { getRequiredFieldsForTemplate } from '../templates/requiredFieldsRegistry';
 
 export const selectActiveTemplate = (state) => state.template.activeTemplate;
 export const selectDocument = (state) => state.document;
@@ -21,6 +22,43 @@ export const selectActiveTemplateLabel = createSelector(
 
 export const selectCanGeneratePdf = createSelector([selectActiveTemplateMeta], (templateMeta) =>
   Boolean(templateMeta.supportsPdf),
+);
+
+const readValueByPath = (obj, path) => {
+  if (!obj || !path) return undefined;
+  return String(path)
+    .split('.')
+    .reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
+};
+
+const isMissingRequiredValue = (value) => {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (typeof value === 'number') return Number.isNaN(value);
+  if (typeof value === 'boolean') return false;
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+};
+
+export const selectRequiredFieldsForActiveTemplate = createSelector(
+  [selectActiveTemplate],
+  (activeTemplate) => getRequiredFieldsForTemplate(activeTemplate),
+);
+
+export const selectBlockingMissingRequiredFields = createSelector(
+  [selectDocument, selectRequiredFieldsForActiveTemplate],
+  (document, requiredFields) =>
+    requiredFields.filter(
+      (field) => field.blocking && isMissingRequiredValue(readValueByPath(document, field.path)),
+    ),
+);
+
+export const selectDocumentReadiness = createSelector(
+  [selectBlockingMissingRequiredFields],
+  (missingBlockingFields) => ({
+    missingBlockingFields,
+    isReadyForGeneration: missingBlockingFields.length === 0,
+  }),
 );
 
 export const selectSidebarContent = createSelector(

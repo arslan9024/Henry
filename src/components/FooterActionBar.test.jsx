@@ -14,9 +14,8 @@ vi.mock('./PrintButton', () => ({
 
 const baseProps = () => ({
   activeTemplateLabel: 'Property Viewing Agreement (DLD/RERA P210)',
-  previewMode: false,
   canGeneratePdf: true,
-  onTogglePreview: vi.fn(),
+  onOpenPreviewModal: vi.fn(),
   onOpenCompliance: vi.fn(),
   onRunComplianceCheck: vi.fn(),
   onOpenArchive: vi.fn(),
@@ -26,82 +25,59 @@ const baseProps = () => ({
   badgeTitle: '0 critical, 2 important — click for details.',
 });
 
-const FOOTER_KEY = 'henry.ui.footerBar';
-
 afterEach(() => {
   cleanup();
-  localStorage.removeItem(FOOTER_KEY);
 });
 
 describe('FooterActionBar', () => {
   beforeEach(() => {
-    localStorage.removeItem(FOOTER_KEY);
+    // nothing to set up — no collapse state
   });
 
-  it('renders expanded by default with controls and print action', () => {
+  it('renders all controls visible by default', () => {
     render(<FooterActionBar {...baseProps()} />);
 
-    expect(screen.getByText('Action Center')).toBeInTheDocument();
     expect(screen.getByText(/property viewing agreement/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /preview/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /open archive history/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /open audit log/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /mock print/i })).toBeInTheDocument();
-
-    const collapse = screen.getByRole('button', { name: /collapse/i });
-    expect(collapse).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('reads collapsed state from localStorage and hides controls', () => {
-    localStorage.setItem(FOOTER_KEY, 'collapsed');
-
+  it('renders the compliance badge with correct tone', () => {
     render(<FooterActionBar {...baseProps()} />);
 
-    expect(screen.getByRole('button', { name: /expand/i })).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('button', { name: /mock print/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /open archive history/i })).not.toBeInTheDocument();
-  });
-
-  it('toggles collapsed/expanded and persists state', () => {
-    render(<FooterActionBar {...baseProps()} />);
-
-    const toggle = screen.getByRole('button', { name: /collapse/i });
-
-    fireEvent.click(toggle);
-    expect(localStorage.getItem(FOOTER_KEY)).toBe('collapsed');
-    expect(screen.getByRole('button', { name: /expand/i })).toHaveAttribute('aria-expanded', 'false');
-
-    fireEvent.click(screen.getByRole('button', { name: /expand/i }));
-    expect(localStorage.getItem(FOOTER_KEY)).toBe('expanded');
-    expect(screen.getByRole('button', { name: /collapse/i })).toHaveAttribute('aria-expanded', 'true');
+    const badge = screen.getByRole('button', { name: /compliance:/i });
+    expect(badge).toBeInTheDocument();
+    expect(badge.className).toContain('compliance-badge--important');
   });
 
   it('dispatches all action handlers via buttons', () => {
     const props = baseProps();
     render(<FooterActionBar {...props} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
-    fireEvent.click(screen.getByRole('button', { name: /compliance status:/i }));
-    fireEvent.click(screen.getByRole('button', { name: /compliance check/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open pdf preview/i }));
+    fireEvent.click(screen.getByRole('button', { name: /compliance:/i }));
+    fireEvent.click(screen.getByRole('button', { name: /check/i }));
     fireEvent.click(screen.getByRole('button', { name: /open archive history/i }));
     fireEvent.click(screen.getByRole('button', { name: /open audit log/i }));
 
-    expect(props.onTogglePreview).toHaveBeenCalledTimes(1);
+    expect(props.onOpenPreviewModal).toHaveBeenCalledTimes(1);
     expect(props.onOpenCompliance).toHaveBeenCalledTimes(1);
     expect(props.onRunComplianceCheck).toHaveBeenCalledTimes(1);
     expect(props.onOpenArchive).toHaveBeenCalledTimes(1);
     expect(props.onOpenAudit).toHaveBeenCalledTimes(1);
   });
 
-  it('disables preview toggle when template has no pdf and not in preview mode', () => {
-    render(<FooterActionBar {...baseProps()} previewMode={false} canGeneratePdf={false} />);
+  it('disables preview button when template has no pdf', () => {
+    render(<FooterActionBar {...baseProps()} canGeneratePdf={false} />);
 
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /open pdf preview/i })).toBeDisabled();
   });
 
-  it('keeps preview toggle enabled while preview mode is active', () => {
-    render(<FooterActionBar {...baseProps()} previewMode={true} canGeneratePdf={false} />);
+  it('enables preview button when template can generate pdf', () => {
+    render(<FooterActionBar {...baseProps()} canGeneratePdf={true} />);
 
-    expect(screen.getByRole('button', { name: /edit form/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /open pdf preview/i })).toBeEnabled();
   });
 });

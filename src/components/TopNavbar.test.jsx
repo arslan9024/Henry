@@ -1,16 +1,13 @@
 import React from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, within, waitFor, act } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
 import templateReducer from '../store/templateSlice';
-import { setActiveTemplate } from '../store/templateSlice';
 import policyMetaReducer from '../store/policyMetaSlice';
 import henryReducer from '../store/henrySlice';
-import uiCommandReducer from '../store/uiCommandSlice';
-import documentReducer from '../store/documentSlice';
-import complianceReducer from '../store/complianceSlice';
+import appRouteReducer from '../store/appRouteSlice';
 
 vi.mock('../hooks/useDensity', () => ({
   default: () => ({ density: 'comfortable', toggle: vi.fn() }),
@@ -32,9 +29,7 @@ const makeStore = (preloadedState = {}) =>
       template: templateReducer,
       policyMeta: policyMetaReducer,
       henry: henryReducer,
-      uiCommand: uiCommandReducer,
-      document: documentReducer,
-      compliance: complianceReducer,
+      appRoute: appRouteReducer,
     },
     preloadedState,
   });
@@ -101,88 +96,5 @@ describe('TopNavbar Henry identity popover (T-43)', () => {
     expect(dispatchSpy).toHaveBeenCalled();
     expect(screen.queryByRole('dialog', { name: /henry identity details/i })).toBeNull();
     dispatchSpy.mockRestore();
-  });
-});
-
-describe('TopNavbar document action buttons', () => {
-  it('renders Preview action button (Compliance/Archive/Audit moved to footer)', () => {
-    renderNavbar();
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /open compliance checklist/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /open archive history/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /open audit log/i })).toBeNull();
-  });
-
-  it('preview button is disabled when template has no PDF support', () => {
-    const store = makeStore({ template: { activeTemplate: 'offer' } });
-    renderNavbar(store);
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
-  });
-
-  it('preview button is enabled for PDF-supporting templates', () => {
-    const store = makeStore({ template: { activeTemplate: 'viewing' } });
-    renderNavbar(store);
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeEnabled();
-  });
-
-  it('exits preview mode and disables preview when template has no PDF support', async () => {
-    const store = makeStore({
-      template: { activeTemplate: 'offer' },
-      uiCommand: {
-        leftRail: 'expanded',
-        drawerTab: null,
-        chatOpen: false,
-        printTrigger: 0,
-        previewMode: true,
-      },
-    });
-    renderNavbar(store);
-
-    await waitFor(() => {
-      expect(store.getState().uiCommand.previewMode).toBe(false);
-    });
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
-  });
-
-  it('clicking Preview dispatches togglePreview to Redux', () => {
-    const store = makeStore({ template: { activeTemplate: 'viewing' } });
-    renderNavbar(store);
-
-    expect(store.getState().uiCommand.previewMode).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
-    expect(store.getState().uiCommand.previewMode).toBe(true);
-  });
-
-  it('shows Edit label when preview is active, Preview label otherwise', () => {
-    const store = makeStore({ template: { activeTemplate: 'viewing' } });
-    renderNavbar(store);
-
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toHaveTextContent('👁 Preview');
-    fireEvent.click(screen.getByRole('button', { name: /toggle print preview/i }));
-    expect(screen.getByRole('button', { name: /close print preview/i })).toHaveTextContent('✏ Edit');
-  });
-
-  it('exits preview when switching from PDF template to non-PDF template', async () => {
-    const store = makeStore({
-      template: { activeTemplate: 'viewing' },
-      uiCommand: {
-        leftRail: 'expanded',
-        drawerTab: null,
-        chatOpen: false,
-        printTrigger: 0,
-        previewMode: true,
-      },
-    });
-    renderNavbar(store);
-    expect(screen.getByRole('button', { name: /close print preview/i })).toBeInTheDocument();
-
-    act(() => {
-      store.dispatch(setActiveTemplate('offer'));
-    });
-
-    await waitFor(() => {
-      expect(store.getState().uiCommand.previewMode).toBe(false);
-    });
-    expect(screen.getByRole('button', { name: /toggle print preview/i })).toBeDisabled();
   });
 });
