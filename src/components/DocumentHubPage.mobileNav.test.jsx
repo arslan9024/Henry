@@ -105,7 +105,15 @@ afterEach(() => {
 
 describe('DocumentHubPage mobile drawer navigation (T-42)', () => {
   const collapsedState = {
-    uiCommand: { leftRail: 'collapsed', drawerTab: null, chatOpen: false, printTrigger: 0 },
+    uiCommand: {
+      leftRail: 'collapsed',
+      drawerTab: null,
+      chatOpen: false,
+      chatActivationKey: 0,
+      printTrigger: 0,
+      previewMode: false,
+      commandPaletteOpen: false,
+    },
   };
 
   it('renders mobile quick navigation actions', () => {

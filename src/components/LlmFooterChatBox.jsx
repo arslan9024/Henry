@@ -16,7 +16,7 @@ import FileExtractionPanel from './FileExtractionPanel';
 import Spinner from './ui/Spinner';
 import { useActiveTemplate } from '../hooks/useActiveTemplate';
 
-const LlmFooterChatBox = () => {
+const LlmFooterChatBox = ({ activationKey = 0 }) => {
   const dispatch = useDispatch();
   const documentData = useSelector(selectDocument);
   const { activeTemplate } = useActiveTemplate();
@@ -90,16 +90,15 @@ const LlmFooterChatBox = () => {
       }
     });
 
-    const onActivate = () => {
-      if (!cancelled) activateOllama({ silent: false });
-    };
-
-    window.addEventListener('henry:activate-ollama', onActivate);
     return () => {
       cancelled = true;
-      window.removeEventListener('henry:activate-ollama', onActivate);
     };
   }, [activateOllama]);
+
+  useEffect(() => {
+    if (activationKey <= 0) return;
+    activateOllama({ silent: false });
+  }, [activationKey, activateOllama]);
 
   useEffect(() => {
     if (listRef.current) {

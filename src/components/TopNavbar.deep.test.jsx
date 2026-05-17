@@ -15,6 +15,7 @@ import templateReducer from '../store/templateSlice';
 import policyMetaReducer, { updatePolicyMeta } from '../store/policyMetaSlice';
 import henryReducer, { syncHenryFromCRM } from '../store/henrySlice';
 import appRouteReducer, { goToPayroll, goToDocumentHub } from '../store/appRouteSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 vi.mock('../hooks/useDensity', () => ({
   default: () => ({ density: 'comfortable', toggle: vi.fn() }),
@@ -39,6 +40,7 @@ const makeStore = (preloadedState = {}) =>
       policyMeta: policyMetaReducer,
       henry: henryReducer,
       appRoute: appRouteReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState,
   });
@@ -184,12 +186,11 @@ describe('TopNavbar — hamburger button', () => {
     expect(screen.getByRole('button', { name: /Toggle sidebar/i })).toBeInTheDocument();
   });
 
-  it('clicking hamburger dispatches "henry:toggle-left-rail" custom event', () => {
-    renderNavbar();
-    const events = [];
-    window.addEventListener('henry:toggle-left-rail', (e) => events.push(e));
+  it('clicking hamburger toggles the Redux left rail state', () => {
+    const store = makeStore();
+    renderNavbar(store);
     fireEvent.click(screen.getByRole('button', { name: /Toggle sidebar/i }));
-    expect(events).toHaveLength(1);
+    expect(store.getState().uiCommand.leftRail).toBe('collapsed');
   });
 });
 
@@ -210,13 +211,10 @@ describe('TopNavbar — command palette button', () => {
     expect(screen.getByRole('button', { name: /Open command palette/i })).toBeInTheDocument();
   });
 
-  it('clicking palette button dispatches Ctrl+K keyboard event', () => {
-    renderNavbar();
-    const events = [];
-    window.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'k') events.push(e);
-    });
+  it('clicking palette button opens the command palette in Redux', () => {
+    const store = makeStore();
+    renderNavbar(store);
     fireEvent.click(screen.getByRole('button', { name: /Open command palette/i }));
-    expect(events.length).toBeGreaterThan(0);
+    expect(store.getState().uiCommand.commandPaletteOpen).toBe(true);
   });
 });

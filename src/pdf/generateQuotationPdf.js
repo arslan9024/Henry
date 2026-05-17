@@ -1,36 +1,32 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
-import QuotationPDF from './QuotationPDF';
-import EjariPDF from './EjariPDF';
-import ViewingAgreementPDF from './ViewingAgreementPDF';
-import AddendumPDF from './AddendumPDF';
-import SalaryCertificatePDF from './SalaryCertificatePDF';
-import KeyHandoverPDF from './KeyHandoverPDF';
 import { buildGeneratedCopyFileName, buildPdfFileName } from './pdfHelpers';
+import { getTemplatePdfConfig } from '../templates/registry';
 
-const pickPdfComponent = (templateKey) => {
-  if (templateKey === 'tenancy') return EjariPDF;
-  if (templateKey === 'viewing') return ViewingAgreementPDF;
-  if (templateKey === 'addendum') return AddendumPDF;
-  if (templateKey === 'salaryCertificate') return SalaryCertificatePDF;
-  if (templateKey === 'keyHandover') return KeyHandoverPDF;
-  if (templateKey === 'booking' || templateKey === 'bookingGov') return QuotationPDF;
-  return null;
+const createDownloadLink = (blob, fileName) => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
 };
 
 export const generateQuotationPdfBlob = async ({ documentData, templateKey }) => {
-  const Component = pickPdfComponent(templateKey);
+  const { pdfComponent: Component } = getTemplatePdfConfig(templateKey);
   if (!Component) {
     throw new Error(
       `No dedicated PDF renderer for template "${templateKey}". Export blocked to preserve source design.`,
     );
   }
+
   const instance = pdf(
     React.createElement(Component, {
       documentData,
       templateKey,
     }),
   );
+
   return instance.toBlob();
 };
 
@@ -38,21 +34,11 @@ export const downloadQuotationPdf = async ({ documentData, templateKey, createdA
   const blob = await generateQuotationPdfBlob({ documentData, templateKey });
   const baseFileName = buildPdfFileName(templateKey, documentData);
   const fileName = buildGeneratedCopyFileName(baseFileName, { createdAt, copyNumber });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
 
+  createDownloadLink(blob, fileName);
   return { blob, fileName };
 };
 
-/**
- * Creates an empty document data object for blank template downloads.
- * Preserves White Caves company/landlord defaults but clears all
- * client-specific fields (property, tenant, payments, broker, etc.).
- */
 const createBlankDocumentData = () => ({
   company: {
     name: 'White Caves Real Estate L.L.C',
@@ -174,33 +160,15 @@ const createBlankDocumentData = () => ({
   },
 });
 
-/**
- * Download a blank (unfilled) version of a template as PDF.
- * Useful for staff circulation — keeps company letterhead but
- * has no client/property data pre-filled.
- */
 export const downloadBlankTemplate = async (templateKey) => {
-  const Component = pickPdfComponent(templateKey);
-  if (!Component) {
+  const { pdfComponent, blankPdfLabel } = getTemplatePdfConfig(templateKey);
+  if (!pdfComponent) {
     throw new Error(
       `No PDF renderer available for template "${templateKey}". Cannot download blank template.`,
     );
   }
-  const emptyData = createBlankDocumentData();
-  const blob = await generateQuotationPdfBlob({ documentData: emptyData, templateKey });
-  const templateLabels = {
-    viewing: 'Viewing_Agreement_RERA_P210',
-    booking: 'Booking_Form',
-    bookingGov: 'Govt_Employee_Booking_Form',
-    tenancy: 'Tenancy_Contract_DLD_Ejari',
-    addendum: 'Standard_Addendum_RERA',
-    salaryCertificate: 'Salary_Certificate',
-  };
-  const fileName = `BLANK_${templateLabels[templateKey] ?? templateKey}_Template.pdf`;
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
+
+  const blob = await generateQuotationPdfBlob({ documentData: createBlankDocumentData(), templateKey });
+  const fileName = `BLANK_${blankPdfLabel ?? templateKey}_Template.pdf`;
+  createDownloadLink(blob, fileName);
 };

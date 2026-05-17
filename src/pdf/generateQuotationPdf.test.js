@@ -50,6 +50,11 @@ vi.mock('./KeyHandoverPDF', () => ({
     return null;
   },
 }));
+vi.mock('./InvoiceDocument', () => ({
+  default: function InvoiceDocument() {
+    return null;
+  },
+}));
 
 // We let pdfHelpers run for real (pure string functions) — no mock needed.
 
@@ -60,6 +65,7 @@ import ViewingAgreementPDF from './ViewingAgreementPDF';
 import AddendumPDF from './AddendumPDF';
 import SalaryCertificatePDF from './SalaryCertificatePDF';
 import KeyHandoverPDF from './KeyHandoverPDF';
+import InvoiceDocument from './InvoiceDocument';
 import {
   generateQuotationPdfBlob,
   downloadQuotationPdf,
@@ -132,6 +138,11 @@ describe('generateQuotationPdfBlob — pickPdfComponent routing', () => {
     expect(pdf.mock.calls[0][0].type).toBe(KeyHandoverPDF);
   });
 
+  it('uses InvoiceDocument for "invoice"', async () => {
+    await generateQuotationPdfBlob({ documentData: docData, templateKey: 'invoice' });
+    expect(pdf.mock.calls[0][0].type).toBe(InvoiceDocument);
+  });
+
   it('throws for an unknown template key', async () => {
     await expect(generateQuotationPdfBlob({ documentData: docData, templateKey: 'offer' })).rejects.toThrow(
       /no dedicated pdf renderer/i,
@@ -189,7 +200,7 @@ describe('downloadQuotationPdf', () => {
 
 describe('downloadBlankTemplate', () => {
   it('throws for an unknown template key', async () => {
-    await expect(downloadBlankTemplate('invoice')).rejects.toThrow(/no pdf renderer/i);
+    await expect(downloadBlankTemplate('offer')).rejects.toThrow(/no pdf renderer/i);
   });
 
   it('creates and clicks an anchor element for a known template', async () => {

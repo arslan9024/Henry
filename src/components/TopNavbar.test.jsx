@@ -8,6 +8,7 @@ import templateReducer from '../store/templateSlice';
 import policyMetaReducer from '../store/policyMetaSlice';
 import henryReducer from '../store/henrySlice';
 import appRouteReducer from '../store/appRouteSlice';
+import uiCommandReducer from '../store/uiCommandSlice';
 
 vi.mock('../hooks/useDensity', () => ({
   default: () => ({ density: 'comfortable', toggle: vi.fn() }),
@@ -30,6 +31,7 @@ const makeStore = (preloadedState = {}) =>
       policyMeta: policyMetaReducer,
       henry: henryReducer,
       appRoute: appRouteReducer,
+      uiCommand: uiCommandReducer,
     },
     preloadedState,
   });
@@ -85,16 +87,15 @@ describe('TopNavbar Henry identity popover (T-43)', () => {
   });
 
   it('open palette action closes popover', () => {
-    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
-    renderNavbar();
+    const store = makeStore();
+    renderNavbar(store);
 
     fireEvent.click(screen.getByRole('button', { name: /toggle henry identity details/i }));
     const pop = screen.getByRole('dialog', { name: /henry identity details/i });
 
     fireEvent.click(within(pop).getByRole('button', { name: /open palette/i }));
 
-    expect(dispatchSpy).toHaveBeenCalled();
+    expect(store.getState().uiCommand.commandPaletteOpen).toBe(true);
     expect(screen.queryByRole('dialog', { name: /henry identity details/i })).toBeNull();
-    dispatchSpy.mockRestore();
   });
 });

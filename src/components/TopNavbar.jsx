@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
 import { selectCurrentPage, goToPayroll, goToDocumentHub } from '../store/appRouteSlice';
+import { openCommandPalette as openCommandPaletteCommand, toggleLeftRail } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -29,8 +30,8 @@ const TopNavbar = React.memo(() => {
   const identityRef = useRef(null);
 
   const openCommandPalette = useCallback(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
-  }, []);
+    dispatch(openCommandPaletteCommand());
+  }, [dispatch]);
 
   const togglePage = useCallback(() => {
     if (currentPage === 'payroll') {
@@ -72,7 +73,7 @@ const TopNavbar = React.memo(() => {
           <button
             type="button"
             className="top-navbar__hamburger"
-            onClick={() => window.dispatchEvent(new CustomEvent('henry:toggle-left-rail'))}
+            onClick={() => dispatch(toggleLeftRail())}
             aria-label="Toggle sidebar"
             title="Toggle sidebar"
           >
