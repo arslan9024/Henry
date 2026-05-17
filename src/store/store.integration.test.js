@@ -1,7 +1,7 @@
 /**
  * store.integration.test.js
  * Smoke-tests the root Redux store created by store/index.js.
- * Verifies all 12 reducer slices are correctly wired and the store
+ * Verifies all reducer slices are correctly wired and the store
  * works end-to-end as a single configured unit.
  */
 import { describe, it, expect } from 'vitest';
@@ -57,6 +57,10 @@ describe('store — all reducer slices registered', () => {
     expect(store.getState().ui).toBeDefined();
   });
 
+  it('state has a "uiCommand" key', () => {
+    expect(store.getState().uiCommand).toBeDefined();
+  });
+
   it('state has a "payroll" key', () => {
     expect(store.getState().payroll).toBeDefined();
   });
@@ -65,9 +69,9 @@ describe('store — all reducer slices registered', () => {
     expect(store.getState().appRoute).toBeDefined();
   });
 
-  it('has exactly 12 top-level state keys', () => {
+  it('has exactly 13 top-level state keys', () => {
     const keys = Object.keys(store.getState());
-    expect(keys).toHaveLength(12);
+    expect(keys).toHaveLength(13);
   });
 });
 
@@ -106,6 +110,10 @@ describe('store — initial slice defaults sanity check', () => {
 
   it('ui.preview.status starts as "idle"', () => {
     expect(store.getState().ui.preview.status).toBe('idle');
+  });
+
+  it('uiCommand.commandPaletteOpen starts as false', () => {
+    expect(store.getState().uiCommand.commandPaletteOpen).toBe(false);
   });
 
   it('appRoute.currentPage starts as "documentHub"', () => {
