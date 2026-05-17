@@ -22,16 +22,36 @@ export default function SIFPayrollPage() {
       <TopNavbar />
 
       <main className="sif-payroll-page" role="main">
-        <div className="sif-payroll-page__header">
-          <h1>WPS Salary File Generator</h1>
-          <p className="sif-payroll-page__subtitle">
-            Create and download Mashreq bank-compatible salary payment files for UAE employees
-          </p>
-        </div>
+        <section className="sif-payroll-page__hero">
+          <div className="sif-payroll-page__header">
+            <p className="sif-payroll-page__eyebrow">Payroll command center</p>
+            <h1>WPS Salary File Generator</h1>
+            <p className="sif-payroll-page__subtitle">
+              Create and download Mashreq bank-compatible salary payment files for UAE employees
+            </p>
+          </div>
 
-        <div className="sif-payroll-page__container">
-          <SIFPayrollForm />
-        </div>
+          <div className="sif-payroll-page__stats" aria-label="Payroll workflow highlights">
+            <div className="sif-payroll-page__stat">
+              <strong>WPS-ready</strong>
+              <span>Structured for bank submission</span>
+            </div>
+            <div className="sif-payroll-page__stat">
+              <strong>Operator-first</strong>
+              <span>Faster entry with a clearer review path</span>
+            </div>
+            <div className="sif-payroll-page__stat">
+              <strong>Audit-friendly</strong>
+              <span>Built for repeatable monthly processing</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="sif-payroll-page__workspace">
+          <div className="sif-payroll-page__container">
+            <SIFPayrollForm />
+          </div>
+        </section>
 
         <div className="sif-payroll-page__footer">
           <p>

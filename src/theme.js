@@ -40,13 +40,20 @@ const getHenryTheme = (isDark) =>
 
     typography: {
       fontFamily,
+      h1: { fontFamily, fontWeight: 800, fontSize: '2.5rem', letterSpacing: '-0.03em' },
+      h2: { fontFamily, fontWeight: 800, fontSize: '2rem', letterSpacing: '-0.02em' },
+      h3: { fontFamily, fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em' },
+      h4: { fontFamily, fontWeight: 700, fontSize: '1.2rem' },
       button: { textTransform: 'none', fontWeight: 600 },
       h6: { fontFamily, fontWeight: 700, fontSize: '1rem' },
+      subtitle1: { fontFamily, fontSize: '0.95rem', fontWeight: 600 },
+      subtitle2: { fontFamily, fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.01em' },
+      body1: { fontFamily, fontSize: '0.95rem', lineHeight: 1.65 },
       body2: { fontFamily, fontSize: '0.8125rem' },
       caption: { fontFamily, fontSize: '0.72rem' },
     },
 
-    shape: { borderRadius: 8 },
+    shape: { borderRadius: 16 },
 
     components: {
       MuiCssBaseline: {
@@ -58,18 +65,22 @@ const getHenryTheme = (isDark) =>
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: {
-          root: { textTransform: 'none', fontWeight: 600, fontFamily },
+          root: {
+            textTransform: 'none',
+            fontWeight: 700,
+            fontFamily,
+            borderRadius: 14,
+            paddingInline: 16,
+          },
         },
       },
       MuiIconButton: {
-        styleOverrides: { root: { borderRadius: 8 } },
+        styleOverrides: { root: { borderRadius: 14 } },
       },
       MuiAppBar: {
         styleOverrides: {
           root: {
-            boxShadow: isDark
-              ? '0 1px 0 rgba(255,255,255,0.07)'
-              : '0 1px 2px rgba(15, 23, 42, 0.06)',
+            boxShadow: isDark ? '0 1px 0 rgba(255,255,255,0.07)' : '0 1px 2px rgba(15, 23, 42, 0.06)',
           },
         },
       },
@@ -85,12 +96,32 @@ const getHenryTheme = (isDark) =>
       },
       MuiPaper: {
         styleOverrides: {
-          root: { backgroundImage: 'none' },
+          root: {
+            backgroundImage: 'none',
+            borderRadius: 20,
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 20,
+            boxShadow: isDark ? '0 18px 50px rgba(2, 6, 23, 0.45)' : '0 18px 50px rgba(15, 23, 42, 0.08)',
+          },
         },
       },
       MuiChip: {
         styleOverrides: {
           root: { fontFamily, fontWeight: 600, fontSize: '0.72rem' },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 14,
+            backgroundColor: isDark ? '#0f172a' : '#fff',
+          },
         },
       },
       MuiTooltip: {
