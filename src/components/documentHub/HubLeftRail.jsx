@@ -26,8 +26,8 @@ const HubLeftRail = ({
           type="button"
           className="icon-rail__btn"
           onClick={onToggleRail}
-          aria-label="Templates"
-          title="Templates"
+          aria-label="Expand sidebar to view templates"
+          title="Expand sidebar to view templates"
         >
           📄
         </button>
@@ -35,8 +35,8 @@ const HubLeftRail = ({
           type="button"
           className="icon-rail__btn"
           onClick={onToggleRail}
-          aria-label="Highlights"
-          title="Highlights"
+          aria-label="Expand sidebar to view highlights"
+          title="Expand sidebar to view highlights"
         >
           💡
         </button>
@@ -44,8 +44,8 @@ const HubLeftRail = ({
           type="button"
           className="icon-rail__btn"
           onClick={onToggleRail}
-          aria-label="Articles"
-          title="Articles"
+          aria-label="Expand sidebar to view articles"
+          title="Expand sidebar to view articles"
         >
           📚
         </button>

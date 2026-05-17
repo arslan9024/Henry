@@ -96,7 +96,7 @@ const LlmFooterChatBox = ({ activationKey = 0 }) => {
   }, [activateOllama]);
 
   useEffect(() => {
-    if (activationKey <= 0) return;
+    if (!activationKey) return;
     activateOllama({ silent: false });
   }, [activationKey, activateOllama]);
 

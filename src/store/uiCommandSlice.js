@@ -7,8 +7,9 @@ const readPersistedUiCommandState = () => {
   }
 
   try {
+    const persistedLeftRail = window.localStorage.getItem(STORAGE_KEY_LEFT_RAIL);
     return {
-      leftRail: window.localStorage.getItem(STORAGE_KEY_LEFT_RAIL) === 'collapsed' ? 'collapsed' : 'expanded',
+      leftRail: persistedLeftRail === 'collapsed' ? 'collapsed' : 'expanded',
       chatOpen: window.localStorage.getItem(STORAGE_KEY_CHAT_DOCK) === 'open',
     };
   } catch {
@@ -20,7 +21,7 @@ export const persistUiCommandState = ({ leftRail, chatOpen }) => {
   if (typeof window === 'undefined' || !window.localStorage) return;
 
   try {
-    window.localStorage.setItem(STORAGE_KEY_LEFT_RAIL, leftRail === 'collapsed' ? 'collapsed' : 'expanded');
+    window.localStorage.setItem(STORAGE_KEY_LEFT_RAIL, leftRail);
     window.localStorage.setItem(STORAGE_KEY_CHAT_DOCK, chatOpen ? 'open' : 'closed');
   } catch {
     /* ignore */
