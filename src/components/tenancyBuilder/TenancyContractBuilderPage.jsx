@@ -12,7 +12,8 @@ import { pushToast } from '../../store/uiSlice';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { downloadQuotationPdf, generateQuotationPdfBlob } from '../../pdf/generateQuotationPdf';
-import { buildPdfFileName } from '../../pdf/pdfHelpers';
+import { buildPdfFileName, sanitizeFileNameSegment } from '../../pdf/pdfHelpers';
+import { mergePdfBlobs } from '../../pdf/mergePdfBlobs';
 import { persistRecordFile } from '../../records/archiveService';
 import {
   createEditableTemplateCopy,
@@ -107,6 +108,15 @@ const templateTypeOptions = [
   { value: 'static', label: 'Static template (coordinate mapping)' },
   { value: 'fillable', label: 'Fillable PDF (AcroForm fields)' },
 ];
+
+const downloadBlobFile = ({ blob, fileName }) => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+};
 
 const TenancyContractBuilderPage = () => {
   const dispatch = useDispatch();
@@ -492,6 +502,21 @@ const TenancyContractBuilderPage = () => {
     toast('success', `${fileLabel} saved`, result.path || 'Saved to records.');
   };
 
+  const saveCustomPdfBlob = async ({ blob, fileName, recordPath, fileLabel }) => {
+    const result = await persistRecordFile({ recordPath, fileName, blob });
+    if (!result.ok) {
+      throw new Error(`Save failed: ${result.reason || 'unknown reason'}`);
+    }
+    toast('success', `${fileLabel} saved`, result.path || 'Saved to records.');
+  };
+
+  const buildMergedPackageFileName = () => {
+    const unit = sanitizeFileNameSegment(documentData?.property?.unit || 'Unit');
+    const tenant = sanitizeFileNameSegment(documentData?.tenant?.fullName || 'Tenant');
+    const datePart = new Date().toISOString().slice(0, 10);
+    return `Tenancy_Package_${unit}_${tenant}_${datePart}.pdf`;
+  };
+
   const handleExport = async () => {
     setIsBusy(true);
     try {
@@ -515,11 +540,37 @@ const TenancyContractBuilderPage = () => {
       }
 
       if (exportMode === 'merged') {
+        if (!canExportAddendum) {
+          toast(
+            'warning',
+            'Merged package requires addendum readiness',
+            'Complete addendum fields first, or switch export mode to separate files.',
+          );
+          return;
+        }
+
+        const [tenancyBlob, addendumBlob] = await Promise.all([
+          generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' }),
+          generateQuotationPdfBlob({ documentData, templateKey: 'addendum' }),
+        ]);
+
+        const mergedBlob = await mergePdfBlobs([tenancyBlob, addendumBlob]);
+        const mergedFileName = buildMergedPackageFileName();
+
+        downloadBlobFile({ blob: mergedBlob, fileName: mergedFileName });
+        await saveCustomPdfBlob({
+          blob: mergedBlob,
+          fileName: mergedFileName,
+          recordPath: `tenancy-builder/${new Date().getFullYear()}/merged`,
+          fileLabel: 'Merged tenancy package PDF',
+        });
+
         toast(
-          'info',
-          'Merged export queued for next phase',
-          'Phase 1 fallback: downloading contract and addendum as separate files for now.',
+          'success',
+          'Merged package exported',
+          'Tenancy contract and addendum were merged into one PDF package.',
         );
+        return;
       }
 
       await downloadQuotationPdf({ documentData, templateKey: 'tenancy' });
