@@ -15,8 +15,8 @@ const HubWorkspace = ({
 }) => {
   return (
     <>
-      <section className="hub-overview print-hidden" data-overlay-shield>
-        <div className="hub-overview__content">
+      <section className="hub-overview workflow-page__header print-hidden" data-overlay-shield>
+        <div className="hub-overview__content workflow-page__header-copy">
           <p className="hub-overview__eyebrow">Henry command center</p>
           <h2 className="hub-overview__title">Operate every document journey from one premium workspace</h2>
           <p className="hub-overview__description">
@@ -24,7 +24,7 @@ const HubWorkspace = ({
             stay anchored on the right for faster review and cleaner handoffs.
           </p>
         </div>
-        <div className="hub-overview__metrics" aria-label="Workspace summary">
+        <div className="hub-overview__metrics workflow-page__header-actions" aria-label="Workspace summary">
           <div className="hub-overview__metric">
             <strong>{activeTemplateLabel}</strong>
             <span>Current workflow</span>
@@ -41,12 +41,14 @@ const HubWorkspace = ({
       </section>
 
       <section
-        className={`hub-content ${railCollapsed ? 'hub-content--rail-collapsed' : ''}`}
+        className={`hub-content workflow-page__grid workflow-page__grid--three-rail ${
+          railCollapsed ? 'hub-content--rail-collapsed' : ''
+        }`}
         data-overlay-shield
       >
         {leftRailSlot}
 
-        <section className="preview-area" aria-live="polite">
+        <section className="preview-area workflow-page__main" aria-live="polite">
           <div className="preview-area__hero">
             <div>
               <p className="preview-area__eyebrow">Live execution workspace</p>

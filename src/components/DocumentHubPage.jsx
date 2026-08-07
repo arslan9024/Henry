@@ -47,7 +47,7 @@ const DocumentHubPage = ({ useInternalNavigation = true }) => {
   const closePreviewModal = useCallback(() => dispatch(closePreview()), [dispatch]);
 
   return (
-    <main className="app-layout shell-page" id="main" tabIndex={-1}>
+    <main className="app-layout workflow-page shell-page" id="main" tabIndex={-1}>
       <HubWorkspace
         activeTemplateLabel={activeTemplateLabel}
         canGeneratePdf={canGeneratePdf}
@@ -71,7 +71,10 @@ const DocumentHubPage = ({ useInternalNavigation = true }) => {
           ) : null
         }
         rightPanelSlot={
-          <aside className="right-panel print-hidden" aria-label="Document checklist and tools">
+          <aside
+            className="right-panel workflow-page__rail print-hidden"
+            aria-label="Document checklist and tools"
+          >
             <DocumentChecklistPanel />
           </aside>
         }
