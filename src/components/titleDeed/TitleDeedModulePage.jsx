@@ -64,6 +64,11 @@ const TitleDeedModulePage = () => {
         parsed: parsedDoc,
         numberedItems: scanItems,
         extractedText: extraction.text,
+        extractionMeta: {
+          detectedLanguage: extraction.detectedLanguage || 'unknown',
+          languageStats: extraction.languageStats || null,
+          ocrLanguages: extraction.ocrLanguages || null,
+        },
         createdAt: new Date().toISOString(),
       };
 
@@ -91,6 +96,9 @@ const TitleDeedModulePage = () => {
         parsed: parsedDoc,
         numberedItems: scanItems,
         extractedText: extraction.text,
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        languageStats: extraction.languageStats || null,
+        ocrLanguages: extraction.ocrLanguages || null,
       });
 
       setReferences(loadTitleDeedReferences());
@@ -100,7 +108,9 @@ const TitleDeedModulePage = () => {
       toast(
         'success',
         'Title deed analyzed',
-        `Saved source + reference. Captured ${scanItems.length} numbered scan items.`,
+        `Saved source + reference. Captured ${scanItems.length} numbered scan items (detected language: ${
+          extraction.detectedLanguage || 'unknown'
+        }).`,
       );
 
       if (!localEntry?.id) {

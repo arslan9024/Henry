@@ -91,6 +91,11 @@ const EmiratesIdModulePage = () => {
         parsed: parsedDoc,
         numberedItems: scanItems,
         extractedText: extraction.text,
+        extractionMeta: {
+          detectedLanguage: extraction.detectedLanguage || 'unknown',
+          languageStats: extraction.languageStats || null,
+          ocrLanguages: extraction.ocrLanguages || null,
+        },
         createdAt: new Date().toISOString(),
       };
 
@@ -119,6 +124,9 @@ const EmiratesIdModulePage = () => {
         parsed: parsedDoc,
         numberedItems: scanItems,
         extractedText: extraction.text,
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        languageStats: extraction.languageStats || null,
+        ocrLanguages: extraction.ocrLanguages || null,
       });
 
       setReferences(loadEmiratesIdReferences());
@@ -128,7 +136,9 @@ const EmiratesIdModulePage = () => {
       toast(
         'success',
         'Emirates ID analyzed',
-        `Saved with ${ownerTag.toUpperCase()} tag and ${scanItems.length} numbered scan items.`,
+        `Saved with ${ownerTag.toUpperCase()} tag, ${scanItems.length} numbered scan items, detected language: ${
+          extraction.detectedLanguage || 'unknown'
+        }.`,
       );
     } catch (error) {
       toast('error', 'Emirates ID workflow failed', error.message || 'Unexpected error.');

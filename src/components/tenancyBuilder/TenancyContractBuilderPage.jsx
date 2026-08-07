@@ -133,7 +133,6 @@ const TenancyContractBuilderPage = () => {
   const [newTenancyTerm, setNewTenancyTerm] = useState('');
   const [newAddendumClause, setNewAddendumClause] = useState('');
   const [isBusy, setIsBusy] = useState(false);
-  const [tenantDocRefreshKey, setTenantDocRefreshKey] = useState(0);
 
   const currentStep = STEP_CONFIG[activeStep];
 
@@ -221,7 +220,7 @@ const TenancyContractBuilderPage = () => {
       };
       return acc;
     }, {});
-  }, [documentData, tenantDocRefreshKey, getLandlordUploadGateStatus, getTenantUploadGateStatus]);
+  }, [documentData, getLandlordUploadGateStatus, getTenantUploadGateStatus]);
 
   const updateValue = (section, field, value) => {
     dispatch(setDocumentValue({ section, field, value }));
@@ -301,7 +300,6 @@ const TenancyContractBuilderPage = () => {
     updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
     updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
-    setTenantDocRefreshKey((value) => value + 1);
     toast('success', 'Tenant passport applied', 'Applied latest passport details to tenant profile fields.');
   };
 
@@ -322,7 +320,6 @@ const TenancyContractBuilderPage = () => {
     updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
     updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
-    setTenantDocRefreshKey((value) => value + 1);
     toast(
       'success',
       'Tenant residence permit applied',
@@ -367,7 +364,6 @@ const TenancyContractBuilderPage = () => {
       passportParsed.expiryDate || permitParsed.expiryDate || documentData.tenant.idExpiryDate || '',
     );
 
-    setTenantDocRefreshKey((value) => value + 1);
     toast(
       'success',
       'Tenant identity applied',
@@ -648,6 +644,11 @@ const TenancyContractBuilderPage = () => {
         numberedItems: scanItems,
         readiness: readCheck,
         extractedText: extraction.text,
+        extractionMeta: {
+          detectedLanguage: extraction.detectedLanguage || 'unknown',
+          languageStats: extraction.languageStats || null,
+          ocrLanguages: extraction.ocrLanguages || null,
+        },
         createdAt: new Date().toISOString(),
       };
 
@@ -669,6 +670,9 @@ const TenancyContractBuilderPage = () => {
         numberedItems: scanItems,
         extractedText: extraction.text,
         readiness: readCheck,
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        languageStats: extraction.languageStats || null,
+        ocrLanguages: extraction.ocrLanguages || null,
         createdFrom: 'tenancy-builder-inline',
         documentLabel: normalizedType === 'passport' ? 'Passport' : 'Residence Permit',
         fileKind: extraction.kind || file.type || null,
@@ -687,7 +691,6 @@ const TenancyContractBuilderPage = () => {
         );
       }
 
-      setTenantDocRefreshKey((value) => value + 1);
       toast(
         'success',
         `Tenant ${normalizedType} scanned`,

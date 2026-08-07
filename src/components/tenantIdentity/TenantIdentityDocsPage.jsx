@@ -111,6 +111,11 @@ const TenantIdentityDocsPage = () => {
         numberedItems: scanItems,
         readiness: readCheck,
         extractedText: extraction.text,
+        extractionMeta: {
+          detectedLanguage: extraction.detectedLanguage || 'unknown',
+          languageStats: extraction.languageStats || null,
+          ocrLanguages: extraction.ocrLanguages || null,
+        },
         createdAt: new Date().toISOString(),
       };
 
@@ -140,6 +145,9 @@ const TenantIdentityDocsPage = () => {
         numberedItems: scanItems,
         extractedText: extraction.text,
         readiness: readCheck,
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        languageStats: extraction.languageStats || null,
+        ocrLanguages: extraction.ocrLanguages || null,
         createdFrom: 'tenant-identity-module',
         documentLabel: normalizedType === 'passport' ? 'Passport' : 'Residence Permit',
         fileKind: extraction.kind || file.type || null,
@@ -152,7 +160,9 @@ const TenantIdentityDocsPage = () => {
       toast(
         'success',
         'Tenant identity document analyzed',
-        `Saved ${normalizedType === 'passport' ? 'passport' : 'residence permit'} reference with ${scanItems.length} numbered items.`,
+        `Saved ${normalizedType === 'passport' ? 'passport' : 'residence permit'} reference with ${
+          scanItems.length
+        } numbered items (detected language: ${extraction.detectedLanguage || 'unknown'}).`,
       );
     } catch (error) {
       toast('error', 'Tenant identity workflow failed', error.message || 'Unexpected error.');

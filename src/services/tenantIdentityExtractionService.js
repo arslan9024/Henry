@@ -1,15 +1,13 @@
+import {
+  normalizeArabicDigits,
+  normalizeBilingualTextPreserveLines,
+  pickFirstGroupMatch,
+} from './multilingualTextUtils';
+
 const clean = (value) =>
   String(value || '')
     .replace(/\s+/g, ' ')
     .trim();
-
-const find = (text, regexes) => {
-  for (const regex of regexes) {
-    const match = String(text || '').match(regex);
-    if (match?.[1]) return clean(match[1]);
-  }
-  return '';
-};
 
 const splitMrzLines = (text) =>
   String(text || '')
@@ -43,40 +41,56 @@ export const normalizeTenantIdentityType = (documentType) => {
 };
 
 export const parseTenantIdentityText = (rawText, documentType = TENANT_IDENTITY_TYPES.PASSPORT) => {
-  const text = String(rawText || '');
+  const textRaw = String(rawText || '');
+  const textNormalized = normalizeBilingualTextPreserveLines(textRaw);
+  const textVariants = [textNormalized, textRaw];
   const normalizedType = normalizeTenantIdentityType(documentType);
-  const mrzLines = splitMrzLines(text);
+  const mrzLines = splitMrzLines(textNormalized);
   const mrzLine1 = mrzLines[0] || '';
   const mrzLine2 = mrzLines[1] || '';
   const mrzLine3 = mrzLines[2] || '';
 
   const commonFields = {
     documentType: normalizedType,
-    fullName: find(text, [
+    fullName: pickFirstGroupMatch(textVariants, [
       /(?:Full\s*Name|Name|Holder\s*Name|Cardholder\s*Name)\s*[:-]?\s*([^\n\r]+)/i,
       /Surname\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:الاسم\s*الكامل|الاسم)\s*[:-]?\s*([^\n\r]+)/i,
     ]),
-    nationality: find(text, [/(?:Nationality|Country\s*of\s*Nationality)\s*[:-]?\s*([^\n\r]+)/i]),
-    dateOfBirth: find(text, [
+    nationality: pickFirstGroupMatch(textVariants, [
+      /(?:Nationality|Country\s*of\s*Nationality)\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:الجنسية)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    dateOfBirth: pickFirstGroupMatch(textVariants, [
       /(?:Date\s*of\s*Birth|DOB|Birth\s*Date)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[0-9]{1,2}\s+[A-Z]{3,9}\s+[0-9]{2,4})/i,
+      /(?:تاريخ\s*الميلاد)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i,
     ]),
-    sex: find(text, [/(?:Sex|Gender)\s*[:-]?\s*([MF])/i]),
-    issueDate: find(text, [
+    sex: pickFirstGroupMatch(textVariants, [
+      /(?:Sex|Gender)\s*[:-]?\s*([MF])/i,
+      /(?:الجنس)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    issueDate: pickFirstGroupMatch(textVariants, [
       /(?:Issue\s*Date|Issued\s*On|Date\s*of\s*Issue)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[0-9]{1,2}\s+[A-Z]{3,9}\s+[0-9]{2,4})/i,
+      /(?:تاريخ\s*الإصدار)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i,
     ]),
-    expiryDate: find(text, [
+    expiryDate: pickFirstGroupMatch(textVariants, [
       /(?:Expiry\s*Date|Expiration\s*Date|Valid\s*Until|Expires\s*On)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[0-9]{1,2}\s+[A-Z]{3,9}\s+[0-9]{2,4})/i,
+      /(?:تاريخ\s*الانتهاء|انتهاء\s*الصلاحية)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i,
     ]),
-    placeOfIssue: find(text, [/(?:Place\s*of\s*Issue|Issue\s*Place|Issuing\s*Place)\s*[:-]?\s*([^\n\r]+)/i]),
+    placeOfIssue: pickFirstGroupMatch(textVariants, [
+      /(?:Place\s*of\s*Issue|Issue\s*Place|Issuing\s*Place)\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:مكان\s*الإصدار)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
     mrzLine1,
     mrzLine2,
     mrzLine3,
   };
 
   if (normalizedType === TENANT_IDENTITY_TYPES.PASSPORT) {
-    const passportNo = find(text, [
+    const passportNo = pickFirstGroupMatch(textVariants, [
       /(?:Passport\s*No|Passport\s*Number|Passport\s*#|Passport\s*ID)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
       /(?:Travel\s*Document\s*No|Document\s*No)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
+      /(?:رقم\s*الجواز|رقم\s*جواز\s*السفر)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
       /P<[A-Z]{3}([A-Z0-9<]{7,12})/i,
     ])
       .replace(/<+/g, '')
@@ -101,15 +115,31 @@ export const parseTenantIdentityText = (rawText, documentType = TENANT_IDENTITY_
     return parsed;
   }
 
-  const permitNo = find(text, [
+  const permitNo = pickFirstGroupMatch(textVariants, [
     /(?:Residence\s*Permit\s*No|Residence\s*Permit\s*Number|Permit\s*No|Permit\s*Number|Visa\s*No|Visa\s*Number)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
     /(?:File\s*No|File\s*Number)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
+    /(?:رقم\s*الإقامة|رقم\s*التأشيرة|رقم\s*الفيزا)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
   ]);
-  const sponsor = find(text, [/(?:Sponsor|Sponsor\s*Name)\s*[:-]?\s*([^\n\r]+)/i]);
-  const employer = find(text, [/(?:Employer|Company|Employer\s*Name)\s*[:-]?\s*([^\n\r]+)/i]);
-  const visaType = find(text, [/(?:Visa\s*Type|Permit\s*Type|Residence\s*Status)\s*[:-]?\s*([^\n\r]+)/i]);
-  const fileNo = find(text, [/(?:File\s*No|File\s*Number)\s*[:-]?\s*([A-Z0-9-]{4,})/i]);
-  const unifiedNo = find(text, [/(?:Unified\s*No|Unified\s*Number)\s*[:-]?\s*([A-Z0-9-]{4,})/i]);
+  const sponsor = pickFirstGroupMatch(textVariants, [
+    /(?:Sponsor|Sponsor\s*Name)\s*[:-]?\s*([^\n\r]+)/i,
+    /(?:الكفيل|اسم\s*الكفيل)\s*[:-]?\s*([^\n\r]+)/i,
+  ]);
+  const employer = pickFirstGroupMatch(textVariants, [
+    /(?:Employer|Company|Employer\s*Name)\s*[:-]?\s*([^\n\r]+)/i,
+    /(?:جهة\s*العمل|صاحب\s*العمل)\s*[:-]?\s*([^\n\r]+)/i,
+  ]);
+  const visaType = pickFirstGroupMatch(textVariants, [
+    /(?:Visa\s*Type|Permit\s*Type|Residence\s*Status)\s*[:-]?\s*([^\n\r]+)/i,
+    /(?:نوع\s*التأشيرة|نوع\s*الإقامة)\s*[:-]?\s*([^\n\r]+)/i,
+  ]);
+  const fileNo = pickFirstGroupMatch(textVariants, [
+    /(?:File\s*No|File\s*Number)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
+    /(?:رقم\s*الملف)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
+  ]);
+  const unifiedNo = pickFirstGroupMatch(textVariants, [
+    /(?:Unified\s*No|Unified\s*Number)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
+    /(?:الرقم\s*الموحد)\s*[:-]?\s*([A-Z0-9-]{4,})/i,
+  ]);
 
   const parsed = {
     ...commonFields,
@@ -119,8 +149,14 @@ export const parseTenantIdentityText = (rawText, documentType = TENANT_IDENTITY_
     visaType,
     fileNo,
     unifiedNo,
-    passportNo: find(text, [/(?:Passport\s*No|Passport\s*Number)\s*[:-]?\s*([A-Z0-9-]{5,})/i]),
+    passportNo: pickFirstGroupMatch(textVariants, [
+      /(?:Passport\s*No|Passport\s*Number)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
+      /(?:رقم\s*الجواز|رقم\s*جواز\s*السفر)\s*[:-]?\s*([A-Z0-9-]{5,})/i,
+    ]),
   };
+
+  parsed.permitNo = normalizeArabicDigits(parsed.permitNo || '');
+  parsed.passportNo = normalizeArabicDigits(parsed.passportNo || '');
 
   if (!parsed.fullName && mrzLine2) {
     const mrzName = mrzLine2.split('<<').slice(1).join(' ');

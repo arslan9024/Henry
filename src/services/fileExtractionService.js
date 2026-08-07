@@ -5,9 +5,12 @@
 //     → { ok: true, kind: 'pdf'|'image', text, pageCount?, durationMs }
 //     → { ok: false, reason }
 
+import { detectTextLanguage } from './multilingualTextUtils';
+
 const MAX_PDF_PAGES = 25;
 const MAX_TEXT_CHARS = 50_000; // protect Ollama prompt size
 const MAX_OCR_PDF_PAGES = 4;
+const OCR_LANGUAGES = 'eng+ara';
 
 const isPdf = (file) => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name || '');
 
@@ -17,6 +20,20 @@ const truncate = (text) => {
   if (!text) return { text: '', truncated: false };
   if (text.length <= MAX_TEXT_CHARS) return { text, truncated: false };
   return { text: text.slice(0, MAX_TEXT_CHARS), truncated: true };
+};
+
+const withLanguageMetadata = (payload = {}) => {
+  const info = detectTextLanguage(payload?.text || '');
+  return {
+    ...payload,
+    detectedLanguage: info.language,
+    languageStats: {
+      arabicCount: info.arabicCount,
+      latinCount: info.latinCount,
+      arabicRatio: info.arabicRatio,
+      latinRatio: info.latinRatio,
+    },
+  };
 };
 
 const extractPdfText = async (file) => {
@@ -87,7 +104,7 @@ const extractPdfText = async (file) => {
     }
 
     const ocrPageCount = Math.min(pageCount, MAX_OCR_PDF_PAGES);
-    const worker = await createWorker('eng');
+    const worker = await createWorker(OCR_LANGUAGES);
     const ocrChunks = [];
 
     try {
@@ -127,7 +144,7 @@ const extractPdfText = async (file) => {
     }
 
     const { text: ocrTruncatedText, truncated: ocrCharsTruncated } = truncate(ocrText);
-    return {
+    return withLanguageMetadata({
       ok: true,
       kind: 'pdf',
       text: ocrTruncatedText,
@@ -136,8 +153,9 @@ const extractPdfText = async (file) => {
       pagesTruncated: totalPages > ocrPageCount,
       charsTruncated: ocrCharsTruncated,
       ocrFallback: true,
+      ocrLanguages: OCR_LANGUAGES,
       durationMs: Math.round(performance.now() - t0),
-    };
+    });
   };
 
   if (!fullText) {
@@ -154,7 +172,7 @@ const extractPdfText = async (file) => {
 
   const { text, truncated: charsTruncated } = truncate(fullText);
 
-  return {
+  return withLanguageMetadata({
     ok: true,
     kind: 'pdf',
     text,
@@ -163,7 +181,7 @@ const extractPdfText = async (file) => {
     pagesTruncated: totalPages > MAX_PDF_PAGES,
     charsTruncated,
     durationMs: Math.round(performance.now() - t0),
-  };
+  });
 };
 
 const extractImageText = async (file) => {
@@ -175,7 +193,7 @@ const extractImageText = async (file) => {
     return { ok: false, reason: 'Tesseract.js not installed.', detail: err?.message };
   }
 
-  const worker = await createWorker('eng');
+  const worker = await createWorker(OCR_LANGUAGES);
   try {
     const result = await worker.recognize(file);
     const raw = result?.data?.text || '';
@@ -184,13 +202,14 @@ const extractImageText = async (file) => {
     // eslint-disable-next-line no-control-regex
     const cleaned = raw.replace(/\u0000/g, '').trim();
     const { text, truncated: charsTruncated } = truncate(cleaned);
-    return {
+    return withLanguageMetadata({
       ok: true,
       kind: 'image',
       text,
       charsTruncated,
+      ocrLanguages: OCR_LANGUAGES,
       durationMs: Math.round(performance.now() - t0),
-    };
+    });
   } finally {
     await worker.terminate().catch(() => {});
   }

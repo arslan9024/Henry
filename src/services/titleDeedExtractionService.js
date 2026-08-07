@@ -1,48 +1,107 @@
+import {
+  normalizeArabicDigits,
+  normalizeBilingualTextPreserveLines,
+  pickFirstGroupMatch,
+} from './multilingualTextUtils';
+
 const clean = (v) =>
   String(v || '')
     .replace(/\s+/g, ' ')
     .trim();
 
-const findByRegex = (text, regex) => {
-  const match = text.match(regex);
-  return match?.[1] ? clean(match[1]) : '';
-};
+const findByPatterns = (textVariants, regexes) => pickFirstGroupMatch(textVariants, regexes);
 
 const normalizeMortgageStatus = (value) => {
   const v = clean(value).toLowerCase();
   if (!v) return '';
-  if (v.includes('not mortgaged') || v.includes('غير مرهونة')) return 'Not mortgaged';
+  if (
+    v.includes('not mortgaged') ||
+    v.includes('غير مرهونة') ||
+    v.includes('بدون رهن') ||
+    v.includes('خالية من الرهن')
+  )
+    return 'Not mortgaged';
   return clean(value);
 };
 
 const toNumberOrRaw = (value) => {
-  const normalized = clean(value).replace(/,/g, '');
+  const normalized = normalizeArabicDigits(clean(value)).replace(/,/g, '');
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : clean(value);
 };
 
 export const parseTitleDeedText = (rawText) => {
-  const text = String(rawText || '');
+  const textRaw = String(rawText || '');
+  const textNormalized = normalizeBilingualTextPreserveLines(textRaw);
+  const textVariants = [textNormalized, textRaw];
 
   const parsed = {
-    documentType: text.toLowerCase().includes('title deed') ? 'Title Deed' : '',
-    issueDate: findByRegex(text, /Issue\s*Date\s*[:-]?\s*([^\n\r]+)/i),
-    mortgageStatus: normalizeMortgageStatus(findByRegex(text, /Mortgage\s*Status\s*[:-]?\s*([^\n\r]+)/i)),
-    propertyType: findByRegex(text, /Property\s*Type\s*[:-]?\s*([^\n\r]+)/i),
-    community: findByRegex(text, /Community\s*[:-]?\s*([^\n\r]+)/i),
-    plotNo: findByRegex(text, /Plot\s*No\s*[:-]?\s*([^\n\r]+)/i),
-    municipalityNo: findByRegex(text, /Municipality\s*No\s*[:-]?\s*([^\n\r]+)/i),
-    areaSqMeter: toNumberOrRaw(findByRegex(text, /Area\s*Sq\s*Meter\s*[:-]?\s*([^\n\r]+)/i)),
-    areaSqFeet: toNumberOrRaw(findByRegex(text, /Area\s*Sq\s*Feet\s*[:-]?\s*([^\n\r]+)/i)),
-    ownerName: findByRegex(text, /\(\d+\)\s*([A-Z0-9\s.&'-]{3,})\s*(?:\n|\r|\d|Purchased)/i),
-    ownerNumber: findByRegex(text, /\((\d{5,})\)/),
-    landRegistrationNo: findByRegex(text, /Land\s*Registration\s*No\s*[:-]?\s*([^\s\n\r]+)/i),
-    purchaseDate: findByRegex(text, /Date\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})\s*for\s*the\s*amount/i),
-    purchaseAmountAed: toNumberOrRaw(findByRegex(text, /amount\s*([0-9,]+)\s*Dirham/i)),
-    certificateNo: findByRegex(
-      text,
-      /(?:Approved\s*Signature\s*)?([0-9]{4,}[/-][0-9]{4})\s*(?:DUBAI\s*LAND\s*DEPARTMENT|$)/i,
+    documentType:
+      textRaw.toLowerCase().includes('title deed') || textRaw.includes('سند الملكية') ? 'Title Deed' : '',
+    issueDate: findByPatterns(textVariants, [
+      /Issue\s*Date\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:تاريخ\s*الإصدار)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    mortgageStatus: normalizeMortgageStatus(
+      findByPatterns(textVariants, [
+        /Mortgage\s*Status\s*[:-]?\s*([^\n\r]+)/i,
+        /(?:حالة\s*الرهن|الرهن)\s*[:-]?\s*([^\n\r]+)/i,
+      ]),
     ),
+    propertyType: findByPatterns(textVariants, [
+      /Property\s*Type\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:نوع\s*العقار)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    community: findByPatterns(textVariants, [
+      /Community\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:المجتمع|المنطقة)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    plotNo: findByPatterns(textVariants, [
+      /Plot\s*No\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:رقم\s*القطعة)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    municipalityNo: findByPatterns(textVariants, [
+      /Municipality\s*No\s*[:-]?\s*([^\n\r]+)/i,
+      /(?:رقم\s*البلدية)\s*[:-]?\s*([^\n\r]+)/i,
+    ]),
+    areaSqMeter: toNumberOrRaw(
+      findByPatterns(textVariants, [
+        /Area\s*Sq\s*Meter\s*[:-]?\s*([^\n\r]+)/i,
+        /(?:المساحة\s*بالمتر\s*المربع|المساحة\s*م2)\s*[:-]?\s*([^\n\r]+)/i,
+      ]),
+    ),
+    areaSqFeet: toNumberOrRaw(
+      findByPatterns(textVariants, [
+        /Area\s*Sq\s*Feet\s*[:-]?\s*([^\n\r]+)/i,
+        /(?:المساحة\s*بالقدم\s*المربع|المساحة\s*قدم2)\s*[:-]?\s*([^\n\r]+)/i,
+      ]),
+    ),
+    ownerName:
+      findByPatterns(textVariants, [
+        /(?:Owner\s*Name|Landowner)\s*[:-]?\s*([^\n\r]+)/i,
+        /(?:اسم\s*المالك)\s*[:-]?\s*([^\n\r]+)/i,
+      ]) || findByPatterns(textVariants, [/\(\d+\)\s*([A-Z0-9\s.&'-]{3,})\s*(?:\n|\r|\d|Purchased)/i]),
+    ownerNumber: normalizeArabicDigits(
+      findByPatterns(textVariants, [/\((\d{5,})\)/, /(?:رقم\s*المالك)\s*[:-]?\s*([0-9]{5,})/i]),
+    ),
+    landRegistrationNo: findByPatterns(textVariants, [
+      /Land\s*Registration\s*No\s*[:-]?\s*([^\s\n\r]+)/i,
+      /(?:رقم\s*التسجيل\s*العقاري)\s*[:-]?\s*([^\s\n\r]+)/i,
+    ]),
+    purchaseDate: findByPatterns(textVariants, [
+      /Date\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})\s*for\s*the\s*amount/i,
+      /(?:تاريخ\s*الشراء)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i,
+    ]),
+    purchaseAmountAed: toNumberOrRaw(
+      findByPatterns(textVariants, [
+        /amount\s*([0-9,]+)\s*Dirham/i,
+        /(?:مبلغ\s*الشراء|القيمة)\s*[:-]?\s*([0-9,]+)/i,
+      ]),
+    ),
+    certificateNo: findByPatterns(textVariants, [
+      /(?:Approved\s*Signature\s*)?([0-9]{4,}[/-][0-9]{4})\s*(?:DUBAI\s*LAND\s*DEPARTMENT|$)/i,
+      /(?:رقم\s*الشهادة)\s*[:-]?\s*([0-9]{4,}[/-][0-9]{4})/i,
+    ]),
   };
 
   return parsed;
