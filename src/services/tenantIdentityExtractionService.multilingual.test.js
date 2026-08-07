@@ -34,4 +34,21 @@ describe('parseTenantIdentityText multilingual', () => {
     expect(parsed.expiryDate).toBe('01/01/2026');
     expect(parsed.sponsor).toContain('White Caves');
   });
+
+  it('keeps bilingual name and nationality variants for picker workflows', () => {
+    const text = `
+      Name: Ahmed Ali
+      الاسم الكامل: أحمد علي
+      Nationality: Egyptian
+      الجنسية: مصري
+      Passport Number: P1234567
+      Expiry Date: 01/01/2030
+    `;
+
+    const parsed = parseTenantIdentityText(text, 'passport');
+    expect(parsed.fullNameEn).toBe('Ahmed Ali');
+    expect(parsed.fullNameAr).toContain('أحمد');
+    expect(parsed.nationalityEn).toBe('Egyptian');
+    expect(parsed.nationalityAr).toBe('مصري');
+  });
 });

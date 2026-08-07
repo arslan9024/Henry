@@ -2,6 +2,7 @@ import {
   normalizeArabicDigits,
   normalizeBilingualTextPreserveLines,
   pickFirstGroupMatch,
+  resolvePreferredBilingualValue,
 } from './multilingualTextUtils';
 
 const clean = (value) =>
@@ -50,17 +51,37 @@ export const parseTenantIdentityText = (rawText, documentType = TENANT_IDENTITY_
   const mrzLine2 = mrzLines[1] || '';
   const mrzLine3 = mrzLines[2] || '';
 
+  const fullNameEn = pickFirstGroupMatch(textVariants, [
+    /(?:Full\s*Name|Name|Holder\s*Name|Cardholder\s*Name)\s*[:-]?\s*([^\n\r]+)/i,
+    /Surname\s*[:-]?\s*([^\n\r]+)/i,
+  ]);
+  const fullNameAr = pickFirstGroupMatch(textVariants, [/(?:الاسم\s*الكامل|الاسم)\s*[:-]?\s*([^\n\r]+)/i]);
+  const preferredFullName = resolvePreferredBilingualValue({
+    primary: fullNameEn || fullNameAr,
+    english: fullNameEn,
+    arabic: fullNameAr,
+    preference: 'auto',
+  });
+
+  const nationalityEn = pickFirstGroupMatch(textVariants, [
+    /(?:Nationality|Country\s*of\s*Nationality)\s*[:-]?\s*([^\n\r]+)/i,
+  ]);
+  const nationalityAr = pickFirstGroupMatch(textVariants, [/(?:الجنسية)\s*[:-]?\s*([^\n\r]+)/i]);
+  const preferredNationality = resolvePreferredBilingualValue({
+    primary: nationalityEn || nationalityAr,
+    english: nationalityEn,
+    arabic: nationalityAr,
+    preference: 'auto',
+  });
+
   const commonFields = {
     documentType: normalizedType,
-    fullName: pickFirstGroupMatch(textVariants, [
-      /(?:Full\s*Name|Name|Holder\s*Name|Cardholder\s*Name)\s*[:-]?\s*([^\n\r]+)/i,
-      /Surname\s*[:-]?\s*([^\n\r]+)/i,
-      /(?:الاسم\s*الكامل|الاسم)\s*[:-]?\s*([^\n\r]+)/i,
-    ]),
-    nationality: pickFirstGroupMatch(textVariants, [
-      /(?:Nationality|Country\s*of\s*Nationality)\s*[:-]?\s*([^\n\r]+)/i,
-      /(?:الجنسية)\s*[:-]?\s*([^\n\r]+)/i,
-    ]),
+    fullName: preferredFullName.value,
+    fullNameEn,
+    fullNameAr,
+    nationality: preferredNationality.value,
+    nationalityEn,
+    nationalityAr,
     dateOfBirth: pickFirstGroupMatch(textVariants, [
       /(?:Date\s*of\s*Birth|DOB|Birth\s*Date)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[0-9]{1,2}\s+[A-Z]{3,9}\s+[0-9]{2,4})/i,
       /(?:تاريخ\s*الميلاد)\s*[:-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i,

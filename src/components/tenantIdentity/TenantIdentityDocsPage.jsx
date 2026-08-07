@@ -11,6 +11,7 @@ import {
   normalizeTenantIdentityType,
   parseTenantIdentityText,
 } from '../../services/tenantIdentityExtractionService';
+import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
 import { persistRecordFile } from '../../records/archiveService';
 import { loadTenantDocumentReferences, saveTenantDocumentReference } from '../../records/tenantDocumentStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
@@ -21,6 +22,12 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: 'visa', label: 'Residence Permit / Visa (legacy alias)' },
 ];
 
+const LANGUAGE_PREFERENCE_OPTIONS = [
+  { value: 'auto', label: 'Auto (use extracted default)' },
+  { value: 'en', label: 'English value' },
+  { value: 'ar', label: 'Arabic value' },
+];
+
 const TenantIdentityDocsPage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
@@ -28,6 +35,7 @@ const TenantIdentityDocsPage = () => {
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
+  const [languagePreference, setLanguagePreference] = useState('auto');
   const [references, setReferences] = useState(() => loadTenantDocumentReferences());
 
   const normalizedType = useMemo(() => normalizeTenantIdentityType(documentType), [documentType]);
@@ -44,27 +52,47 @@ const TenantIdentityDocsPage = () => {
 
   const toast = (tone, title, body) => dispatch(pushToast({ tone, title, body }));
 
+  const getPreferredTenantFields = (sourceParsed) => {
+    const name = resolvePreferredBilingualValue({
+      primary: sourceParsed?.fullName,
+      english: sourceParsed?.fullNameEn,
+      arabic: sourceParsed?.fullNameAr,
+      preference: languagePreference,
+    });
+
+    const nationality = resolvePreferredBilingualValue({
+      primary: sourceParsed?.nationality,
+      english: sourceParsed?.nationalityEn,
+      arabic: sourceParsed?.nationalityAr,
+      preference: languagePreference,
+    });
+
+    return { name, nationality };
+  };
+
   const applyToCurrentContract = (sourceParsed = parsed, sourceType = normalizedType) => {
     if (!sourceParsed) {
       toast('warning', 'Nothing to apply', 'Scan a passport or residence permit first.');
       return;
     }
 
-    dispatch(setDocumentValue({ section: 'tenant', field: 'fullName', value: sourceParsed.fullName || '' }));
+    const preferred = getPreferredTenantFields(sourceParsed);
+
     dispatch(
       setDocumentValue({ section: 'tenant', field: 'passportNo', value: sourceParsed.passportNo || '' }),
     );
     dispatch(
-      setDocumentValue({ section: 'tenant', field: 'nationality', value: sourceParsed.nationality || '' }),
+      setDocumentValue({ section: 'tenant', field: 'nationality', value: preferred.nationality.value || '' }),
     );
     dispatch(
       setDocumentValue({ section: 'tenant', field: 'idExpiryDate', value: sourceParsed.expiryDate || '' }),
     );
+    dispatch(setDocumentValue({ section: 'tenant', field: 'fullName', value: preferred.name.value || '' }));
 
     toast(
       'success',
       'Tenant details applied',
-      `${sourceType === 'passport' ? 'Passport' : 'Residence permit'} fields copied into the tenancy contract.`,
+      `${sourceType === 'passport' ? 'Passport' : 'Residence permit'} fields copied into the tenancy contract (${preferred.name.selectedLanguage}/${preferred.nationality.selectedLanguage}).`,
     );
   };
 
@@ -209,6 +237,14 @@ const TenantIdentityDocsPage = () => {
               />
             </FormField>
 
+            <FormField label="Apply value language preference">
+              <Select
+                value={languagePreference}
+                onChange={(e) => setLanguagePreference(e.target.value)}
+                options={LANGUAGE_PREFERENCE_OPTIONS}
+              />
+            </FormField>
+
             <FormField label="Tenant document (PDF/PNG/JPG)">
               <Input type="file" accept={SUPPORTED_FILE_ACCEPT} onChange={handleUpload} disabled={isBusy} />
             </FormField>
@@ -233,6 +269,18 @@ const TenantIdentityDocsPage = () => {
           <Card.Body>
             {parsed ? (
               <div className="title-deed-facts">
+                {(() => {
+                  const preferred = getPreferredTenantFields(parsed);
+                  return preferred.name.hasBoth || preferred.nationality.hasBoth ? (
+                    <div className="title-deed-fact">
+                      <strong>Bilingual value mode</strong>
+                      <span>
+                        Name: {preferred.name.selectedLanguage} | Nationality:{' '}
+                        {preferred.nationality.selectedLanguage}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
                 {Object.entries(parsed).map(([key, value]) => (
                   <div className="title-deed-fact" key={key}>
                     <strong>{key}</strong>

@@ -31,6 +31,7 @@ import {
   normalizeTenantIdentityType,
   parseTenantIdentityText,
 } from '../../services/tenantIdentityExtractionService';
+import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
 import { Badge, Button, Card, FormField, Input, Select, Textarea } from '../ui';
 import { getTenancyFieldProfile, getRequiredMappedFields } from '../../pdf/templateFieldRegistry';
 
@@ -109,6 +110,12 @@ const templateTypeOptions = [
   { value: 'fillable', label: 'Fillable PDF (AcroForm fields)' },
 ];
 
+const tenantLanguagePreferenceOptions = [
+  { value: 'auto', label: 'Auto (use extracted default)' },
+  { value: 'en', label: 'English value' },
+  { value: 'ar', label: 'Arabic value' },
+];
+
 const downloadBlobFile = ({ blob, fileName }) => {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -132,6 +139,7 @@ const TenancyContractBuilderPage = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [newTenancyTerm, setNewTenancyTerm] = useState('');
   const [newAddendumClause, setNewAddendumClause] = useState('');
+  const [tenantLanguagePreference, setTenantLanguagePreference] = useState('auto');
   const [isBusy, setIsBusy] = useState(false);
 
   const currentStep = STEP_CONFIG[activeStep];
@@ -226,6 +234,23 @@ const TenancyContractBuilderPage = () => {
     dispatch(setDocumentValue({ section, field, value }));
   };
 
+  const getPreferredTenantValues = (parsedDoc = {}) => {
+    const name = resolvePreferredBilingualValue({
+      primary: parsedDoc.fullName,
+      english: parsedDoc.fullNameEn,
+      arabic: parsedDoc.fullNameAr,
+      preference: tenantLanguagePreference,
+    });
+    const nationality = resolvePreferredBilingualValue({
+      primary: parsedDoc.nationality,
+      english: parsedDoc.nationalityEn,
+      arabic: parsedDoc.nationalityAr,
+      preference: tenantLanguagePreference,
+    });
+
+    return { name, nationality };
+  };
+
   const applyLatestTitleDeedToProperty = () => {
     const refs = loadTitleDeedReferences();
     if (!refs.length) {
@@ -274,13 +299,23 @@ const TenancyContractBuilderPage = () => {
     }
 
     const latest = refs[0]?.parsed || {};
-    updateValue('tenant', 'fullName', latest.fullName || documentData.tenant.fullName || '');
+    const preferred = getPreferredTenantValues(latest);
+    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
     updateValue('tenant', 'emiratesId', latest.idNumber || documentData.tenant.emiratesId || '');
     updateValue('tenant', 'idExpiryDate', latest.expiryDate || documentData.tenant.idExpiryDate || '');
+    updateValue(
+      'tenant',
+      'nationality',
+      preferred.nationality.value || documentData.tenant.nationality || '',
+    );
     updateValue('tenant', 'contactNo', documentData.tenant.contactNo || DEFAULT_TENANT_PHONE);
     updateValue('tenant', 'email', documentData.tenant.email || DEFAULT_TENANT_EMAIL);
 
-    toast('success', 'Tenant fields updated', 'Applied latest tenant Emirates ID details.');
+    toast(
+      'success',
+      'Tenant fields updated',
+      `Applied latest tenant Emirates ID details (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
+    );
   };
 
   const getLatestTenantIdentityRefs = (types) =>
@@ -295,12 +330,21 @@ const TenancyContractBuilderPage = () => {
 
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
-    updateValue('tenant', 'fullName', parsed.fullName || documentData.tenant.fullName || '');
+    const preferred = getPreferredTenantValues(parsed);
+    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
     updateValue('tenant', 'passportNo', parsed.passportNo || documentData.tenant.passportNo || '');
-    updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
+    updateValue(
+      'tenant',
+      'nationality',
+      preferred.nationality.value || documentData.tenant.nationality || '',
+    );
     updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
-    toast('success', 'Tenant passport applied', 'Applied latest passport details to tenant profile fields.');
+    toast(
+      'success',
+      'Tenant passport applied',
+      `Applied latest passport details to tenant profile fields (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
+    );
   };
 
   const applyLatestTenantResidencePermit = () => {
@@ -316,14 +360,19 @@ const TenancyContractBuilderPage = () => {
 
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
-    updateValue('tenant', 'fullName', parsed.fullName || documentData.tenant.fullName || '');
-    updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
+    const preferred = getPreferredTenantValues(parsed);
+    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
+    updateValue(
+      'tenant',
+      'nationality',
+      preferred.nationality.value || documentData.tenant.nationality || '',
+    );
     updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
     toast(
       'success',
       'Tenant residence permit applied',
-      'Applied latest residence permit details to tenant profile fields.',
+      `Applied latest residence permit details to tenant profile fields (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
     );
   };
 
@@ -342,11 +391,13 @@ const TenancyContractBuilderPage = () => {
 
     const passportParsed = passportRefs[0]?.parsed || {};
     const permitParsed = permitRefs[0]?.parsed || {};
+    const preferredPassport = getPreferredTenantValues(passportParsed);
+    const preferredPermit = getPreferredTenantValues(permitParsed);
 
     updateValue(
       'tenant',
       'fullName',
-      passportParsed.fullName || permitParsed.fullName || documentData.tenant.fullName || '',
+      preferredPassport.name.value || preferredPermit.name.value || documentData.tenant.fullName || '',
     );
     updateValue(
       'tenant',
@@ -356,7 +407,10 @@ const TenancyContractBuilderPage = () => {
     updateValue(
       'tenant',
       'nationality',
-      passportParsed.nationality || permitParsed.nationality || documentData.tenant.nationality || '',
+      preferredPassport.nationality.value ||
+        preferredPermit.nationality.value ||
+        documentData.tenant.nationality ||
+        '',
     );
     updateValue(
       'tenant',
@@ -367,7 +421,7 @@ const TenancyContractBuilderPage = () => {
     toast(
       'success',
       'Tenant identity applied',
-      'Applied latest passport and residence permit references to tenant profile fields.',
+      `Applied latest passport and residence permit references (passport ${preferredPassport.name.selectedLanguage}/${preferredPassport.nationality.selectedLanguage}, permit ${preferredPermit.name.selectedLanguage}/${preferredPermit.nationality.selectedLanguage}).`,
     );
   };
 
@@ -679,22 +733,23 @@ const TenancyContractBuilderPage = () => {
       });
 
       const appliedParsed = parsedDoc || {};
+      const preferred = getPreferredTenantValues(appliedParsed);
       if (normalizedType === 'passport') {
-        updateValue('tenant', 'fullName', appliedParsed.fullName || documentData.tenant.fullName || '');
+        updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
         updateValue('tenant', 'passportNo', appliedParsed.passportNo || documentData.tenant.passportNo || '');
       }
-      if (appliedParsed.nationality) {
+      if (preferred.nationality.value) {
         updateValue(
           'tenant',
           'nationality',
-          appliedParsed.nationality || documentData.tenant.nationality || '',
+          preferred.nationality.value || documentData.tenant.nationality || '',
         );
       }
 
       toast(
         'success',
         `Tenant ${normalizedType} scanned`,
-        `${scanItems.length} numbered items captured and saved for autofill.`,
+        `${scanItems.length} numbered items captured and saved for autofill (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
       );
     } catch (error) {
       toast('error', `Failed to process tenant ${normalizedType}`, error.message || 'Unexpected error.');
@@ -897,6 +952,14 @@ const TenancyContractBuilderPage = () => {
                     </Button>
                   </div>
                 </div>
+
+                <FormField label="Tenant value language preference (name/nationality)">
+                  <Select
+                    value={tenantLanguagePreference}
+                    onChange={(e) => setTenantLanguagePreference(e.target.value)}
+                    options={tenantLanguagePreferenceOptions}
+                  />
+                </FormField>
 
                 <div className="tenancy-form-grid">
                   <Field

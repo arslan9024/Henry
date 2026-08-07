@@ -79,3 +79,52 @@ export const pickFirstGroupMatch = (textVariants = [], regexes = [], { normalize
 
   return '';
 };
+
+export const resolvePreferredBilingualValue = ({
+  primary = '',
+  arabic = '',
+  english = '',
+  preference = 'auto',
+} = {}) => {
+  const normalizedPrimary = normalizeBilingualText(primary || '');
+  const normalizedArabic = normalizeBilingualText(arabic || '');
+  const normalizedEnglish = normalizeBilingualText(english || '');
+
+  const hasArabic = Boolean(normalizedArabic);
+  const hasEnglish = Boolean(normalizedEnglish);
+  const hasBoth = hasArabic && hasEnglish;
+
+  const pickArabic = () => normalizedArabic || normalizedPrimary || normalizedEnglish || '';
+  const pickEnglish = () => normalizedEnglish || normalizedPrimary || normalizedArabic || '';
+
+  if (preference === 'ar') {
+    return {
+      value: pickArabic(),
+      selectedLanguage: normalizedArabic ? 'ar' : normalizedEnglish ? 'en' : 'unknown',
+      hasBoth,
+      hasArabic,
+      hasEnglish,
+    };
+  }
+
+  if (preference === 'en') {
+    return {
+      value: pickEnglish(),
+      selectedLanguage: normalizedEnglish ? 'en' : normalizedArabic ? 'ar' : 'unknown',
+      hasBoth,
+      hasArabic,
+      hasEnglish,
+    };
+  }
+
+  const fallback = normalizedPrimary || normalizedEnglish || normalizedArabic || '';
+  const detected = detectTextLanguage(fallback).language;
+
+  return {
+    value: fallback,
+    selectedLanguage: detected,
+    hasBoth,
+    hasArabic,
+    hasEnglish,
+  };
+};

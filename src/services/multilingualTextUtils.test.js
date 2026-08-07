@@ -4,6 +4,7 @@ import {
   normalizeArabicDigits,
   normalizeBilingualText,
   pickFirstGroupMatch,
+  resolvePreferredBilingualValue,
   stripArabicDiacritics,
 } from './multilingualTextUtils';
 
@@ -32,5 +33,29 @@ describe('multilingualTextUtils', () => {
 
   it('normalizes Arabic punctuation and whitespace', () => {
     expect(normalizeBilingualText('الاسم،   محمد')).toBe('الاسم, محمد');
+  });
+
+  it('resolves English value when preference is en and both variants exist', () => {
+    const result = resolvePreferredBilingualValue({
+      english: 'Ahmed Ali',
+      arabic: 'أحمد علي',
+      preference: 'en',
+    });
+
+    expect(result.value).toBe('Ahmed Ali');
+    expect(result.selectedLanguage).toBe('en');
+    expect(result.hasBoth).toBe(true);
+  });
+
+  it('falls back to Arabic when preference is ar and English is missing', () => {
+    const result = resolvePreferredBilingualValue({
+      primary: 'محمد علي',
+      arabic: 'محمد علي',
+      english: '',
+      preference: 'ar',
+    });
+
+    expect(result.value).toBe('محمد علي');
+    expect(result.selectedLanguage).toBe('ar');
   });
 });
