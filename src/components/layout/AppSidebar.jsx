@@ -1,16 +1,12 @@
 import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { APP_PAGE_NAV_ITEMS, navigateToPage, selectCurrentPage } from '../../store/appRouteSlice';
-import {
-  closeCommandPalette,
-  closeDrawer,
-  closePreview,
-  selectLeftRail,
-  toggleLeftRail,
-} from '../../store/uiCommandSlice';
+import { APP_PAGE_NAV_ITEMS, selectCurrentPage } from '../../store/appRouteSlice';
+import { selectLeftRail, toggleLeftRail } from '../../store/uiCommandSlice';
+import useAppNavigation from '../../hooks/useAppNavigation';
 
 const AppSidebar = () => {
   const dispatch = useDispatch();
+  const { goToPage } = useAppNavigation();
   const currentPage = useSelector(selectCurrentPage);
   const leftRail = useSelector(selectLeftRail);
   const collapsed = leftRail === 'collapsed';
@@ -19,13 +15,6 @@ const AppSidebar = () => {
     const match = APP_PAGE_NAV_ITEMS.find((item) => item.key === currentPage);
     return match?.label || 'Workspace';
   }, [currentPage]);
-
-  const handleNavigate = (targetPage) => {
-    dispatch(navigateToPage(targetPage));
-    dispatch(closeDrawer());
-    dispatch(closePreview());
-    dispatch(closeCommandPalette());
-  };
 
   return (
     <aside
@@ -59,7 +48,7 @@ const AppSidebar = () => {
               key={item.key}
               type="button"
               className={`app-sidebar__nav-item ${active ? 'is-active' : ''}`}
-              onClick={() => handleNavigate(item.key)}
+              onClick={() => goToPage(item.key)}
               aria-current={active ? 'page' : undefined}
               title={item.label}
             >

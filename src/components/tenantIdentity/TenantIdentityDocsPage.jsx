@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { goToDocumentHub, goToTenancyBuilder } from '../../store/appRouteSlice';
+import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
 import { setDocumentValue } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
@@ -161,7 +161,7 @@ const TenantIdentityDocsPage = () => {
   };
 
   return (
-    <main className="title-deed-page" id="main" tabIndex={-1}>
+    <main className="title-deed-page shell-page" id="main" tabIndex={-1}>
       <section className="title-deed-header">
         <div>
           <h2>Tenant Passport & Residence Permit Scanner</h2>
@@ -174,10 +174,10 @@ const TenantIdentityDocsPage = () => {
           <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed}>
             Use for current contract
           </Button>
-          <Button variant="secondary" onClick={() => dispatch(goToTenancyBuilder())}>
+          <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.TENANCY_BUILDER))}>
             ← Back to Tenancy Builder
           </Button>
-          <Button variant="secondary" onClick={() => dispatch(goToDocumentHub())}>
+          <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
             ← Back to Document Hub
           </Button>
         </div>
@@ -237,7 +237,7 @@ const TenantIdentityDocsPage = () => {
                 <Button variant="secondary" onClick={() => applyToCurrentContract()}>
                   Use current scan for contract
                 </Button>
-                <Button variant="ghost" onClick={() => dispatch(goToTenancyBuilder())}>
+                <Button variant="ghost" onClick={() => dispatch(navigateToPage(APP_PAGES.TENANCY_BUILDER))}>
                   Go to tenancy builder
                 </Button>
               </div>

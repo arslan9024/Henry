@@ -8,7 +8,7 @@ import SIFPayrollForm from './sif/SIFPayrollForm';
  */
 export default function SIFPayrollPage() {
   return (
-    <main className="sif-payroll-page" role="main" id="main" tabIndex={-1}>
+    <main className="sif-payroll-page shell-page" role="main" id="main" tabIndex={-1}>
       <section className="sif-payroll-page__hero">
         <div className="sif-payroll-page__header">
           <p className="sif-payroll-page__eyebrow">Payroll command center</p>

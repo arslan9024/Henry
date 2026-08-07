@@ -1,17 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
-import { APP_PAGE_NAV_ITEMS, APP_PAGES, navigateToPage, selectCurrentPage } from '../store/appRouteSlice';
-import {
-  closeCommandPalette,
-  closeDrawer,
-  closePreview,
-  openCommandPalette as openCommandPaletteCommand,
-  toggleLeftRail,
-} from '../store/uiCommandSlice';
+import { APP_PAGE_NAV_ITEMS, APP_PAGES, selectCurrentPage } from '../store/appRouteSlice';
+import { openCommandPalette as openCommandPaletteCommand, toggleLeftRail } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
+import useAppNavigation from '../hooks/useAppNavigation';
 
 const THEME_LABEL = {
   light: '☀ Light',
@@ -30,6 +25,7 @@ const TopNavbar = React.memo(() => {
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
   const henry = useSelector(selectHenry);
   const currentPage = useSelector(selectCurrentPage);
+  const { goToPage } = useAppNavigation();
   const { density, toggle: toggleDensity } = useDensity();
   const { mode: themeMode, resolved: themeResolved, cycle: cycleTheme } = useTheme();
   const [identityOpen, setIdentityOpen] = useState(false);
@@ -39,23 +35,13 @@ const TopNavbar = React.memo(() => {
     dispatch(openCommandPaletteCommand());
   }, [dispatch]);
 
-  const handleNavigate = useCallback(
-    (targetPage) => {
-      dispatch(navigateToPage(targetPage));
-      dispatch(closeDrawer());
-      dispatch(closePreview());
-      dispatch(closeCommandPalette());
-    },
-    [dispatch],
-  );
-
   const togglePage = useCallback(() => {
     if (currentPage === APP_PAGES.PAYROLL) {
-      handleNavigate(APP_PAGES.DOCUMENT_HUB);
+      goToPage(APP_PAGES.DOCUMENT_HUB);
     } else {
-      handleNavigate(APP_PAGES.PAYROLL);
+      goToPage(APP_PAGES.PAYROLL);
     }
-  }, [currentPage, handleNavigate]);
+  }, [currentPage, goToPage]);
 
   const topNavQuickRoutes = APP_PAGE_NAV_ITEMS.filter(
     (item) => item.key !== APP_PAGES.DOCUMENT_HUB && item.key !== APP_PAGES.PAYROLL,
@@ -215,7 +201,7 @@ const TopNavbar = React.memo(() => {
               key={item.key}
               type="button"
               className="density-toggle payroll-nav-btn"
-              onClick={() => handleNavigate(item.key)}
+              onClick={() => goToPage(item.key)}
               aria-label={`Navigate to ${item.label}`}
               title={item.label}
             >

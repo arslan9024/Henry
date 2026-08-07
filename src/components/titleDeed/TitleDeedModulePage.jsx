@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { goToDocumentHub } from '../../store/appRouteSlice';
+import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -112,7 +112,7 @@ const TitleDeedModulePage = () => {
   };
 
   return (
-    <main className="title-deed-page" id="main" tabIndex={-1}>
+    <main className="title-deed-page shell-page" id="main" tabIndex={-1}>
       <section className="title-deed-header">
         <div>
           <h2>Title Deed Information Extractor</h2>
@@ -121,7 +121,7 @@ const TitleDeedModulePage = () => {
             for future autofill.
           </p>
         </div>
-        <Button variant="secondary" onClick={() => dispatch(goToDocumentHub())}>
+        <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
           ← Back to Document Hub
         </Button>
       </section>

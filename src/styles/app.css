@@ -120,6 +120,11 @@ body {
   min-width: 0;
 }
 
+.shell-page {
+  width: 100%;
+  margin: 0;
+}
+
 .app-sidebar {
   position: sticky;
   top: calc(var(--topnav-h) + var(--space-4));

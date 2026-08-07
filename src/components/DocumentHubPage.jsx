@@ -47,7 +47,7 @@ const DocumentHubPage = ({ useInternalNavigation = true }) => {
   const closePreviewModal = useCallback(() => dispatch(closePreview()), [dispatch]);
 
   return (
-    <main className="app-layout" id="main" tabIndex={-1}>
+    <main className="app-layout shell-page" id="main" tabIndex={-1}>
       <HubWorkspace
         activeTemplateLabel={activeTemplateLabel}
         canGeneratePdf={canGeneratePdf}
