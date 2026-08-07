@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { APP_PAGES } from '../store/appRouteSlice';
 import useAppNavigation from '../hooks/useAppNavigation';
 import { Badge, Button, Card, FormField, Input, Modal, Select } from './ui';
@@ -98,6 +98,44 @@ const DEFAULT_PAGE_SETUP = {
   previewPaneWidth: 38,
 };
 
+const PAGE_SETUP_STORAGE_KEY = 'henry.documentWorkspace.pageSetup.v1';
+
+const PAGE_SETUP_PROFILES = [
+  {
+    id: 'standard-review',
+    label: 'Standard Review',
+    setup: {
+      layoutPreset: 'split',
+      paperSize: 'A4',
+      orientation: 'portrait',
+      previewScale: 100,
+      previewPaneWidth: 38,
+    },
+  },
+  {
+    id: 'wide-preview',
+    label: 'Wide Preview',
+    setup: {
+      layoutPreset: 'split',
+      paperSize: 'A4',
+      orientation: 'landscape',
+      previewScale: 90,
+      previewPaneWidth: 46,
+    },
+  },
+  {
+    id: 'compact-audit',
+    label: 'Compact Audit',
+    setup: {
+      layoutPreset: 'compact',
+      paperSize: 'Letter',
+      orientation: 'portrait',
+      previewScale: 95,
+      previewPaneWidth: 34,
+    },
+  },
+];
+
 const clamp = (value, min, max, fallback) => {
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return fallback;
@@ -118,6 +156,35 @@ const DocumentWorkspacePage = () => {
     [activeJourneyId],
   );
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(PAGE_SETUP_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw);
+      if (parsed?.layoutPreset) setLayoutPreset(parsed.layoutPreset);
+      if (parsed?.paperSize) setPaperSize(parsed.paperSize);
+      if (parsed?.orientation) setOrientation(parsed.orientation);
+      if (typeof parsed?.previewScale !== 'undefined') setPreviewScale(parsed.previewScale);
+      if (typeof parsed?.previewPaneWidth !== 'undefined') setPreviewPaneWidth(parsed.previewPaneWidth);
+    } catch {
+      // non-blocking: malformed persisted setup should not break workspace rendering
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const payload = {
+      layoutPreset,
+      paperSize,
+      orientation,
+      previewScale,
+      previewPaneWidth,
+    };
+    window.localStorage.setItem(PAGE_SETUP_STORAGE_KEY, JSON.stringify(payload));
+  }, [layoutPreset, orientation, paperSize, previewPaneWidth, previewScale]);
+
   const workspaceLayoutClass = `workspace-ops-layout workspace-ops-layout--${layoutPreset}`;
   const safePreviewScale = clamp(previewScale, 60, 140, DEFAULT_PAGE_SETUP.previewScale);
   const safePreviewPaneWidth = clamp(previewPaneWidth, 30, 50, DEFAULT_PAGE_SETUP.previewPaneWidth);
@@ -134,6 +201,17 @@ const DocumentWorkspacePage = () => {
     if (typeof window !== 'undefined') {
       window.print();
     }
+  };
+
+  const applySetupProfile = (profileId) => {
+    const profile = PAGE_SETUP_PROFILES.find((item) => item.id === profileId);
+    if (!profile) return;
+
+    setLayoutPreset(profile.setup.layoutPreset);
+    setPaperSize(profile.setup.paperSize);
+    setOrientation(profile.setup.orientation);
+    setPreviewScale(profile.setup.previewScale);
+    setPreviewPaneWidth(profile.setup.previewPaneWidth);
   };
 
   return (
@@ -228,6 +306,19 @@ const DocumentWorkspacePage = () => {
                 <Button variant="secondary" onClick={triggerPrint}>
                   Print / Save as PDF
                 </Button>
+              </div>
+
+              <div className="workspace-page-setup__profiles" aria-label="Page setup profiles">
+                {PAGE_SETUP_PROFILES.map((profile) => (
+                  <Button
+                    key={profile.id}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => applySetupProfile(profile.id)}
+                  >
+                    {profile.label}
+                  </Button>
+                ))}
               </div>
             </Card.Body>
           </Card>
