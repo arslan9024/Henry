@@ -90,14 +90,28 @@ const ORIENTATION_OPTIONS = [
   { value: 'landscape', label: 'Landscape' },
 ];
 
+const DEFAULT_PAGE_SETUP = {
+  layoutPreset: 'split',
+  paperSize: 'A4',
+  orientation: 'portrait',
+  previewScale: 100,
+  previewPaneWidth: 38,
+};
+
+const clamp = (value, min, max, fallback) => {
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+};
+
 const DocumentWorkspacePage = () => {
   const { goToPage } = useAppNavigation();
   const [activeJourneyId, setActiveJourneyId] = useState(null);
-  const [layoutPreset, setLayoutPreset] = useState('split');
-  const [paperSize, setPaperSize] = useState('A4');
-  const [orientation, setOrientation] = useState('portrait');
-  const [previewScale, setPreviewScale] = useState(100);
-  const [previewPaneWidth, setPreviewPaneWidth] = useState(38);
+  const [layoutPreset, setLayoutPreset] = useState(DEFAULT_PAGE_SETUP.layoutPreset);
+  const [paperSize, setPaperSize] = useState(DEFAULT_PAGE_SETUP.paperSize);
+  const [orientation, setOrientation] = useState(DEFAULT_PAGE_SETUP.orientation);
+  const [previewScale, setPreviewScale] = useState(DEFAULT_PAGE_SETUP.previewScale);
+  const [previewPaneWidth, setPreviewPaneWidth] = useState(DEFAULT_PAGE_SETUP.previewPaneWidth);
 
   const activeJourney = useMemo(
     () => JOURNEY_TASKS.find((journey) => journey.id === activeJourneyId) || null,
@@ -105,6 +119,22 @@ const DocumentWorkspacePage = () => {
   );
 
   const workspaceLayoutClass = `workspace-ops-layout workspace-ops-layout--${layoutPreset}`;
+  const safePreviewScale = clamp(previewScale, 60, 140, DEFAULT_PAGE_SETUP.previewScale);
+  const safePreviewPaneWidth = clamp(previewPaneWidth, 30, 50, DEFAULT_PAGE_SETUP.previewPaneWidth);
+
+  const resetPageSetup = () => {
+    setLayoutPreset(DEFAULT_PAGE_SETUP.layoutPreset);
+    setPaperSize(DEFAULT_PAGE_SETUP.paperSize);
+    setOrientation(DEFAULT_PAGE_SETUP.orientation);
+    setPreviewScale(DEFAULT_PAGE_SETUP.previewScale);
+    setPreviewPaneWidth(DEFAULT_PAGE_SETUP.previewPaneWidth);
+  };
+
+  const triggerPrint = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
 
   return (
     <main className="workspace-page shell-page" id="main" tabIndex={-1}>
@@ -134,7 +164,7 @@ const DocumentWorkspacePage = () => {
 
       <section
         className={workspaceLayoutClass}
-        style={{ '--workspace-preview-width': `${previewPaneWidth}%` }}
+        style={{ '--workspace-preview-width': `${safePreviewPaneWidth}%` }}
         aria-label="Document workspace layout"
       >
         <div className="workspace-ops-layout__main">
@@ -172,7 +202,9 @@ const DocumentWorkspacePage = () => {
                     max="140"
                     step="5"
                     value={previewScale}
-                    onChange={(e) => setPreviewScale(Number(e.target.value) || 100)}
+                    onChange={(e) =>
+                      setPreviewScale(clamp(e.target.value, 60, 140, DEFAULT_PAGE_SETUP.previewScale))
+                    }
                   />
                 </FormField>
               </div>
@@ -182,10 +214,21 @@ const DocumentWorkspacePage = () => {
                   type="range"
                   min="30"
                   max="50"
-                  value={previewPaneWidth}
-                  onChange={(e) => setPreviewPaneWidth(Number(e.target.value))}
+                  value={safePreviewPaneWidth}
+                  onChange={(e) =>
+                    setPreviewPaneWidth(clamp(e.target.value, 30, 50, DEFAULT_PAGE_SETUP.previewPaneWidth))
+                  }
                 />
               </FormField>
+
+              <div className="workspace-page-setup__actions">
+                <Button variant="ghost" onClick={resetPageSetup}>
+                  Reset defaults
+                </Button>
+                <Button variant="secondary" onClick={triggerPrint}>
+                  Print / Save as PDF
+                </Button>
+              </div>
             </Card.Body>
           </Card>
 
@@ -229,11 +272,17 @@ const DocumentWorkspacePage = () => {
               <div className="workspace-preview-card__meta">
                 <Badge tone="info">{paperSize}</Badge>
                 <Badge tone="neutral">{orientation}</Badge>
-                <Badge tone="success">Scale {previewScale}%</Badge>
+                <Badge tone="success">Scale {safePreviewScale}%</Badge>
+                <Badge tone="warning">Pane {safePreviewPaneWidth}%</Badge>
               </div>
 
               <div className="workspace-preview-card__canvas" role="img" aria-label="Document preview area">
-                <p>Preview pane ready for generated documents and uploaded source files.</p>
+                <div
+                  className="workspace-preview-card__sheet"
+                  style={{ '--preview-scale': safePreviewScale / 100 }}
+                >
+                  <p>Preview pane ready for generated documents and uploaded source files.</p>
+                </div>
                 <small>
                   Tip: use the Tenancy Builder export journey for final package generation, then return here
                   for cross-workflow review.
