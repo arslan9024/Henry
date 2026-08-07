@@ -8,18 +8,7 @@ import { render, screen } from '@testing-library/react';
 import SIFPayrollPage from './SIFPayrollPage';
 
 // ── mock all sub-components ───────────────────────────────────────────────────
-vi.mock('./TopNavbar', () => ({ default: () => <div data-testid="mock-top-navbar" /> }));
-vi.mock('./ToastHost', () => ({ default: () => <div data-testid="mock-toast-host" /> }));
-vi.mock('./SkipLink', () => ({
-  default: () => (
-    <a data-testid="mock-skip-link" href="#main">
-      Skip
-    </a>
-  ),
-}));
-vi.mock('./CommandPalette', () => ({ default: () => <div data-testid="mock-command-palette" /> }));
 vi.mock('./sif/SIFPayrollForm', () => ({ default: () => <div data-testid="mock-sif-payroll-form" /> }));
-vi.mock('../hooks/useAutosaveDebounce', () => ({ default: vi.fn() }));
 
 // ── structure ─────────────────────────────────────────────────────────────────
 
@@ -27,6 +16,23 @@ describe('SIFPayrollPage — structure', () => {
   it('renders a main element with role main', () => {
     render(<SIFPayrollPage />);
     expect(screen.getByRole('main')).toBeDefined();
+  });
+
+  it('applies workflow semantic classes on main/hero/workspace regions', () => {
+    render(<SIFPayrollPage />);
+
+    const main = screen.getByRole('main');
+    expect(main).toHaveClass('sif-payroll-page');
+    expect(main).toHaveClass('workflow-page');
+    expect(main).toHaveClass('shell-page');
+
+    const hero = screen.getByText(/Payroll command center/i).closest('section');
+    expect(hero).toHaveClass('sif-payroll-page__hero');
+    expect(hero).toHaveClass('workflow-page__header');
+
+    const workspace = screen.getByTestId('mock-sif-payroll-form').closest('.sif-payroll-page__workspace');
+    expect(workspace).not.toBeNull();
+    expect(workspace).toHaveClass('workflow-page__main');
   });
 
   it('renders the page heading "WPS Salary File Generator"', () => {
@@ -42,26 +48,6 @@ describe('SIFPayrollPage — structure', () => {
   it('renders the SIFPayrollForm', () => {
     render(<SIFPayrollPage />);
     expect(screen.getByTestId('mock-sif-payroll-form')).toBeDefined();
-  });
-
-  it('renders the TopNavbar', () => {
-    render(<SIFPayrollPage />);
-    expect(screen.getByTestId('mock-top-navbar')).toBeDefined();
-  });
-
-  it('renders the SkipLink', () => {
-    render(<SIFPayrollPage />);
-    expect(screen.getByTestId('mock-skip-link')).toBeDefined();
-  });
-
-  it('renders the ToastHost', () => {
-    render(<SIFPayrollPage />);
-    expect(screen.getByTestId('mock-toast-host')).toBeDefined();
-  });
-
-  it('renders the CommandPalette', () => {
-    render(<SIFPayrollPage />);
-    expect(screen.getByTestId('mock-command-palette')).toBeDefined();
   });
 
   it('renders the About SIF Files footer note', () => {
