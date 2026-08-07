@@ -268,16 +268,16 @@ const DocumentWorkspacePage = () => {
   };
 
   return (
-    <main className="workspace-page shell-page" id="main" tabIndex={-1}>
-      <section className="workspace-page__header">
-        <div>
+    <main className="workspace-page workflow-page shell-page" id="main" tabIndex={-1}>
+      <section className="workspace-page__header workflow-page__header">
+        <div className="workflow-page__header-copy">
           <h2>Document Operations Task Workspace</h2>
           <p>
             Single mission-control surface for journey-based workflows. Launch guided modal tasks for
             extraction, review, comparison, and export with controlled confirmation.
           </p>
         </div>
-        <div className="workspace-page__header-actions">
+        <div className="workspace-page__header-actions workflow-page__header-actions">
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             Open legacy Document Hub
           </Button>
