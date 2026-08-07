@@ -253,6 +253,7 @@ const TenancyContractBuilderPage = () => {
 
     const latest = refs[0]?.parsed || {};
     updateValue('landlord', 'emiratesId', latest.idNumber || documentData.landlord.emiratesId || '');
+    updateValue('landlord', 'idExpiryDate', latest.expiryDate || documentData.landlord.idExpiryDate || '');
     updateValue('landlord', 'phone', documentData.landlord.phone || DEFAULT_LANDLORD_PHONE);
     updateValue('landlord', 'email', documentData.landlord.email || DEFAULT_LANDLORD_EMAIL);
 
@@ -269,6 +270,7 @@ const TenancyContractBuilderPage = () => {
     const latest = refs[0]?.parsed || {};
     updateValue('tenant', 'fullName', latest.fullName || documentData.tenant.fullName || '');
     updateValue('tenant', 'emiratesId', latest.idNumber || documentData.tenant.emiratesId || '');
+    updateValue('tenant', 'idExpiryDate', latest.expiryDate || documentData.tenant.idExpiryDate || '');
     updateValue('tenant', 'contactNo', documentData.tenant.contactNo || DEFAULT_TENANT_PHONE);
     updateValue('tenant', 'email', documentData.tenant.email || DEFAULT_TENANT_EMAIL);
 
@@ -290,6 +292,7 @@ const TenancyContractBuilderPage = () => {
     updateValue('tenant', 'fullName', parsed.fullName || documentData.tenant.fullName || '');
     updateValue('tenant', 'passportNo', parsed.passportNo || documentData.tenant.passportNo || '');
     updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
+    updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
     setTenantDocRefreshKey((value) => value + 1);
     toast('success', 'Tenant passport applied', 'Applied latest passport details to tenant profile fields.');
@@ -310,6 +313,7 @@ const TenancyContractBuilderPage = () => {
     const parsed = latest.parsed || {};
     updateValue('tenant', 'fullName', parsed.fullName || documentData.tenant.fullName || '');
     updateValue('tenant', 'nationality', parsed.nationality || documentData.tenant.nationality || '');
+    updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
     setTenantDocRefreshKey((value) => value + 1);
     toast(
@@ -349,6 +353,11 @@ const TenancyContractBuilderPage = () => {
       'tenant',
       'nationality',
       passportParsed.nationality || permitParsed.nationality || documentData.tenant.nationality || '',
+    );
+    updateValue(
+      'tenant',
+      'idExpiryDate',
+      passportParsed.expiryDate || permitParsed.expiryDate || documentData.tenant.idExpiryDate || '',
     );
 
     setTenantDocRefreshKey((value) => value + 1);
@@ -535,6 +544,7 @@ const TenancyContractBuilderPage = () => {
   const selectedTemplate = templates.find((item) => item.id === selectedTemplateId) || null;
   const landlordGateStatus = getLandlordUploadGateStatus();
   const tenantGateStatus = getTenantUploadGateStatus();
+  const tenantGateTone = tenantGateStatus.ready ? 'success' : 'warning';
   const mappingPreview = requiredMappedFields.map((field) => ({
     ...field,
     currentValue: readByPath(documentData, field.path),
@@ -705,6 +715,11 @@ const TenancyContractBuilderPage = () => {
                   <ul>
                     <li>Landlord mobile: {documentData?.landlord?.phone?.trim() ? '✅' : '❌'}</li>
                     <li>Landlord email: {documentData?.landlord?.email?.trim() ? '✅' : '❌'}</li>
+                    <Badge tone={tenantGateTone}>
+                      {tenantGateStatus.ready
+                        ? 'Tenant Step 2 ready'
+                        : `${tenantGateStatus.missing.length} tenant requirement(s) missing`}
+                    </Badge>
                     <li>
                       Title Deed uploads: {landlordGateStatus.titleDeedCount}{' '}
                       {landlordGateStatus.titleDeedCount > 0 ? '✅' : '❌'}

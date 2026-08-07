@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { goToDocumentHub, goToTenancyBuilder } from '../../store/appRouteSlice';
+import { setDocumentValue } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -40,6 +41,30 @@ const TenantIdentityDocsPage = () => {
   }, [parsed]);
 
   const toast = (tone, title, body) => dispatch(pushToast({ tone, title, body }));
+
+  const applyToCurrentContract = (sourceParsed = parsed, sourceType = normalizedType) => {
+    if (!sourceParsed) {
+      toast('warning', 'Nothing to apply', 'Scan a passport or residence permit first.');
+      return;
+    }
+
+    dispatch(setDocumentValue({ section: 'tenant', field: 'fullName', value: sourceParsed.fullName || '' }));
+    dispatch(
+      setDocumentValue({ section: 'tenant', field: 'passportNo', value: sourceParsed.passportNo || '' }),
+    );
+    dispatch(
+      setDocumentValue({ section: 'tenant', field: 'nationality', value: sourceParsed.nationality || '' }),
+    );
+    dispatch(
+      setDocumentValue({ section: 'tenant', field: 'idExpiryDate', value: sourceParsed.expiryDate || '' }),
+    );
+
+    toast(
+      'success',
+      'Tenant details applied',
+      `${sourceType === 'passport' ? 'Passport' : 'Residence permit'} fields copied into the tenancy contract.`,
+    );
+  };
 
   const handleUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -146,6 +171,9 @@ const TenantIdentityDocsPage = () => {
           </p>
         </div>
         <div className="tenancy-gate-actions">
+          <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed}>
+            Use for current contract
+          </Button>
           <Button variant="secondary" onClick={() => dispatch(goToTenancyBuilder())}>
             ← Back to Tenancy Builder
           </Button>
@@ -203,6 +231,17 @@ const TenantIdentityDocsPage = () => {
             ) : (
               <p className="title-deed-note">No tenant identity document analyzed yet.</p>
             )}
+
+            {parsed ? (
+              <div className="tenancy-gate-actions" style={{ marginTop: 'var(--space-3)' }}>
+                <Button variant="secondary" onClick={() => applyToCurrentContract()}>
+                  Use current scan for contract
+                </Button>
+                <Button variant="ghost" onClick={() => dispatch(goToTenancyBuilder())}>
+                  Go to tenancy builder
+                </Button>
+              </div>
+            ) : null}
           </Card.Body>
         </Card>
 
