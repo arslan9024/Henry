@@ -99,6 +99,7 @@ const DEFAULT_PAGE_SETUP = {
 };
 
 const PAGE_SETUP_STORAGE_KEY = 'henry.documentWorkspace.pageSetup.v1';
+const LAST_JOURNEY_STORAGE_KEY = 'henry.documentWorkspace.lastJourney.v1';
 
 const PAGE_SETUP_PROFILES = [
   {
@@ -167,10 +168,16 @@ const DocumentWorkspacePage = () => {
   const [previewScale, setPreviewScale] = useState(DEFAULT_PAGE_SETUP.previewScale);
   const [previewPaneWidth, setPreviewPaneWidth] = useState(DEFAULT_PAGE_SETUP.previewPaneWidth);
   const [savedAt, setSavedAt] = useState(null);
+  const [lastJourneyId, setLastJourneyId] = useState(null);
 
   const activeJourney = useMemo(
     () => JOURNEY_TASKS.find((journey) => journey.id === activeJourneyId) || null,
     [activeJourneyId],
+  );
+
+  const lastJourney = useMemo(
+    () => JOURNEY_TASKS.find((journey) => journey.id === lastJourneyId) || null,
+    [lastJourneyId],
   );
 
   const applyPageSetup = (setup) => {
@@ -192,6 +199,15 @@ const DocumentWorkspacePage = () => {
       applyPageSetup(parsed);
     } catch {
       // non-blocking: malformed persisted setup should not break workspace rendering
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const cachedJourneyId = window.localStorage.getItem(LAST_JOURNEY_STORAGE_KEY);
+    if (!cachedJourneyId) return;
+    if (JOURNEY_TASKS.some((journey) => journey.id === cachedJourneyId)) {
+      setLastJourneyId(cachedJourneyId);
     }
   }, []);
 
@@ -236,6 +252,21 @@ const DocumentWorkspacePage = () => {
     applyPageSetup(profile.setup);
   };
 
+  const openJourney = (journeyId) => {
+    setActiveJourneyId(journeyId);
+    setLastJourneyId(journeyId);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LAST_JOURNEY_STORAGE_KEY, journeyId);
+    }
+  };
+
+  const clearLastJourney = () => {
+    setLastJourneyId(null);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(LAST_JOURNEY_STORAGE_KEY);
+    }
+  };
+
   return (
     <main className="workspace-page shell-page" id="main" tabIndex={-1}>
       <section className="workspace-page__header">
@@ -261,6 +292,27 @@ const DocumentWorkspacePage = () => {
         <Badge tone="success">Enterprise clean</Badge>
         <Badge tone="warning">Big-bang migration in progress</Badge>
       </section>
+
+      {lastJourney ? (
+        <section className="workspace-last-journey" aria-label="Resume last journey">
+          <p>
+            <strong>Resume:</strong> {lastJourney.title}
+          </p>
+          <div className="workspace-last-journey__actions">
+            <Button variant="secondary" size="sm" onClick={() => openJourney(lastJourney.id)}>
+              Re-open journey
+            </Button>
+            {lastJourney.quickLinks?.[0] ? (
+              <Button variant="ghost" size="sm" onClick={() => goToPage(lastJourney.quickLinks[0].page)}>
+                Continue in {lastJourney.quickLinks[0].label}
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" onClick={clearLastJourney}>
+              Clear
+            </Button>
+          </div>
+        </section>
+      ) : null}
 
       <section
         className={workspaceLayoutClass}
@@ -374,7 +426,7 @@ const DocumentWorkspacePage = () => {
                   </div>
                 </Card.Body>
                 <Card.Footer>
-                  <Button variant="primary" onClick={() => setActiveJourneyId(journey.id)}>
+                  <Button variant="primary" onClick={() => openJourney(journey.id)}>
                     Launch Journey Modal
                   </Button>
                 </Card.Footer>
