@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -172,6 +172,29 @@ describe('TenancyContractBuilderPage integration shell', () => {
 
     screen.getByRole('button', { name: /back to document hub/i }).click();
     expect(mocks.goToPage).toHaveBeenCalledWith(APP_PAGES.DOCUMENT_HUB);
+  });
+
+  it('routes landlord and tenant upload CTAs to their target modules', async () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: /upload title deed/i }));
+    fireEvent.click(screen.getByRole('button', { name: /upload landlord emirates id/i }));
+
+    const stepsRail = screen.getByText(/workflow steps/i).closest('aside');
+    const tenantStepButton = within(stepsRail).getByRole('button', { name: /3\.\s*tenant/i });
+    fireEvent.click(tenantStepButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /tenant/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /upload tenant emirates id/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open tenant identity scanner/i }));
+
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(1, APP_PAGES.TITLE_DEED);
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(2, APP_PAGES.EMIRATES_ID);
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(3, APP_PAGES.EMIRATES_ID);
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(4, APP_PAGES.TENANT_IDENTITY_DOCS);
   });
 
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
