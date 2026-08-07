@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
 import {
+  APP_PAGES,
   selectCurrentPage,
   goToPayroll,
   goToDocumentHub,
@@ -42,7 +43,7 @@ const TopNavbar = React.memo(() => {
   }, [dispatch]);
 
   const togglePage = useCallback(() => {
-    if (currentPage === 'payroll') {
+    if (currentPage === APP_PAGES.PAYROLL) {
       dispatch(goToDocumentHub());
     } else {
       dispatch(goToPayroll());
@@ -187,7 +188,7 @@ const TopNavbar = React.memo(() => {
         <div className="top-navbar__active-doc-wrap">
           <p className="top-navbar__active-doc">Active Document: {activeTemplateLabel}</p>
           <span className="top-navbar__active-doc-chip">
-            {currentPage === 'payroll' ? 'Payroll workspace' : 'Live document workspace'}
+            {currentPage === APP_PAGES.PAYROLL ? 'Payroll workspace' : 'Live document workspace'}
           </span>
         </div>
         <AutosaveIndicator />
@@ -206,13 +207,13 @@ const TopNavbar = React.memo(() => {
             className="density-toggle payroll-nav-btn"
             onClick={togglePage}
             aria-label={
-              currentPage === 'payroll'
+              currentPage === APP_PAGES.PAYROLL
                 ? 'Navigate back to Documents'
                 : 'Navigate to WPS SIF Payroll Generator'
             }
-            title={currentPage === 'payroll' ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
+            title={currentPage === APP_PAGES.PAYROLL ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
           >
-            {currentPage === 'payroll' ? '📄 Documents' : '💳 Payroll'}
+            {currentPage === APP_PAGES.PAYROLL ? '📄 Documents' : '💳 Payroll'}
           </button>
           <button
             type="button"

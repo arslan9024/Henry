@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { selectCurrentPage } from './store/appRouteSlice';
+import { APP_PAGES, selectCurrentPage } from './store/appRouteSlice';
 import DocumentHubPage from './components/DocumentHubPage';
 import SIFPayrollPage from './components/SIFPayrollPage';
 import TenancyContractBuilderPage from './components/tenancyBuilder/TenancyContractBuilderPage';
@@ -17,22 +17,17 @@ const App = () => {
 
   // Route based on Redux state
   const currentPage = useSelector(selectCurrentPage);
+  const pageByRoute = {
+    [APP_PAGES.DOCUMENT_HUB]: <DocumentHubPage useInternalNavigation={false} />,
+    [APP_PAGES.PAYROLL]: <SIFPayrollPage />,
+    [APP_PAGES.TENANCY_BUILDER]: <TenancyContractBuilderPage />,
+    [APP_PAGES.TITLE_DEED]: <TitleDeedModulePage />,
+    [APP_PAGES.EMIRATES_ID]: <EmiratesIdModulePage />,
+    [APP_PAGES.TENANT_IDENTITY_DOCS]: <TenantIdentityDocsPage />,
+  };
+
   const resolvePage = () => {
-    switch (currentPage) {
-      case 'payroll':
-        return <SIFPayrollPage />;
-      case 'tenancyBuilder':
-        return <TenancyContractBuilderPage />;
-      case 'titleDeed':
-        return <TitleDeedModulePage />;
-      case 'emiratesId':
-        return <EmiratesIdModulePage />;
-      case 'tenantIdentityDocs':
-        return <TenantIdentityDocsPage />;
-      case 'documentHub':
-      default:
-        return <DocumentHubPage useInternalNavigation={false} />;
-    }
+    return pageByRoute[currentPage] ?? pageByRoute[APP_PAGES.DOCUMENT_HUB];
   };
 
   return <UnifiedAppShell>{resolvePage()}</UnifiedAppShell>;

@@ -1,24 +1,13 @@
 import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { APP_PAGE_NAV_ITEMS, navigateToPage, selectCurrentPage } from '../../store/appRouteSlice';
 import {
-  goToDocumentHub,
-  goToEmiratesId,
-  goToPayroll,
-  goToTenantIdentityDocs,
-  goToTenancyBuilder,
-  goToTitleDeed,
-  selectCurrentPage,
-} from '../../store/appRouteSlice';
-import { selectLeftRail, toggleLeftRail } from '../../store/uiCommandSlice';
-
-const NAV_ITEMS = [
-  { key: 'documentHub', label: 'Document Hub', icon: '📄', action: goToDocumentHub },
-  { key: 'tenancyBuilder', label: 'Tenancy Builder', icon: '🧩', action: goToTenancyBuilder },
-  { key: 'tenantIdentityDocs', label: 'Tenant Identity', icon: '🛂', action: goToTenantIdentityDocs },
-  { key: 'titleDeed', label: 'Title Deed', icon: '🏷️', action: goToTitleDeed },
-  { key: 'emiratesId', label: 'Emirates ID', icon: '🪪', action: goToEmiratesId },
-  { key: 'payroll', label: 'Payroll', icon: '💳', action: goToPayroll },
-];
+  closeCommandPalette,
+  closeDrawer,
+  closePreview,
+  selectLeftRail,
+  toggleLeftRail,
+} from '../../store/uiCommandSlice';
 
 const AppSidebar = () => {
   const dispatch = useDispatch();
@@ -27,9 +16,16 @@ const AppSidebar = () => {
   const collapsed = leftRail === 'collapsed';
 
   const title = useMemo(() => {
-    const match = NAV_ITEMS.find((item) => item.key === currentPage);
+    const match = APP_PAGE_NAV_ITEMS.find((item) => item.key === currentPage);
     return match?.label || 'Workspace';
   }, [currentPage]);
+
+  const handleNavigate = (targetPage) => {
+    dispatch(navigateToPage(targetPage));
+    dispatch(closeDrawer());
+    dispatch(closePreview());
+    dispatch(closeCommandPalette());
+  };
 
   return (
     <aside
@@ -55,14 +51,14 @@ const AppSidebar = () => {
       </div>
 
       <nav className="app-sidebar__nav" aria-label="Module navigation">
-        {NAV_ITEMS.map((item) => {
+        {APP_PAGE_NAV_ITEMS.map((item) => {
           const active = item.key === currentPage;
           return (
             <button
               key={item.key}
               type="button"
               className={`app-sidebar__nav-item ${active ? 'is-active' : ''}`}
-              onClick={() => dispatch(item.action())}
+              onClick={() => handleNavigate(item.key)}
               aria-current={active ? 'page' : undefined}
               title={item.label}
             >
