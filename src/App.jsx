@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { APP_PAGES, selectCurrentPage } from './store/appRouteSlice';
+import DocumentWorkspacePage from './components/DocumentWorkspacePage';
 import DocumentHubPage from './components/DocumentHubPage';
 import SIFPayrollPage from './components/SIFPayrollPage';
 import TenancyContractBuilderPage from './components/tenancyBuilder/TenancyContractBuilderPage';
@@ -18,6 +19,7 @@ const App = () => {
   // Route based on Redux state
   const currentPage = useSelector(selectCurrentPage);
   const pageByRoute = {
+    [APP_PAGES.DOCUMENT_WORKSPACE]: <DocumentWorkspacePage />,
     [APP_PAGES.DOCUMENT_HUB]: <DocumentHubPage useInternalNavigation={false} />,
     [APP_PAGES.PAYROLL]: <SIFPayrollPage />,
     [APP_PAGES.TENANCY_BUILDER]: <TenancyContractBuilderPage />,
@@ -27,7 +29,7 @@ const App = () => {
   };
 
   const resolvePage = () => {
-    return pageByRoute[currentPage] ?? pageByRoute[APP_PAGES.DOCUMENT_HUB];
+    return pageByRoute[currentPage] ?? pageByRoute[APP_PAGES.DOCUMENT_WORKSPACE];
   };
 
   return <UnifiedAppShell>{resolvePage()}</UnifiedAppShell>;

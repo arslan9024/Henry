@@ -37,14 +37,17 @@ const TopNavbar = React.memo(() => {
 
   const togglePage = useCallback(() => {
     if (currentPage === APP_PAGES.PAYROLL) {
-      goToPage(APP_PAGES.DOCUMENT_HUB);
+      goToPage(APP_PAGES.DOCUMENT_WORKSPACE);
     } else {
       goToPage(APP_PAGES.PAYROLL);
     }
   }, [currentPage, goToPage]);
 
   const topNavQuickRoutes = APP_PAGE_NAV_ITEMS.filter(
-    (item) => item.key !== APP_PAGES.DOCUMENT_HUB && item.key !== APP_PAGES.PAYROLL,
+    (item) =>
+      item.key !== APP_PAGES.DOCUMENT_WORKSPACE &&
+      item.key !== APP_PAGES.DOCUMENT_HUB &&
+      item.key !== APP_PAGES.PAYROLL,
   );
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 export const APP_PAGES = {
+  DOCUMENT_WORKSPACE: 'documentWorkspace',
   DOCUMENT_HUB: 'documentHub',
   PAYROLL: 'payroll',
   TENANCY_BUILDER: 'tenancyBuilder',
@@ -10,6 +11,7 @@ export const APP_PAGES = {
 };
 
 export const APP_PAGE_NAV_ITEMS = [
+  { key: APP_PAGES.DOCUMENT_WORKSPACE, label: 'Task Workspace', icon: '🗂️' },
   { key: APP_PAGES.DOCUMENT_HUB, label: 'Document Hub', icon: '📄' },
   { key: APP_PAGES.TENANCY_BUILDER, label: 'Tenancy Builder', icon: '🧩' },
   { key: APP_PAGES.TENANT_IDENTITY_DOCS, label: 'Tenant Identity', icon: '🛂' },
@@ -19,14 +21,14 @@ export const APP_PAGE_NAV_ITEMS = [
 ];
 
 const VALID_PAGES = new Set(APP_PAGE_NAV_ITEMS.map((item) => item.key));
-const DEFAULT_PAGE = APP_PAGES.DOCUMENT_HUB;
+const DEFAULT_PAGE = APP_PAGES.DOCUMENT_WORKSPACE;
 
 export const isValidAppPage = (page) => VALID_PAGES.has(page);
 
 /**
  * appRouteSlice
  * Manages current page/route state
- * Routes: 'documentHub' (default) | 'payroll' | 'tenancyBuilder' | 'titleDeed' | 'emiratesId' | 'tenantIdentityDocs'
+ * Routes: 'documentWorkspace' (default) | 'documentHub' | 'payroll' | 'tenancyBuilder' | 'titleDeed' | 'emiratesId' | 'tenantIdentityDocs'
  */
 const appRouteSlice = createSlice({
   name: 'appRoute',
@@ -42,6 +44,9 @@ const appRouteSlice = createSlice({
     },
     goToDocumentHub: (state) => {
       state.currentPage = APP_PAGES.DOCUMENT_HUB;
+    },
+    goToDocumentWorkspace: (state) => {
+      state.currentPage = APP_PAGES.DOCUMENT_WORKSPACE;
     },
     goToPayroll: (state) => {
       state.currentPage = APP_PAGES.PAYROLL;
@@ -65,6 +70,7 @@ export const {
   navigateToPage,
   setCurrentPage,
   goToDocumentHub,
+  goToDocumentWorkspace,
   goToPayroll,
   goToTenancyBuilder,
   goToTitleDeed,
@@ -76,6 +82,8 @@ export default appRouteSlice.reducer;
 // Selectors
 export const selectCurrentPage = (state) => state.appRoute.currentPage;
 export const selectAppPageNavItems = () => APP_PAGE_NAV_ITEMS;
+export const selectIsDocumentWorkspacePage = (state) =>
+  state.appRoute.currentPage === APP_PAGES.DOCUMENT_WORKSPACE;
 export const selectIsPayrollPage = (state) => state.appRoute.currentPage === APP_PAGES.PAYROLL;
 export const selectIsDocumentHubPage = (state) => state.appRoute.currentPage === APP_PAGES.DOCUMENT_HUB;
 export const selectIsTenancyBuilderPage = (state) => state.appRoute.currentPage === APP_PAGES.TENANCY_BUILDER;
