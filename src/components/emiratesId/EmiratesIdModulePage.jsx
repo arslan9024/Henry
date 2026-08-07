@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
+import { setDocumentValue } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -9,6 +10,7 @@ import {
   evaluateEmiratesIdReadiness,
   parseEmiratesIdText,
 } from '../../services/emiratesIdExtractionService';
+import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
 import { persistRecordFile } from '../../records/archiveService';
 import { loadEmiratesIdReferences, saveEmiratesIdReference } from '../../records/emiratesIdStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
@@ -19,10 +21,18 @@ const OWNER_TAG_OPTIONS = [
   { value: 'landlord', label: 'Landlord' },
 ];
 
+const LANGUAGE_PREFERENCE_OPTIONS = [
+  { value: 'auto', label: 'Auto (use extracted default)' },
+  { value: 'en', label: 'English value' },
+  { value: 'ar', label: 'Arabic value' },
+];
+
 const EmiratesIdModulePage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
+  const documentData = useSelector((state) => state.document);
   const [ownerTag, setOwnerTag] = useState('');
+  const [languagePreference, setLanguagePreference] = useState('auto');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
@@ -39,6 +49,97 @@ const EmiratesIdModulePage = () => {
   }, [parsed]);
 
   const toast = (tone, title, body) => dispatch(pushToast({ tone, title, body }));
+
+  const getPreferredIdentityFields = (sourceParsed) => {
+    const name = resolvePreferredBilingualValue({
+      primary: sourceParsed?.fullName,
+      english: sourceParsed?.fullNameEn,
+      arabic: sourceParsed?.fullNameAr,
+      preference: languagePreference,
+    });
+
+    const nationality = resolvePreferredBilingualValue({
+      primary: sourceParsed?.nationality,
+      english: sourceParsed?.nationalityEn,
+      arabic: sourceParsed?.nationalityAr,
+      preference: languagePreference,
+    });
+
+    return { name, nationality };
+  };
+
+  const applyToCurrentContract = (sourceParsed = parsed, sourceOwnerTag = ownerTag) => {
+    if (!sourceParsed) {
+      toast('warning', 'Nothing to apply', 'Scan an Emirates ID first.');
+      return;
+    }
+
+    if (!sourceOwnerTag) {
+      toast('warning', 'Owner tag required', 'Select tenant or landlord before applying values.');
+      return;
+    }
+
+    const preferred = getPreferredIdentityFields(sourceParsed);
+
+    if (sourceOwnerTag === 'tenant') {
+      dispatch(
+        setDocumentValue({
+          section: 'tenant',
+          field: 'fullName',
+          value: preferred.name.value || documentData?.tenant?.fullName || '',
+        }),
+      );
+      dispatch(
+        setDocumentValue({
+          section: 'tenant',
+          field: 'nationality',
+          value: preferred.nationality.value || documentData?.tenant?.nationality || '',
+        }),
+      );
+      dispatch(
+        setDocumentValue({
+          section: 'tenant',
+          field: 'emiratesId',
+          value: sourceParsed.idNumber || documentData?.tenant?.emiratesId || '',
+        }),
+      );
+      dispatch(
+        setDocumentValue({
+          section: 'tenant',
+          field: 'idExpiryDate',
+          value: sourceParsed.expiryDate || documentData?.tenant?.idExpiryDate || '',
+        }),
+      );
+
+      toast(
+        'success',
+        'Tenant Emirates ID applied',
+        `Tenant values applied (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
+      );
+      return;
+    }
+
+    dispatch(
+      setDocumentValue({
+        section: 'landlord',
+        field: 'emiratesId',
+        value: sourceParsed.idNumber || documentData?.landlord?.emiratesId || '',
+      }),
+    );
+    dispatch(
+      setDocumentValue({
+        section: 'landlord',
+        field: 'idExpiryDate',
+        value: sourceParsed.expiryDate || documentData?.landlord?.idExpiryDate || '',
+      }),
+    );
+
+    toast(
+      'success',
+      'Landlord Emirates ID applied',
+      'Landlord Emirates ID number and expiry date were copied into the current contract.',
+    );
+  };
 
   const handleUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -144,6 +245,7 @@ const EmiratesIdModulePage = () => {
       toast('error', 'Emirates ID workflow failed', error.message || 'Unexpected error.');
     } finally {
       setIsBusy(false);
+      event.target.value = '';
     }
   };
 
@@ -157,9 +259,14 @@ const EmiratesIdModulePage = () => {
             before saving.
           </p>
         </div>
-        <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
-          ← Back to Document Hub
-        </Button>
+        <div className="tenancy-gate-actions">
+          <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed || !ownerTag}>
+            Use for current contract
+          </Button>
+          <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
+            ← Back to Document Hub
+          </Button>
+        </div>
       </section>
 
       <section className="title-deed-grid">
@@ -173,6 +280,14 @@ const EmiratesIdModulePage = () => {
                 value={ownerTag}
                 onChange={(e) => setOwnerTag(e.target.value)}
                 options={OWNER_TAG_OPTIONS}
+              />
+            </FormField>
+
+            <FormField label="Apply value language preference">
+              <Select
+                value={languagePreference}
+                onChange={(e) => setLanguagePreference(e.target.value)}
+                options={LANGUAGE_PREFERENCE_OPTIONS}
               />
             </FormField>
 
@@ -200,12 +315,30 @@ const EmiratesIdModulePage = () => {
           <Card.Body>
             {parsed ? (
               <div className="title-deed-facts">
+                {(() => {
+                  const preferred = getPreferredIdentityFields(parsed);
+                  return preferred.name.hasBoth || preferred.nationality.hasBoth ? (
+                    <div className="title-deed-fact">
+                      <strong>Bilingual value mode</strong>
+                      <span>
+                        Name: {preferred.name.selectedLanguage} | Nationality:{' '}
+                        {preferred.nationality.selectedLanguage}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
                 {Object.entries(parsed).map(([key, value]) => (
                   <div className="title-deed-fact" key={key}>
                     <strong>{key}</strong>
                     <span>{String(value ?? '') || '—'}</span>
                   </div>
                 ))}
+
+                <div className="tenancy-gate-actions" style={{ marginTop: 'var(--space-3)' }}>
+                  <Button variant="secondary" onClick={() => applyToCurrentContract()}>
+                    Apply this Emirates ID to contract
+                  </Button>
+                </div>
               </div>
             ) : (
               <p className="title-deed-note">No Emirates ID analyzed yet.</p>
