@@ -359,7 +359,7 @@ const EmiratesIdModulePage = () => {
             before saving.
           </p>
         </div>
-        <div className="tenancy-gate-actions">
+        <div className="tenancy-gate-actions workflow-page__header-actions">
           <Button variant="primary" onClick={() => openJourneyAtStep(0)} disabled={!parsed || !ownerTag}>
             Open apply journey
           </Button>
@@ -370,7 +370,7 @@ const EmiratesIdModulePage = () => {
       </section>
 
       <section className="title-deed-grid title-deed-grid--primary workflow-page__grid workflow-page__grid--three-rail">
-        <Card variant="outlined" className="title-deed-upload" as="aside">
+        <Card variant="outlined" className="title-deed-upload workflow-page__rail" as="aside">
           <Card.Header>
             <h3>Upload + Tag</h3>
           </Card.Header>
@@ -401,7 +401,7 @@ const EmiratesIdModulePage = () => {
           </Card.Body>
         </Card>
 
-        <Card variant="elevated" className="title-deed-results">
+        <Card variant="elevated" className="title-deed-results workflow-page__main">
           <Card.Header>
             <h3>Extracted Personal Information</h3>
             {readiness ? (
@@ -446,7 +446,7 @@ const EmiratesIdModulePage = () => {
           </Card.Body>
         </Card>
 
-        <Card variant="outlined" className="title-deed-numbered" as="aside">
+        <Card variant="outlined" className="title-deed-numbered workflow-page__rail" as="aside">
           <Card.Header>
             <h3>Numbered Scan Items</h3>
           </Card.Header>
