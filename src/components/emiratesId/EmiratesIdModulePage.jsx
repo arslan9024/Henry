@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
-import { setDocumentValue } from '../../store/documentSlice';
+import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -14,6 +14,8 @@ import { resolvePreferredBilingualValue } from '../../services/multilingualTextU
 import { persistRecordFile } from '../../records/archiveService';
 import { loadEmiratesIdReferences, saveEmiratesIdReference } from '../../records/emiratesIdStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
+import JourneyModal from '../workflow/JourneyModal';
+import FieldDiffPanel from '../workflow/FieldDiffPanel';
 
 const OWNER_TAG_OPTIONS = [
   { value: '', label: 'Select owner tag (required)...' },
@@ -27,6 +29,18 @@ const LANGUAGE_PREFERENCE_OPTIONS = [
   { value: 'ar', label: 'Arabic value' },
 ];
 
+const JOURNEY_STEPS = [
+  { id: 'review', label: 'Review Extraction' },
+  { id: 'bilingual', label: 'Bilingual Check' },
+  { id: 'confirm', label: 'Confirm Apply' },
+];
+
+const CONFIDENCE_TONE_MAP = {
+  high: 'success',
+  medium: 'warning',
+  low: 'critical',
+};
+
 const EmiratesIdModulePage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
@@ -36,6 +50,9 @@ const EmiratesIdModulePage = () => {
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
+  const [journeyOpen, setJourneyOpen] = useState(false);
+  const [journeyStep, setJourneyStep] = useState(0);
+  const [lastExtractionMeta, setLastExtractionMeta] = useState(null);
   const [references, setReferences] = useState(() => loadEmiratesIdReferences());
 
   const numberedItems = useMemo(() => {
@@ -68,78 +85,155 @@ const EmiratesIdModulePage = () => {
     return { name, nationality };
   };
 
-  const applyToCurrentContract = (sourceParsed = parsed, sourceOwnerTag = ownerTag) => {
+  const buildApplyPlan = (sourceParsed = parsed, sourceOwnerTag = ownerTag) => {
     if (!sourceParsed) {
-      toast('warning', 'Nothing to apply', 'Scan an Emirates ID first.');
-      return;
+      return null;
     }
 
     if (!sourceOwnerTag) {
-      toast('warning', 'Owner tag required', 'Select tenant or landlord before applying values.');
-      return;
+      return null;
     }
 
     const preferred = getPreferredIdentityFields(sourceParsed);
 
     if (sourceOwnerTag === 'tenant') {
-      dispatch(
-        setDocumentValue({
-          section: 'tenant',
-          field: 'fullName',
-          value: preferred.name.value || documentData?.tenant?.fullName || '',
-        }),
-      );
-      dispatch(
-        setDocumentValue({
-          section: 'tenant',
-          field: 'nationality',
-          value: preferred.nationality.value || documentData?.tenant?.nationality || '',
-        }),
-      );
-      dispatch(
-        setDocumentValue({
-          section: 'tenant',
-          field: 'emiratesId',
-          value: sourceParsed.idNumber || documentData?.tenant?.emiratesId || '',
-        }),
-      );
-      dispatch(
-        setDocumentValue({
-          section: 'tenant',
-          field: 'idExpiryDate',
-          value: sourceParsed.expiryDate || documentData?.tenant?.idExpiryDate || '',
-        }),
-      );
+      const section = 'tenant';
+      const previousValues = {
+        fullName: documentData?.tenant?.fullName || '',
+        nationality: documentData?.tenant?.nationality || '',
+        emiratesId: documentData?.tenant?.emiratesId || '',
+        idExpiryDate: documentData?.tenant?.idExpiryDate || '',
+      };
+      const nextValues = {
+        ...previousValues,
+        fullName: preferred.name.value || previousValues.fullName,
+        nationality: preferred.nationality.value || previousValues.nationality,
+        emiratesId: sourceParsed.idNumber || previousValues.emiratesId,
+        idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
+      };
 
-      toast(
-        'success',
-        'Tenant Emirates ID applied',
-        `Tenant values applied (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
-      );
+      const diffRows = [
+        {
+          key: 'tenant.fullName',
+          label: 'Tenant Full Name',
+          currentValue: previousValues.fullName,
+          nextValue: nextValues.fullName,
+          changed: previousValues.fullName !== nextValues.fullName,
+        },
+        {
+          key: 'tenant.nationality',
+          label: 'Tenant Nationality',
+          currentValue: previousValues.nationality,
+          nextValue: nextValues.nationality,
+          changed: previousValues.nationality !== nextValues.nationality,
+        },
+        {
+          key: 'tenant.emiratesId',
+          label: 'Tenant Emirates ID',
+          currentValue: previousValues.emiratesId,
+          nextValue: nextValues.emiratesId,
+          changed: previousValues.emiratesId !== nextValues.emiratesId,
+        },
+        {
+          key: 'tenant.idExpiryDate',
+          label: 'Tenant ID Expiry',
+          currentValue: previousValues.idExpiryDate,
+          nextValue: nextValues.idExpiryDate,
+          changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
+        },
+      ];
+
+      return {
+        section,
+        previousValues,
+        nextValues,
+        preferred,
+        diffRows,
+        successTitle: 'Tenant Emirates ID applied',
+        successBody: `Tenant values applied (name ${preferred.name.selectedLanguage}, nationality ${preferred.nationality.selectedLanguage}).`,
+      };
+    }
+
+    const section = 'landlord';
+    const previousValues = {
+      emiratesId: documentData?.landlord?.emiratesId || '',
+      idExpiryDate: documentData?.landlord?.idExpiryDate || '',
+    };
+    const nextValues = {
+      ...previousValues,
+      emiratesId: sourceParsed.idNumber || previousValues.emiratesId,
+      idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
+    };
+
+    const diffRows = [
+      {
+        key: 'landlord.emiratesId',
+        label: 'Landlord Emirates ID',
+        currentValue: previousValues.emiratesId,
+        nextValue: nextValues.emiratesId,
+        changed: previousValues.emiratesId !== nextValues.emiratesId,
+      },
+      {
+        key: 'landlord.idExpiryDate',
+        label: 'Landlord ID Expiry',
+        currentValue: previousValues.idExpiryDate,
+        nextValue: nextValues.idExpiryDate,
+        changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
+      },
+    ];
+
+    return {
+      section,
+      previousValues,
+      nextValues,
+      preferred,
+      diffRows,
+      successTitle: 'Landlord Emirates ID applied',
+      successBody: 'Landlord Emirates ID number and expiry date were copied into the current contract.',
+    };
+  };
+
+  const applyToCurrentContract = (sourceParsed = parsed, sourceOwnerTag = ownerTag) => {
+    if (!sourceParsed) {
+      toast('warning', 'Nothing to apply', 'Scan an Emirates ID first.');
+      return;
+    }
+    if (!sourceOwnerTag) {
+      toast('warning', 'Owner tag required', 'Select tenant or landlord before applying values.');
       return;
     }
 
-    dispatch(
-      setDocumentValue({
-        section: 'landlord',
-        field: 'emiratesId',
-        value: sourceParsed.idNumber || documentData?.landlord?.emiratesId || '',
-      }),
-    );
-    dispatch(
-      setDocumentValue({
-        section: 'landlord',
-        field: 'idExpiryDate',
-        value: sourceParsed.expiryDate || documentData?.landlord?.idExpiryDate || '',
-      }),
-    );
+    const applyPlan = buildApplyPlan(sourceParsed, sourceOwnerTag);
+    if (!applyPlan) return;
 
-    toast(
-      'success',
-      'Landlord Emirates ID applied',
-      'Landlord Emirates ID number and expiry date were copied into the current contract.',
+    dispatch(updateDocumentSection({ section: applyPlan.section, values: applyPlan.nextValues }));
+    dispatch(
+      pushToast({
+        tone: 'success',
+        title: applyPlan.successTitle,
+        body: applyPlan.successBody,
+        action: {
+          label: 'Undo',
+          type: 'document/updateDocumentSection',
+          payload: { section: applyPlan.section, values: applyPlan.previousValues },
+        },
+      }),
     );
   };
+
+  const openJourneyAtStep = (step) => {
+    setJourneyStep(step);
+    setJourneyOpen(true);
+  };
+
+  const resolveExtractionConfidence = () => {
+    if (!readiness) return 'low';
+    if (readiness.ready) return 'high';
+    if (readiness.completedCount >= Math.ceil(readiness.requiredCount / 2)) return 'medium';
+    return 'low';
+  };
+
+  const currentApplyPlan = parsed && ownerTag ? buildApplyPlan(parsed, ownerTag) : null;
 
   const handleUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -233,6 +327,12 @@ const EmiratesIdModulePage = () => {
       setReferences(loadEmiratesIdReferences());
       setExtractedText(extraction.text);
       setParsed(parsedDoc);
+      setLastExtractionMeta({
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        kind: extraction.kind || 'unknown',
+        ocrLanguages: extraction.ocrLanguages || null,
+      });
+      openJourneyAtStep(0);
 
       toast(
         'success',
@@ -260,8 +360,8 @@ const EmiratesIdModulePage = () => {
           </p>
         </div>
         <div className="tenancy-gate-actions">
-          <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed || !ownerTag}>
-            Use for current contract
+          <Button variant="primary" onClick={() => openJourneyAtStep(0)} disabled={!parsed || !ownerTag}>
+            Open apply journey
           </Button>
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
@@ -335,8 +435,8 @@ const EmiratesIdModulePage = () => {
                 ))}
 
                 <div className="tenancy-gate-actions" style={{ marginTop: 'var(--space-3)' }}>
-                  <Button variant="secondary" onClick={() => applyToCurrentContract()}>
-                    Apply this Emirates ID to contract
+                  <Button variant="secondary" onClick={() => openJourneyAtStep(0)}>
+                    Review & apply with journey
                   </Button>
                 </div>
               </div>
@@ -398,6 +498,85 @@ const EmiratesIdModulePage = () => {
           </Card.Body>
         </Card>
       </section>
+
+      <JourneyModal
+        open={journeyOpen}
+        onClose={() => setJourneyOpen(false)}
+        title="Emirates ID Apply Journey"
+        steps={JOURNEY_STEPS}
+        currentStep={journeyStep}
+        onStepChange={setJourneyStep}
+        onBack={() => setJourneyStep((value) => Math.max(value - 1, 0))}
+        onNext={() => setJourneyStep((value) => Math.min(value + 1, JOURNEY_STEPS.length - 1))}
+        onFinish={() => {
+          applyToCurrentContract(parsed, ownerTag);
+          setJourneyOpen(false);
+          setJourneyStep(0);
+        }}
+        nextDisabled={!parsed || !ownerTag}
+        finishDisabled={!currentApplyPlan || !currentApplyPlan.diffRows.some((row) => row.changed)}
+        finishLabel="Confirm Apply"
+      >
+        {journeyStep === 0 ? (
+          <div className="workspace-journey-modal">
+            <p>Review extraction readiness and language metadata before applying values to the contract.</p>
+            <div className="workspace-page__meta">
+              <Badge tone={CONFIDENCE_TONE_MAP[resolveExtractionConfidence()] || 'warning'}>
+                Confidence: {resolveExtractionConfidence()}
+              </Badge>
+              <Badge tone="info">Language: {lastExtractionMeta?.detectedLanguage || 'unknown'}</Badge>
+              <Badge tone="neutral">Source: {lastExtractionMeta?.kind || 'unknown'}</Badge>
+              {lastExtractionMeta?.ocrLanguages ? (
+                <Badge tone="accent">OCR: {lastExtractionMeta.ocrLanguages}</Badge>
+              ) : null}
+            </div>
+            <ul>
+              <li>Owner tag: {ownerTag || 'Not selected'}</li>
+              <li>Parsed fields: {numberedItems.length}</li>
+              <li>
+                Readiness:{' '}
+                {readiness ? `${readiness.completedCount}/${readiness.requiredCount}` : 'No readiness data'}
+              </li>
+            </ul>
+          </div>
+        ) : null}
+
+        {journeyStep === 1 ? (
+          <div className="workspace-journey-modal">
+            <p>
+              Validate bilingual values side-by-side. Selected preference:{' '}
+              <strong>{languagePreference}</strong>
+            </p>
+            <div className="journey-review-bilingual">
+              <div className="journey-review-bilingual__row">
+                <strong>Full Name</strong>
+                <div className="journey-review-bilingual__values">
+                  <span>EN: {parsed?.fullNameEn || '—'}</span>
+                  <span>AR: {parsed?.fullNameAr || '—'}</span>
+                  <span>Selected: {currentApplyPlan?.preferred?.name?.value || parsed?.fullName || '—'}</span>
+                </div>
+              </div>
+              <div className="journey-review-bilingual__row">
+                <strong>Nationality</strong>
+                <div className="journey-review-bilingual__values">
+                  <span>EN: {parsed?.nationalityEn || '—'}</span>
+                  <span>AR: {parsed?.nationalityAr || '—'}</span>
+                  <span>
+                    Selected: {currentApplyPlan?.preferred?.nationality?.value || parsed?.nationality || '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {journeyStep === 2 ? (
+          <div className="workspace-journey-modal">
+            <p>Confirm field-level changes before writing values to the active contract.</p>
+            <FieldDiffPanel title="Apply Preview Diff" rows={currentApplyPlan?.diffRows || []} />
+          </div>
+        ) : null}
+      </JourneyModal>
     </main>
   );
 };
