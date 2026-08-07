@@ -6,10 +6,10 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import documentReducer from '../../store/documentSlice';
 import templateReducer from '../../store/templateSlice';
+import { APP_PAGES } from '../../store/appRouteSlice';
 
 const mocks = vi.hoisted(() => ({
-  goToPage: vi.fn(),
-  gateState: {
+  createGateState: () => ({
     landlordGateStatus: {
       ready: false,
       missing: ['Landlord mobile', 'Title deed upload'],
@@ -35,8 +35,12 @@ const mocks = vi.hoisted(() => ({
       title: 'Step blocked',
       body: 'Missing required fields.',
     }),
-  },
+  }),
+  goToPage: vi.fn(),
+  gateState: null,
 }));
+
+mocks.gateState = mocks.createGateState();
 
 vi.mock('../../hooks/useAppNavigation', () => ({
   default: () => ({
@@ -126,6 +130,7 @@ const renderPage = () =>
 describe('TenancyContractBuilderPage integration shell', () => {
   beforeEach(() => {
     mocks.goToPage.mockReset();
+    mocks.gateState = mocks.createGateState();
   });
 
   it('renders shell/workflow semantic classes and key heading', () => {
@@ -135,7 +140,38 @@ describe('TenancyContractBuilderPage integration shell', () => {
     expect(main).toHaveClass('tenancy-builder-page');
     expect(main).toHaveClass('workflow-page');
     expect(main).toHaveClass('shell-page');
+
+    const header = screen.getByText(/tenancy contract builder/i).closest('section');
+    expect(header).toHaveClass('workflow-page__header');
+    expect(header).toHaveClass('tenancy-builder-header');
+
+    const headerCopy = screen.getByText(/upload tenancy template, complete guided steps/i).closest('div');
+    expect(headerCopy).toHaveClass('workflow-page__header-copy');
+
+    const headerActions = screen.getByRole('button', { name: /back to document hub/i }).closest('div');
+    expect(headerActions).toHaveClass('workflow-page__header-actions');
+
+    const grid = screen.getByText(/workflow steps/i).closest('section');
+    expect(grid).toHaveClass('workflow-page__grid');
+    expect(grid).toHaveClass('workflow-page__grid--three-rail');
+
+    const stepRail = screen.getByText(/workflow steps/i).closest('aside');
+    expect(stepRail).toHaveClass('workflow-page__rail');
+
+    const exportRail = screen.getByText(/template \+ export/i).closest('aside');
+    expect(exportRail).toHaveClass('workflow-page__rail');
+
+    const formMain = screen.getByRole('heading', { name: /landlord/i }).closest('.workflow-page__main');
+    expect(formMain).toBeInTheDocument();
+
     expect(screen.getByRole('heading', { name: /tenancy contract builder/i })).toBeInTheDocument();
+  });
+
+  it('routes back to document hub from the header action', () => {
+    renderPage();
+
+    screen.getByRole('button', { name: /back to document hub/i }).click();
+    expect(mocks.goToPage).toHaveBeenCalledWith(APP_PAGES.DOCUMENT_HUB);
   });
 
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
