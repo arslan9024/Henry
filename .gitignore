@@ -13,3 +13,6 @@ yarn-error.log*
 pnpm-debug.log*
 coverage/
 .vscode/
+records/emirates-id/master/
+records/tenant-identity/master/
+records/title-deed/master/

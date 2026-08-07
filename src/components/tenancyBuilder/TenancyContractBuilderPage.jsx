@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   addAddendumClause,
@@ -11,7 +11,8 @@ import { setActiveTemplate } from '../../store/templateSlice';
 import { pushToast } from '../../store/uiSlice';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
-import { downloadQuotationPdf, generateQuotationPdfBlob } from '../../pdf/generateQuotationPdf';
+import useGateStatus from '../../hooks/useGateStatus';
+import { generateQuotationPdfBlob } from '../../pdf/generateQuotationPdf';
 import { buildPdfFileName, sanitizeFileNameSegment } from '../../pdf/pdfHelpers';
 import { mergePdfBlobs } from '../../pdf/mergePdfBlobs';
 import { persistRecordFile } from '../../records/archiveService';
@@ -25,6 +26,7 @@ import { loadTitleDeedReferences } from '../../records/titleDeedStore';
 import { loadEmiratesIdReferences } from '../../records/emiratesIdStore';
 import { loadTenantDocumentReferences, saveTenantDocumentReference } from '../../records/tenantDocumentStore';
 import { extractTextFromFile } from '../../services/fileExtractionService';
+import { queueWhatsAppSharePackage } from '../../services/whatsappQueueService';
 import {
   buildTenantIdentityNumberedItems,
   evaluateTenantIdentityReadiness,
@@ -33,6 +35,7 @@ import {
 } from '../../services/tenantIdentityExtractionService';
 import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
 import { Badge, Button, Card, FormField, Input, Select, Textarea } from '../ui';
+import PlacementActionPanel from './PlacementActionPanel';
 import { getTenancyFieldProfile, getRequiredMappedFields } from '../../pdf/templateFieldRegistry';
 
 const DEFAULT_LANDLORD_PHONE = '+254 720 985595';
@@ -140,6 +143,10 @@ const TenancyContractBuilderPage = () => {
   const [newTenancyTerm, setNewTenancyTerm] = useState('');
   const [newAddendumClause, setNewAddendumClause] = useState('');
   const [tenantLanguagePreference, setTenantLanguagePreference] = useState('auto');
+  const [sharePhone, setSharePhone] = useState('');
+  const [shareMessage, setShareMessage] = useState(
+    'Please find attached your tenancy contract package from Mr Henry.',
+  );
   const [isBusy, setIsBusy] = useState(false);
 
   const currentStep = STEP_CONFIG[activeStep];
@@ -166,69 +173,16 @@ const TenancyContractBuilderPage = () => {
     }
   }, [dispatch, documentData?.tenant?.contactNo, documentData?.tenant?.email]);
 
-  const getLandlordUploadGateStatus = useCallback(() => {
-    const titleDeedRefs = loadTitleDeedReferences();
-    const emiratesIdRefs = loadEmiratesIdReferences();
-    const landlordEmiratesIdRefs = emiratesIdRefs.filter((ref) => ref?.ownerTag === 'landlord');
+  useEffect(() => {
+    if (!sharePhone.trim()) {
+      setSharePhone(documentData?.tenant?.contactNo?.trim() || documentData?.landlord?.phone?.trim() || '');
+    }
+  }, [documentData?.landlord?.phone, documentData?.tenant?.contactNo, sharePhone]);
 
-    const missing = [];
-    if (!documentData?.landlord?.phone?.trim()) missing.push('landlord.phone');
-    if (!documentData?.landlord?.email?.trim()) missing.push('landlord.email');
-    if (titleDeedRefs.length === 0) missing.push('landlord.titleDeedUpload');
-    if (landlordEmiratesIdRefs.length === 0) missing.push('landlord.emiratesIdUpload');
-
-    return {
-      titleDeedCount: titleDeedRefs.length,
-      landlordEmiratesIdCount: landlordEmiratesIdRefs.length,
-      missing,
-      ready: missing.length === 0,
-    };
-  }, [documentData?.landlord?.phone, documentData?.landlord?.email]);
-
-  const getTenantUploadGateStatus = useCallback(() => {
-    const emiratesIdRefs = loadEmiratesIdReferences();
-    const tenantEmiratesIdRefs = emiratesIdRefs.filter((ref) => ref?.ownerTag === 'tenant');
-    const tenantDocRefs = loadTenantDocumentReferences();
-    const passportRefs = tenantDocRefs.filter((ref) => ref?.type === 'passport');
-    const residencePermitRefs = tenantDocRefs.filter(
-      (ref) => ref?.type === 'residence-permit' || ref?.type === 'visa',
-    );
-
-    const missing = [];
-    if (!documentData?.tenant?.contactNo?.trim()) missing.push('tenant.contactNo');
-    if (!documentData?.tenant?.email?.trim()) missing.push('tenant.email');
-    if (tenantEmiratesIdRefs.length === 0) missing.push('tenant.emiratesIdUpload');
-    if (passportRefs.length === 0) missing.push('tenant.passportUpload');
-    if (residencePermitRefs.length === 0) missing.push('tenant.residencePermitUpload');
-
-    return {
-      tenantEmiratesIdCount: tenantEmiratesIdRefs.length,
-      passportCount: passportRefs.length,
-      residencePermitCount: residencePermitRefs.length,
-      visaCount: residencePermitRefs.length,
-      missing,
-      ready: missing.length === 0,
-    };
-  }, [documentData?.tenant?.contactNo, documentData?.tenant?.email]);
-
-  const completionMap = useMemo(() => {
-    return STEP_CONFIG.reduce((acc, step) => {
-      const missing = getMissingFields(documentData, step.required);
-      if (step.key === 'landlord') {
-        const gate = getLandlordUploadGateStatus();
-        missing.push(...gate.missing);
-      }
-      if (step.key === 'tenant') {
-        const gate = getTenantUploadGateStatus();
-        missing.push(...gate.missing);
-      }
-      acc[step.key] = {
-        missing,
-        completed: missing.length === 0,
-      };
-      return acc;
-    }, {});
-  }, [documentData, getLandlordUploadGateStatus, getTenantUploadGateStatus]);
+  const { landlordGateStatus, tenantGateStatus, completionMap, getStepBlockCopy } = useGateStatus({
+    documentData,
+    steps: STEP_CONFIG,
+  });
 
   const updateValue = (section, field, value) => {
     dispatch(setDocumentValue({ section, field, value }));
@@ -430,23 +384,8 @@ const TenancyContractBuilderPage = () => {
   const continueStep = () => {
     const missing = completionMap[currentStep.key]?.missing || [];
     if (missing.length > 0) {
-      if (currentStep.key === 'landlord') {
-        toast(
-          'warning',
-          'Step 1 blocked — landlord mandatory requirements',
-          `Complete all required items first: ${missing.join(', ')}`,
-        );
-      } else {
-        if (currentStep.key === 'tenant') {
-          toast(
-            'warning',
-            'Step 2 blocked — tenant mandatory requirements',
-            `Complete all required items first: ${missing.join(', ')}`,
-          );
-        } else {
-          toast('warning', 'Step incomplete', `Please complete: ${missing.join(', ')}`);
-        }
-      }
+      const blockCopy = getStepBlockCopy(currentStep.key);
+      toast('warning', blockCopy.title, blockCopy.body);
       return;
     }
     setActiveStep((prev) => Math.min(prev + 1, STEP_CONFIG.length - 1));
@@ -535,31 +474,6 @@ const TenancyContractBuilderPage = () => {
     }
   };
 
-  const saveGeneratedPdf = async ({ templateKey, fileLabel }) => {
-    const blob = await generateQuotationPdfBlob({
-      documentData,
-      templateKey,
-    });
-
-    const fileName = buildPdfFileName(templateKey, documentData);
-    const recordPath = `tenancy-builder/${new Date().getFullYear()}/${templateKey}`;
-    const result = await persistRecordFile({ recordPath, fileName, blob });
-
-    if (!result.ok) {
-      throw new Error(`Save failed: ${result.reason || 'unknown reason'}`);
-    }
-
-    toast('success', `${fileLabel} saved`, result.path || 'Saved to records.');
-  };
-
-  const saveCustomPdfBlob = async ({ blob, fileName, recordPath, fileLabel }) => {
-    const result = await persistRecordFile({ recordPath, fileName, blob });
-    if (!result.ok) {
-      throw new Error(`Save failed: ${result.reason || 'unknown reason'}`);
-    }
-    toast('success', `${fileLabel} saved`, result.path || 'Saved to records.');
-  };
-
   const buildMergedPackageFileName = () => {
     const unit = sanitizeFileNameSegment(documentData?.property?.unit || 'Unit');
     const tenant = sanitizeFileNameSegment(documentData?.tenant?.fullName || 'Tenant');
@@ -567,81 +481,144 @@ const TenancyContractBuilderPage = () => {
     return `Tenancy_Package_${unit}_${tenant}_${datePart}.pdf`;
   };
 
-  const handleExport = async () => {
+  const persistPdfArtifact = async ({ recordPath, fileName, blob }) => {
+    const result = await persistRecordFile({ recordPath, fileName, blob });
+    if (!result.ok) {
+      throw new Error(`Save failed: ${result.reason || 'unknown reason'}`);
+    }
+    return result;
+  };
+
+  const buildExportArtifacts = async () => {
+    const canExportContract = completionMap.contract.completed && completionMap.tenant.completed;
+    const canExportAddendum = completionMap.addendum.completed;
+
+    if (!landlordGateStatus.ready || !tenantGateStatus.ready) {
+      throw new Error(
+        `Autofill blocked — Landlord missing: ${landlordGateStatus.missing.join(', ') || 'none'} | Tenant missing: ${tenantGateStatus.missing.join(', ') || 'none'}`,
+      );
+    }
+
+    if (!canExportContract) {
+      throw new Error('Complete contract and tenant steps before export.');
+    }
+
+    if (exportMode === 'merged') {
+      if (!canExportAddendum) {
+        throw new Error('Complete addendum fields first, or switch output mode to separate files.');
+      }
+
+      const [tenancyBlob, addendumBlob] = await Promise.all([
+        generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' }),
+        generateQuotationPdfBlob({ documentData, templateKey: 'addendum' }),
+      ]);
+
+      const mergedBlob = await mergePdfBlobs([tenancyBlob, addendumBlob]);
+      const mergedFileName = buildMergedPackageFileName();
+      return {
+        exportMode,
+        canExportAddendum,
+        files: [
+          {
+            key: 'merged',
+            label: 'Merged tenancy package PDF',
+            fileName: mergedFileName,
+            recordPath: `tenancy-builder/${new Date().getFullYear()}/merged`,
+            blob: mergedBlob,
+            sharePreferred: true,
+          },
+        ],
+      };
+    }
+
+    const files = [];
+    const tenancyBlob = await generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' });
+    files.push({
+      key: 'tenancy',
+      label: 'Tenancy contract PDF',
+      fileName: buildPdfFileName('tenancy', documentData),
+      recordPath: `tenancy-builder/${new Date().getFullYear()}/tenancy`,
+      blob: tenancyBlob,
+      sharePreferred: true,
+    });
+
+    if (canExportAddendum) {
+      const addendumBlob = await generateQuotationPdfBlob({ documentData, templateKey: 'addendum' });
+      files.push({
+        key: 'addendum',
+        label: 'Addendum PDF',
+        fileName: buildPdfFileName('addendum', documentData),
+        recordPath: `tenancy-builder/${new Date().getFullYear()}/addendum`,
+        blob: addendumBlob,
+        sharePreferred: false,
+      });
+    }
+
+    return {
+      exportMode,
+      canExportAddendum,
+      files,
+    };
+  };
+
+  const executeFinalActions = async ({ saveCase = false, downloadPdf = false, shareWhatsapp = false }) => {
     setIsBusy(true);
     try {
-      const canExportContract = completionMap.contract.completed && completionMap.tenant.completed;
-      const canExportAddendum = completionMap.addendum.completed;
-      const landlordGate = getLandlordUploadGateStatus();
-      const tenantGate = getTenantUploadGateStatus();
+      const artifacts = await buildExportArtifacts();
 
-      if (!landlordGate.ready || !tenantGate.ready) {
-        toast(
-          'warning',
-          'Autofill blocked — required KYC uploads incomplete',
-          `Landlord missing: ${landlordGate.missing.join(', ') || 'none'} | Tenant missing: ${tenantGate.missing.join(', ') || 'none'}`,
+      if (downloadPdf) {
+        artifacts.files.forEach((file) => {
+          downloadBlobFile({ blob: file.blob, fileName: file.fileName });
+        });
+      }
+
+      if (saveCase) {
+        await Promise.all(
+          artifacts.files.map((file) =>
+            persistPdfArtifact({ recordPath: file.recordPath, fileName: file.fileName, blob: file.blob }),
+          ),
         );
-        return;
       }
 
-      if (!canExportContract) {
-        toast('warning', 'Contract incomplete', 'Complete contract and tenant steps before export.');
-        return;
-      }
-
-      if (exportMode === 'merged') {
-        if (!canExportAddendum) {
-          toast(
-            'warning',
-            'Merged package requires addendum readiness',
-            'Complete addendum fields first, or switch export mode to separate files.',
-          );
-          return;
-        }
-
-        const [tenancyBlob, addendumBlob] = await Promise.all([
-          generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' }),
-          generateQuotationPdfBlob({ documentData, templateKey: 'addendum' }),
-        ]);
-
-        const mergedBlob = await mergePdfBlobs([tenancyBlob, addendumBlob]);
-        const mergedFileName = buildMergedPackageFileName();
-
-        downloadBlobFile({ blob: mergedBlob, fileName: mergedFileName });
-        await saveCustomPdfBlob({
-          blob: mergedBlob,
-          fileName: mergedFileName,
-          recordPath: `tenancy-builder/${new Date().getFullYear()}/merged`,
-          fileLabel: 'Merged tenancy package PDF',
+      if (shareWhatsapp) {
+        const shareTarget = artifacts.files.find((file) => file.sharePreferred) || artifacts.files[0];
+        const queueResult = await queueWhatsAppSharePackage({
+          phone: sharePhone,
+          blob: shareTarget.blob,
+          fileName: shareTarget.fileName,
+          messageTemplate: shareMessage,
+          caseContext: {
+            unit: documentData?.property?.unit || '',
+            tenantName: documentData?.tenant?.fullName || '',
+            landlordName: documentData?.landlord?.name || '',
+            exportMode: artifacts.exportMode,
+          },
         });
 
-        toast(
-          'success',
-          'Merged package exported',
-          'Tenancy contract and addendum were merged into one PDF package.',
-        );
-        return;
+        if (!queueResult.ok) {
+          throw new Error('Could not queue WhatsApp share package.');
+        }
       }
 
-      await downloadQuotationPdf({ documentData, templateKey: 'tenancy' });
-      await saveGeneratedPdf({ templateKey: 'tenancy', fileLabel: 'Tenancy contract PDF' });
+      const completedActions = [
+        saveCase ? 'saved' : null,
+        downloadPdf ? 'downloaded' : null,
+        shareWhatsapp ? 'queued for WhatsApp' : null,
+      ].filter(Boolean);
 
-      if (canExportAddendum) {
-        await downloadQuotationPdf({ documentData, templateKey: 'addendum' });
-        await saveGeneratedPdf({ templateKey: 'addendum', fileLabel: 'Addendum PDF' });
-      } else {
-        toast('info', 'Addendum skipped', 'Addendum fields are incomplete, so only contract exported.');
-      }
+      const addendumNote = artifacts.canExportAddendum
+        ? 'Addendum included when applicable.'
+        : 'Addendum was skipped because it is not ready yet.';
+
+      toast('success', 'Final action complete', `${completedActions.join(' • ')}. ${addendumNote}`);
     } catch (error) {
-      toast('error', 'Export failed', error.message || 'Could not generate PDF files.');
+      toast('error', 'Final action failed', error.message || 'Could not complete final action.');
     } finally {
       setIsBusy(false);
     }
   };
 
   const selectedTemplate = templates.find((item) => item.id === selectedTemplateId) || null;
-  const landlordGateStatus = getLandlordUploadGateStatus();
-  const tenantGateStatus = getTenantUploadGateStatus();
   const tenantGateTone = tenantGateStatus.ready ? 'success' : 'warning';
   const mappingPreview = requiredMappedFields.map((field) => ({
     ...field,
@@ -1228,17 +1205,25 @@ const TenancyContractBuilderPage = () => {
               </p>
             </div>
 
-            <FormField label="Output mode">
-              <Select
-                value={exportMode}
-                onChange={(e) => setExportMode(e.target.value)}
-                options={modeOptions}
-              />
-            </FormField>
-
-            <Button variant="primary" onClick={handleExport} disabled={isBusy}>
-              {isBusy ? 'Processing…' : 'Generate & Download PDF'}
-            </Button>
+            <PlacementActionPanel
+              exportMode={exportMode}
+              exportModeOptions={modeOptions}
+              onExportModeChange={setExportMode}
+              sharePhone={sharePhone}
+              onSharePhoneChange={setSharePhone}
+              shareMessage={shareMessage}
+              onShareMessageChange={setShareMessage}
+              onDownload={() => executeFinalActions({ downloadPdf: true })}
+              onSave={() => executeFinalActions({ saveCase: true })}
+              onQueueWhatsApp={() => executeFinalActions({ shareWhatsapp: true })}
+              isBusy={isBusy}
+              mappingReadyCount={mappingReadyCount}
+              mappingTotal={mappingPreview.length}
+              contractReady={completionMap.contract?.completed && completionMap.tenant?.completed}
+              addendumReady={completionMap.addendum?.completed}
+              landlordReady={landlordGateStatus.ready}
+              tenantReady={tenantGateStatus.ready}
+            />
 
             <p className="tenancy-builder-note">
               Templates are stored under a dedicated master folder and editing always happens on a working
