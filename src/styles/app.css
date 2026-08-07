@@ -50,9 +50,19 @@
   /* Font sizes */
   --fs-xs: 11px;
   --fs-sm: 12px;
+  --fs-base: 14px;
   --fs-md: 14px;
   --fs-lg: 16px;
   --fs-xl: 18px;
+
+  /* Layering scale */
+  --z-base: 1;
+  --z-sticky: 20;
+  --z-overlay: 300;
+  --z-drawer: 400;
+  --z-modal: 500;
+  --z-toast: 600;
+  --z-command: 700;
 
   /* Surfaces */
   --surface: #ffffff;
@@ -110,6 +120,7 @@ body {
   grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
+  transition: grid-template-columns var(--motion-med) var(--easing);
 }
 
 .henry-shell.is-sidebar-collapsed {
@@ -118,6 +129,8 @@ body {
 
 .henry-shell__content {
   min-width: 0;
+  max-width: 1220px;
+  width: 100%;
 }
 
 .shell-page {
@@ -4637,4 +4650,93 @@ body {
 :root[data-theme='dark'] .sif-payroll-page__footer {
   background: linear-gradient(135deg, rgba(6, 78, 59, 0.88), rgba(5, 150, 105, 0.24));
   color: #d1fae5;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Phase 0 shell hardening overrides
+ * Fixes: overlap, clipping, z-index inconsistencies, mobile sidebar behavior.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+.top-navbar {
+  position: sticky;
+  top: 10px;
+  z-index: var(--z-sticky);
+}
+
+.app-sidebar {
+  z-index: var(--z-sticky);
+}
+
+.right-panel,
+.info-articles-panel {
+  position: sticky;
+  top: calc(var(--topnav-h) + var(--space-4));
+  max-height: calc(100vh - var(--topnav-h) - var(--space-6));
+  overflow: auto;
+}
+
+.app-sidebar__backdrop {
+  display: none;
+  border: 0;
+  background: transparent;
+}
+
+.toast-host {
+  z-index: var(--z-toast);
+}
+
+@media (max-width: 1200px) {
+  .henry-shell {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+
+  .henry-shell.is-sidebar-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(88vw, 320px);
+    height: 100dvh;
+    min-height: 100dvh;
+    border-radius: 0;
+    transform: translateX(0);
+    transition: transform var(--motion-med) var(--easing);
+    z-index: var(--z-drawer);
+    overflow: auto;
+  }
+
+  .app-sidebar.is-collapsed {
+    width: min(88vw, 320px);
+    padding: var(--space-3);
+    transform: translateX(-102%);
+  }
+
+  .app-sidebar.is-collapsed .app-sidebar__nav-item {
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .app-sidebar.is-collapsed .app-sidebar__nav-item span:last-child {
+    display: inline;
+  }
+
+  .app-sidebar__backdrop.is-visible {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    z-index: var(--z-overlay);
+    cursor: pointer;
+  }
+
+  .right-panel,
+  .info-articles-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
 }
