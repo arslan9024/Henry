@@ -142,6 +142,22 @@ const clamp = (value, min, max, fallback) => {
   return Math.min(max, Math.max(min, parsed));
 };
 
+const isValidOption = (value, options) => options.some((option) => option.value === value);
+
+const normalizePageSetup = (candidate) => ({
+  layoutPreset: isValidOption(candidate?.layoutPreset, LAYOUT_PRESETS)
+    ? candidate.layoutPreset
+    : DEFAULT_PAGE_SETUP.layoutPreset,
+  paperSize: isValidOption(candidate?.paperSize, PAPER_SIZE_OPTIONS)
+    ? candidate.paperSize
+    : DEFAULT_PAGE_SETUP.paperSize,
+  orientation: isValidOption(candidate?.orientation, ORIENTATION_OPTIONS)
+    ? candidate.orientation
+    : DEFAULT_PAGE_SETUP.orientation,
+  previewScale: clamp(candidate?.previewScale, 60, 140, DEFAULT_PAGE_SETUP.previewScale),
+  previewPaneWidth: clamp(candidate?.previewPaneWidth, 30, 50, DEFAULT_PAGE_SETUP.previewPaneWidth),
+});
+
 const DocumentWorkspacePage = () => {
   const { goToPage } = useAppNavigation();
   const [activeJourneyId, setActiveJourneyId] = useState(null);
@@ -150,11 +166,21 @@ const DocumentWorkspacePage = () => {
   const [orientation, setOrientation] = useState(DEFAULT_PAGE_SETUP.orientation);
   const [previewScale, setPreviewScale] = useState(DEFAULT_PAGE_SETUP.previewScale);
   const [previewPaneWidth, setPreviewPaneWidth] = useState(DEFAULT_PAGE_SETUP.previewPaneWidth);
+  const [savedAt, setSavedAt] = useState(null);
 
   const activeJourney = useMemo(
     () => JOURNEY_TASKS.find((journey) => journey.id === activeJourneyId) || null,
     [activeJourneyId],
   );
+
+  const applyPageSetup = (setup) => {
+    const normalized = normalizePageSetup(setup);
+    setLayoutPreset(normalized.layoutPreset);
+    setPaperSize(normalized.paperSize);
+    setOrientation(normalized.orientation);
+    setPreviewScale(normalized.previewScale);
+    setPreviewPaneWidth(normalized.previewPaneWidth);
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -163,11 +189,7 @@ const DocumentWorkspacePage = () => {
       if (!raw) return;
 
       const parsed = JSON.parse(raw);
-      if (parsed?.layoutPreset) setLayoutPreset(parsed.layoutPreset);
-      if (parsed?.paperSize) setPaperSize(parsed.paperSize);
-      if (parsed?.orientation) setOrientation(parsed.orientation);
-      if (typeof parsed?.previewScale !== 'undefined') setPreviewScale(parsed.previewScale);
-      if (typeof parsed?.previewPaneWidth !== 'undefined') setPreviewPaneWidth(parsed.previewPaneWidth);
+      applyPageSetup(parsed);
     } catch {
       // non-blocking: malformed persisted setup should not break workspace rendering
     }
@@ -183,6 +205,7 @@ const DocumentWorkspacePage = () => {
       previewPaneWidth,
     };
     window.localStorage.setItem(PAGE_SETUP_STORAGE_KEY, JSON.stringify(payload));
+    setSavedAt(new Date());
   }, [layoutPreset, orientation, paperSize, previewPaneWidth, previewScale]);
 
   const workspaceLayoutClass = `workspace-ops-layout workspace-ops-layout--${layoutPreset}`;
@@ -190,11 +213,15 @@ const DocumentWorkspacePage = () => {
   const safePreviewPaneWidth = clamp(previewPaneWidth, 30, 50, DEFAULT_PAGE_SETUP.previewPaneWidth);
 
   const resetPageSetup = () => {
-    setLayoutPreset(DEFAULT_PAGE_SETUP.layoutPreset);
-    setPaperSize(DEFAULT_PAGE_SETUP.paperSize);
-    setOrientation(DEFAULT_PAGE_SETUP.orientation);
-    setPreviewScale(DEFAULT_PAGE_SETUP.previewScale);
-    setPreviewPaneWidth(DEFAULT_PAGE_SETUP.previewPaneWidth);
+    applyPageSetup(DEFAULT_PAGE_SETUP);
+  };
+
+  const clearSavedSetup = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(PAGE_SETUP_STORAGE_KEY);
+    }
+    setSavedAt(null);
+    applyPageSetup(DEFAULT_PAGE_SETUP);
   };
 
   const triggerPrint = () => {
@@ -206,12 +233,7 @@ const DocumentWorkspacePage = () => {
   const applySetupProfile = (profileId) => {
     const profile = PAGE_SETUP_PROFILES.find((item) => item.id === profileId);
     if (!profile) return;
-
-    setLayoutPreset(profile.setup.layoutPreset);
-    setPaperSize(profile.setup.paperSize);
-    setOrientation(profile.setup.orientation);
-    setPreviewScale(profile.setup.previewScale);
-    setPreviewPaneWidth(profile.setup.previewPaneWidth);
+    applyPageSetup(profile.setup);
   };
 
   return (
@@ -303,10 +325,17 @@ const DocumentWorkspacePage = () => {
                 <Button variant="ghost" onClick={resetPageSetup}>
                   Reset defaults
                 </Button>
+                <Button variant="ghost" onClick={clearSavedSetup}>
+                  Clear saved setup
+                </Button>
                 <Button variant="secondary" onClick={triggerPrint}>
                   Print / Save as PDF
                 </Button>
               </div>
+
+              <p className="workspace-page-setup__saved-status" aria-live="polite">
+                {savedAt ? `Setup autosaved at ${savedAt.toLocaleTimeString()}` : 'Setup not saved yet'}
+              </p>
 
               <div className="workspace-page-setup__profiles" aria-label="Page setup profiles">
                 {PAGE_SETUP_PROFILES.map((profile) => (

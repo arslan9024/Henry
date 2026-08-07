@@ -4821,6 +4821,12 @@ body {
   gap: var(--space-1);
 }
 
+.workspace-page-setup__saved-status {
+  margin: var(--space-2) 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
 .workspace-preview-card {
   position: sticky;
   top: calc(var(--topnav-h) + var(--space-4));
