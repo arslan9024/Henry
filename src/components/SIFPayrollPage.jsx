@@ -8,9 +8,9 @@ import SIFPayrollForm from './sif/SIFPayrollForm';
  */
 export default function SIFPayrollPage() {
   return (
-    <main className="sif-payroll-page shell-page" role="main" id="main" tabIndex={-1}>
-      <section className="sif-payroll-page__hero">
-        <div className="sif-payroll-page__header">
+    <main className="sif-payroll-page workflow-page shell-page" role="main" id="main" tabIndex={-1}>
+      <section className="sif-payroll-page__hero workflow-page__header">
+        <div className="sif-payroll-page__header workflow-page__header-copy">
           <p className="sif-payroll-page__eyebrow">Payroll command center</p>
           <h1>WPS Salary File Generator</h1>
           <p className="sif-payroll-page__subtitle">
@@ -18,7 +18,10 @@ export default function SIFPayrollPage() {
           </p>
         </div>
 
-        <div className="sif-payroll-page__stats" aria-label="Payroll workflow highlights">
+        <div
+          className="sif-payroll-page__stats workflow-page__header-actions"
+          aria-label="Payroll workflow highlights"
+        >
           <div className="sif-payroll-page__stat">
             <strong>WPS-ready</strong>
             <span>Structured for bank submission</span>
@@ -34,7 +37,7 @@ export default function SIFPayrollPage() {
         </div>
       </section>
 
-      <section className="sif-payroll-page__workspace">
+      <section className="sif-payroll-page__workspace workflow-page__main">
         <div className="sif-payroll-page__container">
           <SIFPayrollForm />
         </div>
