@@ -37,7 +37,7 @@ const TopNavbar = React.memo(() => {
 
   const togglePage = useCallback(() => {
     if (currentPage === APP_PAGES.PAYROLL) {
-      goToPage(APP_PAGES.DOCUMENT_WORKSPACE);
+      goToPage(APP_PAGES.DOCUMENT_HUB);
     } else {
       goToPage(APP_PAGES.PAYROLL);
     }
@@ -169,66 +169,81 @@ const TopNavbar = React.memo(() => {
       </div>
 
       <div className="top-navbar__actions" aria-label="Document actions">
-        <div className="top-navbar__active-doc-wrap">
-          <p className="top-navbar__active-doc">Active Document: {activeTemplateLabel}</p>
-          <span className="top-navbar__active-doc-chip">
-            {currentPage === APP_PAGES.PAYROLL ? 'Payroll workspace' : 'Live document workspace'}
-          </span>
+        <div className="top-navbar__actions-head">
+          <div className="top-navbar__active-doc-wrap">
+            <p className="top-navbar__active-doc">Active Document: {activeTemplateLabel}</p>
+            <span className="top-navbar__active-doc-chip">
+              {currentPage === APP_PAGES.PAYROLL ? 'Payroll workspace' : 'Live document workspace'}
+            </span>
+          </div>
+          <div className="top-navbar__status-slot" aria-label="Workspace save status">
+            <AutosaveIndicator />
+          </div>
         </div>
-        <AutosaveIndicator />
+
         <div className="top-navbar__action-grid">
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={openCommandPalette}
-            aria-label="Open command palette (Ctrl+K)"
-            title="Command palette (Ctrl+K)"
-          >
-            ⌘ Search
-          </button>
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={togglePage}
-            aria-label={
-              currentPage === APP_PAGES.PAYROLL
-                ? 'Navigate back to Documents'
-                : 'Navigate to WPS SIF Payroll Generator'
-            }
-            title={currentPage === APP_PAGES.PAYROLL ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
-          >
-            {currentPage === APP_PAGES.PAYROLL ? '📄 Documents' : '💳 Payroll'}
-          </button>
-          {topNavQuickRoutes.map((item) => (
+          <div className="top-navbar__quick-nav" role="group" aria-label="Quick module navigation">
             <button
-              key={item.key}
               type="button"
-              className="density-toggle payroll-nav-btn"
-              onClick={() => goToPage(item.key)}
-              aria-label={`Navigate to ${item.label}`}
-              title={item.label}
+              className="density-toggle payroll-nav-btn top-navbar__nav-btn"
+              onClick={openCommandPalette}
+              aria-label="Open command palette (Ctrl+K)"
+              title="Command palette (Ctrl+K)"
+              data-active="false"
             >
-              {item.icon} {item.label}
+              ⌘ Search
             </button>
-          ))}
-          <button
-            type="button"
-            className="density-toggle"
-            onClick={cycleTheme}
-            aria-label={`Theme: ${themeMode} (resolved ${themeResolved}). Click to switch to ${THEME_NEXT[themeMode]}.`}
-            title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`}
-          >
-            {THEME_LABEL[themeMode]}
-          </button>
-          <button
-            type="button"
-            className="density-toggle"
-            onClick={toggleDensity}
-            aria-pressed={density === 'compact'}
-            title={density === 'compact' ? 'Switch to comfortable density' : 'Switch to compact density'}
-          >
-            {density === 'compact' ? '▤ Compact' : '▣ Comfortable'}
-          </button>
+
+            <button
+              type="button"
+              className="density-toggle payroll-nav-btn top-navbar__nav-btn"
+              onClick={togglePage}
+              aria-label={
+                currentPage === APP_PAGES.PAYROLL
+                  ? 'Navigate back to Documents'
+                  : 'Navigate to WPS SIF Payroll Generator'
+              }
+              title={currentPage === APP_PAGES.PAYROLL ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
+              data-active={currentPage === APP_PAGES.PAYROLL ? 'true' : 'false'}
+            >
+              {currentPage === APP_PAGES.PAYROLL ? '📄 Documents' : '💳 Payroll'}
+            </button>
+
+            {topNavQuickRoutes.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className="density-toggle payroll-nav-btn top-navbar__nav-btn"
+                onClick={() => goToPage(item.key)}
+                aria-label={`Navigate to ${item.label}`}
+                title={item.label}
+                data-active={currentPage === item.key ? 'true' : 'false'}
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="top-navbar__preferences" role="group" aria-label="Workspace preferences">
+            <button
+              type="button"
+              className="density-toggle"
+              onClick={cycleTheme}
+              aria-label={`Theme: ${themeMode} (resolved ${themeResolved}). Click to switch to ${THEME_NEXT[themeMode]}.`}
+              title={`Theme: ${themeMode} → ${THEME_NEXT[themeMode]}`}
+            >
+              {THEME_LABEL[themeMode]}
+            </button>
+            <button
+              type="button"
+              className="density-toggle"
+              onClick={toggleDensity}
+              aria-pressed={density === 'compact'}
+              title={density === 'compact' ? 'Switch to comfortable density' : 'Switch to compact density'}
+            >
+              {density === 'compact' ? '▤ Compact' : '▣ Comfortable'}
+            </button>
+          </div>
         </div>
       </div>
     </header>

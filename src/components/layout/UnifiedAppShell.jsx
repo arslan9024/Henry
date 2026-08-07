@@ -10,15 +10,16 @@ import { selectLeftRail } from '../../store/uiCommandSlice';
 const UnifiedAppShell = ({ children }) => {
   const leftRail = useSelector(selectLeftRail);
   const shellClassName = `henry-shell ${leftRail === 'collapsed' ? 'is-sidebar-collapsed' : ''}`;
+  const sidebarState = leftRail === 'collapsed' ? 'collapsed' : 'expanded';
 
   return (
     <>
       <SkipLink />
       <TopNavbar />
-      <div className={shellClassName}>
+      <div className={shellClassName} data-sidebar-state={sidebarState}>
         <AppSidebar />
         <section className="henry-shell__content" aria-label="Main content workspace">
-          {children}
+          <div className="henry-shell__content-inner">{children}</div>
         </section>
       </div>
       <ToastHost />

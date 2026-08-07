@@ -32,6 +32,7 @@ const AppSidebar = () => {
       <button
         type="button"
         className={`app-sidebar__backdrop ${collapsed ? '' : 'is-visible'}`}
+        aria-label="Close sidebar overlay"
         aria-hidden={collapsed}
         tabIndex={collapsed ? -1 : 0}
         onClick={closeSidebarOnMobile}
