@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
-import { setDocumentValue } from '../../store/documentSlice';
+import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -15,6 +15,8 @@ import { resolvePreferredBilingualValue } from '../../services/multilingualTextU
 import { persistRecordFile } from '../../records/archiveService';
 import { loadTenantDocumentReferences, saveTenantDocumentReference } from '../../records/tenantDocumentStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
+import JourneyModal from '../workflow/JourneyModal';
+import FieldDiffPanel from '../workflow/FieldDiffPanel';
 
 const DOCUMENT_TYPE_OPTIONS = [
   { value: 'passport', label: 'Passport' },
@@ -28,14 +30,30 @@ const LANGUAGE_PREFERENCE_OPTIONS = [
   { value: 'ar', label: 'Arabic value' },
 ];
 
+const JOURNEY_STEPS = [
+  { id: 'review', label: 'Review Extraction' },
+  { id: 'bilingual', label: 'Bilingual Check' },
+  { id: 'confirm', label: 'Confirm Apply' },
+];
+
+const CONFIDENCE_TONE_MAP = {
+  high: 'success',
+  medium: 'warning',
+  low: 'critical',
+};
+
 const TenantIdentityDocsPage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
+  const documentData = useSelector((state) => state.document);
   const [documentType, setDocumentType] = useState('passport');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
   const [languagePreference, setLanguagePreference] = useState('auto');
+  const [journeyOpen, setJourneyOpen] = useState(false);
+  const [journeyStep, setJourneyStep] = useState(0);
+  const [lastExtractionMeta, setLastExtractionMeta] = useState(null);
   const [references, setReferences] = useState(() => loadTenantDocumentReferences());
 
   const normalizedType = useMemo(() => normalizeTenantIdentityType(documentType), [documentType]);
@@ -70,31 +88,105 @@ const TenantIdentityDocsPage = () => {
     return { name, nationality };
   };
 
+  const buildApplyPlan = (sourceParsed = parsed, sourceType = normalizedType) => {
+    if (!sourceParsed) {
+      return null;
+    }
+
+    const preferred = getPreferredTenantFields(sourceParsed);
+    const previousValues = {
+      passportNo: documentData?.tenant?.passportNo || '',
+      nationality: documentData?.tenant?.nationality || '',
+      idExpiryDate: documentData?.tenant?.idExpiryDate || '',
+      fullName: documentData?.tenant?.fullName || '',
+    };
+
+    const nextValues = {
+      ...previousValues,
+      passportNo: sourceParsed.passportNo || previousValues.passportNo,
+      nationality: preferred.nationality.value || previousValues.nationality,
+      idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
+      fullName: preferred.name.value || previousValues.fullName,
+    };
+
+    const diffRows = [
+      {
+        key: 'tenant.fullName',
+        label: 'Tenant Full Name',
+        currentValue: previousValues.fullName,
+        nextValue: nextValues.fullName,
+        changed: previousValues.fullName !== nextValues.fullName,
+      },
+      {
+        key: 'tenant.passportNo',
+        label: sourceType === 'passport' ? 'Passport Number' : 'Permit / Visa Number',
+        currentValue: previousValues.passportNo,
+        nextValue: nextValues.passportNo,
+        changed: previousValues.passportNo !== nextValues.passportNo,
+      },
+      {
+        key: 'tenant.nationality',
+        label: 'Tenant Nationality',
+        currentValue: previousValues.nationality,
+        nextValue: nextValues.nationality,
+        changed: previousValues.nationality !== nextValues.nationality,
+      },
+      {
+        key: 'tenant.idExpiryDate',
+        label: 'ID Expiry Date',
+        currentValue: previousValues.idExpiryDate,
+        nextValue: nextValues.idExpiryDate,
+        changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
+      },
+    ];
+
+    return {
+      sourceType,
+      previousValues,
+      nextValues,
+      preferred,
+      diffRows,
+      successBody: `${sourceType === 'passport' ? 'Passport' : 'Residence permit'} fields copied into the tenancy contract (${preferred.name.selectedLanguage}/${preferred.nationality.selectedLanguage}).`,
+    };
+  };
+
   const applyToCurrentContract = (sourceParsed = parsed, sourceType = normalizedType) => {
     if (!sourceParsed) {
       toast('warning', 'Nothing to apply', 'Scan a passport or residence permit first.');
       return;
     }
 
-    const preferred = getPreferredTenantFields(sourceParsed);
+    const applyPlan = buildApplyPlan(sourceParsed, sourceType);
+    if (!applyPlan) return;
 
+    dispatch(updateDocumentSection({ section: 'tenant', values: applyPlan.nextValues }));
     dispatch(
-      setDocumentValue({ section: 'tenant', field: 'passportNo', value: sourceParsed.passportNo || '' }),
-    );
-    dispatch(
-      setDocumentValue({ section: 'tenant', field: 'nationality', value: preferred.nationality.value || '' }),
-    );
-    dispatch(
-      setDocumentValue({ section: 'tenant', field: 'idExpiryDate', value: sourceParsed.expiryDate || '' }),
-    );
-    dispatch(setDocumentValue({ section: 'tenant', field: 'fullName', value: preferred.name.value || '' }));
-
-    toast(
-      'success',
-      'Tenant details applied',
-      `${sourceType === 'passport' ? 'Passport' : 'Residence permit'} fields copied into the tenancy contract (${preferred.name.selectedLanguage}/${preferred.nationality.selectedLanguage}).`,
+      pushToast({
+        tone: 'success',
+        title: 'Tenant details applied',
+        body: applyPlan.successBody,
+        action: {
+          label: 'Undo',
+          type: 'document/updateDocumentSection',
+          payload: { section: 'tenant', values: applyPlan.previousValues },
+        },
+      }),
     );
   };
+
+  const openJourneyAtStep = (step) => {
+    setJourneyStep(step);
+    setJourneyOpen(true);
+  };
+
+  const resolveExtractionConfidence = () => {
+    if (!readiness) return 'low';
+    if (readiness.ready) return 'high';
+    if (readiness.completedCount >= Math.ceil(readiness.requiredCount / 2)) return 'medium';
+    return 'low';
+  };
+
+  const currentApplyPlan = parsed ? buildApplyPlan(parsed, normalizedType) : null;
 
   const handleUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -184,6 +276,12 @@ const TenantIdentityDocsPage = () => {
       setReferences(loadTenantDocumentReferences());
       setExtractedText(extraction.text);
       setParsed(parsedDoc);
+      setLastExtractionMeta({
+        detectedLanguage: extraction.detectedLanguage || 'unknown',
+        kind: extraction.kind || 'unknown',
+        ocrLanguages: extraction.ocrLanguages || null,
+      });
+      openJourneyAtStep(0);
 
       toast(
         'success',
@@ -211,8 +309,8 @@ const TenantIdentityDocsPage = () => {
           </p>
         </div>
         <div className="tenancy-gate-actions">
-          <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed}>
-            Use for current contract
+          <Button variant="primary" onClick={() => openJourneyAtStep(0)} disabled={!parsed}>
+            Open apply journey
           </Button>
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.TENANCY_BUILDER)}>
             ← Back to Tenancy Builder
@@ -294,8 +392,8 @@ const TenantIdentityDocsPage = () => {
 
             {parsed ? (
               <div className="tenancy-gate-actions" style={{ marginTop: 'var(--space-3)' }}>
-                <Button variant="secondary" onClick={() => applyToCurrentContract()}>
-                  Use current scan for contract
+                <Button variant="secondary" onClick={() => openJourneyAtStep(0)}>
+                  Review & apply with journey
                 </Button>
                 <Button variant="ghost" onClick={() => goToPage(APP_PAGES.TENANCY_BUILDER)}>
                   Go to tenancy builder
@@ -357,6 +455,85 @@ const TenantIdentityDocsPage = () => {
           </Card.Body>
         </Card>
       </section>
+
+      <JourneyModal
+        open={journeyOpen}
+        onClose={() => setJourneyOpen(false)}
+        title="Tenant Identity Apply Journey"
+        steps={JOURNEY_STEPS}
+        currentStep={journeyStep}
+        onStepChange={setJourneyStep}
+        onBack={() => setJourneyStep((value) => Math.max(value - 1, 0))}
+        onNext={() => setJourneyStep((value) => Math.min(value + 1, JOURNEY_STEPS.length - 1))}
+        onFinish={() => {
+          applyToCurrentContract(parsed, normalizedType);
+          setJourneyOpen(false);
+          setJourneyStep(0);
+        }}
+        nextDisabled={!parsed}
+        finishDisabled={!currentApplyPlan || !currentApplyPlan.diffRows.some((row) => row.changed)}
+        finishLabel="Confirm Apply"
+      >
+        {journeyStep === 0 ? (
+          <div className="workspace-journey-modal">
+            <p>Review extraction readiness and source metadata before applying values to the contract.</p>
+            <div className="workspace-page__meta">
+              <Badge tone={CONFIDENCE_TONE_MAP[resolveExtractionConfidence()] || 'warning'}>
+                Confidence: {resolveExtractionConfidence()}
+              </Badge>
+              <Badge tone="info">Language: {lastExtractionMeta?.detectedLanguage || 'unknown'}</Badge>
+              <Badge tone="neutral">Source: {lastExtractionMeta?.kind || 'unknown'}</Badge>
+              {lastExtractionMeta?.ocrLanguages ? (
+                <Badge tone="accent">OCR: {lastExtractionMeta.ocrLanguages}</Badge>
+              ) : null}
+            </div>
+            <ul>
+              <li>Document type: {normalizedType === 'passport' ? 'Passport' : 'Residence Permit'}</li>
+              <li>Parsed fields: {numberedItems.length}</li>
+              <li>
+                Readiness:{' '}
+                {readiness ? `${readiness.completedCount}/${readiness.requiredCount}` : 'No readiness data'}
+              </li>
+            </ul>
+          </div>
+        ) : null}
+
+        {journeyStep === 1 ? (
+          <div className="workspace-journey-modal">
+            <p>
+              Validate bilingual values side-by-side. Selected preference:{' '}
+              <strong>{languagePreference}</strong>
+            </p>
+            <div className="journey-review-bilingual">
+              <div className="journey-review-bilingual__row">
+                <strong>Full Name</strong>
+                <div className="journey-review-bilingual__values">
+                  <span>EN: {parsed?.fullNameEn || '—'}</span>
+                  <span>AR: {parsed?.fullNameAr || '—'}</span>
+                  <span>Selected: {currentApplyPlan?.preferred?.name?.value || parsed?.fullName || '—'}</span>
+                </div>
+              </div>
+              <div className="journey-review-bilingual__row">
+                <strong>Nationality</strong>
+                <div className="journey-review-bilingual__values">
+                  <span>EN: {parsed?.nationalityEn || '—'}</span>
+                  <span>AR: {parsed?.nationalityAr || '—'}</span>
+                  <span>
+                    Selected: {currentApplyPlan?.preferred?.nationality?.value || parsed?.nationality || '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {journeyStep === 2 ? (
+          <div className="workspace-journey-modal">
+            <p>Confirm field-level changes before writing values to the active contract.</p>
+            <FieldDiffPanel title="Apply Preview Diff" rows={currentApplyPlan?.diffRows || []} />
+          </div>
+        ) : null}
+      </JourneyModal>
     </main>
   );
 };
