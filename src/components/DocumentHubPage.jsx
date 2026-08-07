@@ -22,7 +22,7 @@ import HubWorkspace from './documentHub/HubWorkspace';
 import HubMobileQuickNav from './documentHub/HubMobileQuickNav';
 import HubDrawer from './documentHub/HubDrawer';
 
-const DocumentHubPage = () => {
+const DocumentHubPage = ({ useInternalNavigation = true }) => {
   const dispatch = useDispatch();
   const activeTemplate = useSelector((state) => state.template.activeTemplate);
   const activeTemplateLabel = useSelector(selectActiveTemplateLabel);
@@ -59,14 +59,16 @@ const DocumentHubPage = () => {
         railCollapsed={railCollapsed}
         onOpenCompliance={openCompliance}
         leftRailSlot={
-          <HubLeftRail
-            railCollapsed={railCollapsed}
-            drawerTab={drawerTab}
-            onToggleRail={toggleRail}
-            onOpenCompliance={openCompliance}
-            onOpenArchive={openArchive}
-            onOpenAudit={openAudit}
-          />
+          useInternalNavigation ? (
+            <HubLeftRail
+              railCollapsed={railCollapsed}
+              drawerTab={drawerTab}
+              onToggleRail={toggleRail}
+              onOpenCompliance={openCompliance}
+              onOpenArchive={openArchive}
+              onOpenAudit={openAudit}
+            />
+          ) : null
         }
         rightPanelSlot={
           <aside className="right-panel print-hidden" aria-label="Document checklist and tools">
@@ -75,14 +77,16 @@ const DocumentHubPage = () => {
         }
       />
 
-      <HubMobileQuickNav
-        railCollapsed={railCollapsed}
-        drawerTab={drawerTab}
-        onToggleRail={toggleRail}
-        onOpenCompliance={openCompliance}
-        onOpenArchive={openArchive}
-        onOpenAudit={openAudit}
-      />
+      {useInternalNavigation ? (
+        <HubMobileQuickNav
+          railCollapsed={railCollapsed}
+          drawerTab={drawerTab}
+          onToggleRail={toggleRail}
+          onOpenCompliance={openCompliance}
+          onOpenArchive={openArchive}
+          onOpenAudit={openAudit}
+        />
+      ) : null}
 
       <div data-overlay-shield>
         <FooterActionBar
