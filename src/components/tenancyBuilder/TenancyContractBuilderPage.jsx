@@ -9,7 +9,8 @@ import {
 } from '../../store/documentSlice';
 import { setActiveTemplate } from '../../store/templateSlice';
 import { pushToast } from '../../store/uiSlice';
-import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
+import { APP_PAGES } from '../../store/appRouteSlice';
+import useAppNavigation from '../../hooks/useAppNavigation';
 import { downloadQuotationPdf, generateQuotationPdfBlob } from '../../pdf/generateQuotationPdf';
 import { buildPdfFileName } from '../../pdf/pdfHelpers';
 import { persistRecordFile } from '../../records/archiveService';
@@ -109,6 +110,7 @@ const templateTypeOptions = [
 
 const TenancyContractBuilderPage = () => {
   const dispatch = useDispatch();
+  const { goToPage } = useAppNavigation();
   const documentData = useSelector((state) => state.document);
   const fieldProfile = useMemo(() => getTenancyFieldProfile(), []);
   const requiredMappedFields = useMemo(() => getRequiredMappedFields(), []);
@@ -656,7 +658,7 @@ const TenancyContractBuilderPage = () => {
           <p>Upload tenancy template, complete guided steps, and export contract + addendum package.</p>
         </div>
         <div className="tenancy-builder-header__actions">
-          <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
+          <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
           </Button>
         </div>
@@ -725,18 +727,10 @@ const TenancyContractBuilderPage = () => {
                     </li>
                   </ul>
                   <div className="tenancy-gate-actions">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => dispatch(navigateToPage(APP_PAGES.TITLE_DEED))}
-                    >
+                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.TITLE_DEED)}>
                       Upload Title Deed
                     </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => dispatch(navigateToPage(APP_PAGES.EMIRATES_ID))}
-                    >
+                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.EMIRATES_ID)}>
                       Upload Landlord Emirates ID
                     </Button>
                     <Button variant="ghost" size="sm" onClick={applyLatestTitleDeedToProperty}>
@@ -825,17 +819,13 @@ const TenancyContractBuilderPage = () => {
                     </li>
                   </ul>
                   <div className="tenancy-gate-actions">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => dispatch(navigateToPage(APP_PAGES.EMIRATES_ID))}
-                    >
+                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.EMIRATES_ID)}>
                       Upload Tenant Emirates ID
                     </Button>
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => dispatch(navigateToPage(APP_PAGES.TENANT_IDENTITY_DOCS))}
+                      onClick={() => goToPage(APP_PAGES.TENANT_IDENTITY_DOCS)}
                     >
                       Open tenant identity scanner
                     </Button>

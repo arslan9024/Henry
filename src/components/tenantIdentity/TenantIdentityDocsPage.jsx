@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
+import { APP_PAGES } from '../../store/appRouteSlice';
+import useAppNavigation from '../../hooks/useAppNavigation';
 import { setDocumentValue } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
@@ -22,6 +23,7 @@ const DOCUMENT_TYPE_OPTIONS = [
 
 const TenantIdentityDocsPage = () => {
   const dispatch = useDispatch();
+  const { goToPage } = useAppNavigation();
   const [documentType, setDocumentType] = useState('passport');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
@@ -174,10 +176,10 @@ const TenantIdentityDocsPage = () => {
           <Button variant="primary" onClick={() => applyToCurrentContract()} disabled={!parsed}>
             Use for current contract
           </Button>
-          <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.TENANCY_BUILDER))}>
+          <Button variant="secondary" onClick={() => goToPage(APP_PAGES.TENANCY_BUILDER)}>
             ← Back to Tenancy Builder
           </Button>
-          <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
+          <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
           </Button>
         </div>
@@ -237,7 +239,7 @@ const TenantIdentityDocsPage = () => {
                 <Button variant="secondary" onClick={() => applyToCurrentContract()}>
                   Use current scan for contract
                 </Button>
-                <Button variant="ghost" onClick={() => dispatch(navigateToPage(APP_PAGES.TENANCY_BUILDER))}>
+                <Button variant="ghost" onClick={() => goToPage(APP_PAGES.TENANCY_BUILDER)}>
                   Go to tenancy builder
                 </Button>
               </div>

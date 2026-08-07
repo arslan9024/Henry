@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
+import { APP_PAGES } from '../../store/appRouteSlice';
+import useAppNavigation from '../../hooks/useAppNavigation';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -20,6 +21,7 @@ const OWNER_TAG_OPTIONS = [
 
 const EmiratesIdModulePage = () => {
   const dispatch = useDispatch();
+  const { goToPage } = useAppNavigation();
   const [ownerTag, setOwnerTag] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
@@ -145,7 +147,7 @@ const EmiratesIdModulePage = () => {
             before saving.
           </p>
         </div>
-        <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
+        <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
           ← Back to Document Hub
         </Button>
       </section>

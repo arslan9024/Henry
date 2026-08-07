@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { APP_PAGES, navigateToPage } from '../../store/appRouteSlice';
+import { APP_PAGES } from '../../store/appRouteSlice';
+import useAppNavigation from '../../hooks/useAppNavigation';
 import { pushToast } from '../../store/uiSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
@@ -14,6 +15,7 @@ import { Badge, Button, Card, FormField, Input } from '../ui';
 
 const TitleDeedModulePage = () => {
   const dispatch = useDispatch();
+  const { goToPage } = useAppNavigation();
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
@@ -121,7 +123,7 @@ const TitleDeedModulePage = () => {
             for future autofill.
           </p>
         </div>
-        <Button variant="secondary" onClick={() => dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB))}>
+        <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
           ← Back to Document Hub
         </Button>
       </section>
