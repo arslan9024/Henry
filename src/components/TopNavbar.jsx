@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
-import { selectCurrentPage, goToPayroll, goToDocumentHub } from '../store/appRouteSlice';
+import {
+  selectCurrentPage,
+  goToPayroll,
+  goToDocumentHub,
+  goToTenancyBuilder,
+  goToTitleDeed,
+  goToEmiratesId,
+  goToTenantIdentityDocs,
+} from '../store/appRouteSlice';
 import { openCommandPalette as openCommandPaletteCommand, toggleLeftRail } from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
@@ -40,6 +48,22 @@ const TopNavbar = React.memo(() => {
       dispatch(goToPayroll());
     }
   }, [currentPage, dispatch]);
+
+  const goToBuilderPage = useCallback(() => {
+    dispatch(goToTenancyBuilder());
+  }, [dispatch]);
+
+  const goToTitleDeedPage = useCallback(() => {
+    dispatch(goToTitleDeed());
+  }, [dispatch]);
+
+  const goToEmiratesIdPage = useCallback(() => {
+    dispatch(goToEmiratesId());
+  }, [dispatch]);
+
+  const goToTenantIdentityDocsPage = useCallback(() => {
+    dispatch(goToTenantIdentityDocs());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!identityOpen) return undefined;
@@ -189,6 +213,42 @@ const TopNavbar = React.memo(() => {
             title={currentPage === 'payroll' ? 'Back to Documents' : 'WPS SIF Payroll Generator'}
           >
             {currentPage === 'payroll' ? '📄 Documents' : '💳 Payroll'}
+          </button>
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={goToBuilderPage}
+            aria-label="Navigate to Tenancy Contract Builder"
+            title="Tenancy Contract Builder"
+          >
+            🧩 Builder
+          </button>
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={goToTitleDeedPage}
+            aria-label="Navigate to Title Deed Extractor"
+            title="Title Deed Extractor"
+          >
+            🏷️ Title Deed
+          </button>
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={goToEmiratesIdPage}
+            aria-label="Navigate to Emirates ID Extractor"
+            title="Emirates ID Extractor"
+          >
+            🪪 Emirates ID
+          </button>
+          <button
+            type="button"
+            className="density-toggle payroll-nav-btn"
+            onClick={goToTenantIdentityDocsPage}
+            aria-label="Navigate to Tenant Passport and Residence Permit Scanner"
+            title="Tenant Passport and Residence Permit Scanner"
+          >
+            🛂 Tenant Docs
           </button>
           <button
             type="button"

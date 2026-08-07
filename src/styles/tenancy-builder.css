@@ -1,0 +1,147 @@
+.tenancy-builder-page {
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tenancy-builder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.tenancy-builder-header h2 {
+  margin: 0 0 var(--space-2);
+}
+
+.tenancy-builder-header p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.tenancy-builder-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(440px, 1fr) 340px;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.tenancy-builder-steps ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tenancy-step-btn {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tenancy-step-btn.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.tenancy-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.tenancy-form-stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.tenancy-inline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.tenancy-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tenancy-list-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.tenancy-gate-banner {
+  border: 1px solid var(--border-strong);
+  background: var(--surface-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.tenancy-gate-banner p {
+  margin: 0 0 var(--space-2);
+}
+
+.tenancy-gate-banner ul {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: grid;
+  gap: 2px;
+}
+
+.tenancy-gate-actions {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tenancy-builder-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tenancy-template-meta {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.tenancy-template-meta p {
+  margin: 0 0 var(--space-1);
+}
+
+.tenancy-builder-note {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .tenancy-builder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tenancy-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

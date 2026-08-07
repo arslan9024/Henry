@@ -1,0 +1,363 @@
+{
+  "templateId": "dld-ejari-v1",
+  "templateLabel": "DLD / Ejari Tenancy Contract (3-page bilingual)",
+  "version": "1.0.0",
+  "updatedAt": "2026-08-07",
+  "language": ["en", "ar"],
+  "pages": 3,
+  "sections": [
+    {
+      "id": "header",
+      "page": 1,
+      "name": "Header / Date",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Date",
+          "key": "property.documentDate",
+          "type": "date-string",
+          "required": true,
+          "example": "07 Aug 2026"
+        }
+      ]
+    },
+    {
+      "id": "ownerLessorInformation",
+      "page": 1,
+      "name": "Owner / Lessor Information",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Owner's Name",
+          "key": "landlord.name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Lessor's Name",
+          "key": "landlord.name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Lessor's Emirates ID",
+          "key": "landlord.emiratesId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "License No (if company)",
+          "key": "landlord.licenseNo",
+          "type": "string",
+          "required": false,
+          "conditional": "required_if_lessor_is_company"
+        },
+        {
+          "label": "Licensing Authority (if company)",
+          "key": "landlord.licensingAuthority",
+          "type": "string",
+          "required": false,
+          "conditional": "required_if_lessor_is_company"
+        },
+        {
+          "label": "Lessor's Email",
+          "key": "landlord.email",
+          "type": "email-string",
+          "required": false
+        },
+        {
+          "label": "Lessor's Phone",
+          "key": "landlord.phone",
+          "type": "phone-string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "tenantInformation",
+      "page": 1,
+      "name": "Tenant Information",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Tenant's Name",
+          "key": "tenant.fullName",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Tenant's Emirates ID",
+          "key": "tenant.emiratesId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "License No (if company tenant)",
+          "key": "tenant.licenseNo",
+          "type": "string",
+          "required": false,
+          "conditional": "required_if_tenant_is_company"
+        },
+        {
+          "label": "Licensing Authority (if company tenant)",
+          "key": "tenant.licensingAuthority",
+          "type": "string",
+          "required": false,
+          "conditional": "required_if_tenant_is_company"
+        },
+        {
+          "label": "Tenant's Email",
+          "key": "tenant.email",
+          "type": "email-string",
+          "required": false
+        },
+        {
+          "label": "Tenant's Phone",
+          "key": "tenant.contactNo",
+          "type": "phone-string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "propertyInformation",
+      "page": 1,
+      "name": "Property Information",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Property Usage",
+          "key": "property.usage",
+          "type": "enum",
+          "required": true,
+          "allowedValues": ["Residential", "Commercial", "Industrial"]
+        },
+        {
+          "label": "Plot No",
+          "key": "property.plotNo",
+          "type": "string",
+          "required": false
+        },
+        {
+          "label": "Makani No",
+          "key": "property.makaniNo",
+          "type": "string",
+          "required": false
+        },
+        {
+          "label": "Building Name",
+          "key": "property.cluster",
+          "type": "string",
+          "required": false
+        },
+        {
+          "label": "Property No",
+          "key": "property.unit",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Property Type",
+          "key": "property.propertyType",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Property Area (s.m)",
+          "key": "property.size",
+          "type": "string",
+          "required": false
+        },
+        {
+          "label": "Location",
+          "key": "property.community",
+          "type": "string",
+          "required": true
+        },
+        {
+          "label": "Premises No. (DEWA)",
+          "key": "property.dewaPremisesNo",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "contractInformation",
+      "page": 1,
+      "name": "Contract Information",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Contract Period - From",
+          "key": "payments.contractStartDate",
+          "type": "date-string",
+          "required": true
+        },
+        {
+          "label": "Contract Period - To",
+          "key": "payments.contractEndDate",
+          "type": "date-string",
+          "required": true
+        },
+        {
+          "label": "Contract Value",
+          "key": "payments.total",
+          "type": "number",
+          "required": false
+        },
+        {
+          "label": "Annual Rent",
+          "key": "payments.annualRent",
+          "type": "number",
+          "required": true
+        },
+        {
+          "label": "Security Deposit Amount",
+          "key": "payments.securityDeposit",
+          "type": "number",
+          "required": true
+        },
+        {
+          "label": "Mode of Payment",
+          "key": "payments.modeOfPayment",
+          "type": "string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "signaturesPage1",
+      "page": 1,
+      "name": "Signatures (Page 1)",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Tenant Signature Placeholder",
+          "key": "signatures.tenant",
+          "type": "string-or-image-ref",
+          "required": false
+        },
+        {
+          "label": "Tenant Signature Date",
+          "key": "signatures.tenantDate",
+          "type": "date-string",
+          "required": false
+        },
+        {
+          "label": "Lessor Signature Placeholder",
+          "key": "signatures.lessor",
+          "type": "string-or-image-ref",
+          "required": false
+        },
+        {
+          "label": "Lessor Signature Date",
+          "key": "signatures.lessorDate",
+          "type": "date-string",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "termsAndConditions",
+      "page": 2,
+      "name": "Terms and Conditions",
+      "fillable": false,
+      "fields": []
+    },
+    {
+      "id": "signaturesPage2",
+      "page": 2,
+      "name": "Signatures (Page 2)",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Tenant Signature Placeholder",
+          "key": "signatures.tenant",
+          "type": "string-or-image-ref",
+          "required": false
+        },
+        {
+          "label": "Lessor Signature Placeholder",
+          "key": "signatures.lessor",
+          "type": "string-or-image-ref",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "knowYourRights",
+      "page": 3,
+      "name": "Know your Rights",
+      "fillable": false,
+      "fields": []
+    },
+    {
+      "id": "ejariAttachments",
+      "page": 3,
+      "name": "Attachments for Ejari Registration",
+      "fillable": false,
+      "fields": []
+    },
+    {
+      "id": "additionalTerms",
+      "page": 3,
+      "name": "Additional Terms",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Additional Terms Lines",
+          "key": "tenancy.additionalTerms",
+          "type": "string-array",
+          "required": false,
+          "constraints": {
+            "maxItems": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "signaturesPage3",
+      "page": 3,
+      "name": "Signatures (Page 3)",
+      "fillable": true,
+      "fields": [
+        {
+          "label": "Tenant Signature Placeholder",
+          "key": "signatures.tenant",
+          "type": "string-or-image-ref",
+          "required": false
+        },
+        {
+          "label": "Lessor Signature Placeholder",
+          "key": "signatures.lessor",
+          "type": "string-or-image-ref",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "minimumRequiredFields": [
+    "property.documentDate",
+    "landlord.name",
+    "landlord.emiratesId",
+    "tenant.fullName",
+    "tenant.emiratesId",
+    "property.unit",
+    "property.community",
+    "property.usage",
+    "payments.contractStartDate",
+    "payments.contractEndDate",
+    "payments.annualRent",
+    "payments.securityDeposit"
+  ],
+  "normalizationRules": [
+    "trim_strings",
+    "normalize_phone",
+    "normalize_email_domain",
+    "normalize_date_for_render",
+    "currency_two_decimals",
+    "validate_contract_date_range",
+    "enforce_usage_enum"
+  ]
+}

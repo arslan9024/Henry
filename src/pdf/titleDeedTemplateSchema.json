@@ -1,0 +1,76 @@
+{
+  "templateId": "title-deed-v1",
+  "templateLabel": "Dubai Land Department Title Deed",
+  "version": "1.0.0",
+  "updatedAt": "2026-08-07",
+  "pages": 1,
+  "sections": [
+    {
+      "id": "coreMeta",
+      "name": "Core Property Meta Block",
+      "fields": [
+        { "key": "issueDate", "type": "date-string", "required": true },
+        { "key": "mortgageStatus", "type": "string", "required": true },
+        { "key": "propertyType", "type": "string", "required": true },
+        { "key": "community", "type": "string", "required": true },
+        { "key": "plotNo", "type": "string", "required": true },
+        { "key": "municipalityNo", "type": "string", "required": false },
+        { "key": "areaSqMeter", "type": "number-or-string", "required": true },
+        { "key": "areaSqFeet", "type": "number-or-string", "required": false }
+      ]
+    },
+    {
+      "id": "ownership",
+      "name": "Owners and Shares",
+      "fields": [
+        { "key": "ownerNumber", "type": "string", "required": true },
+        { "key": "ownerName", "type": "string", "required": true }
+      ]
+    },
+    {
+      "id": "transaction",
+      "name": "Purchase / Registration",
+      "fields": [
+        { "key": "landRegistrationNo", "type": "string", "required": false },
+        { "key": "purchaseDate", "type": "date-string", "required": false },
+        { "key": "purchaseAmountAed", "type": "number-or-string", "required": false }
+      ]
+    },
+    {
+      "id": "certificateFooter",
+      "name": "Certificate Footer",
+      "fields": [
+        { "key": "certificateNo", "type": "string", "required": false },
+        { "key": "issuingAuthority", "type": "string", "required": false }
+      ]
+    }
+  ],
+  "minimumRequiredFields": [
+    "issueDate",
+    "mortgageStatus",
+    "propertyType",
+    "community",
+    "plotNo",
+    "areaSqMeter",
+    "ownerNumber",
+    "ownerName"
+  ],
+  "numberedScanItems": [
+    "Document Type",
+    "Issue Date",
+    "Mortgage Status",
+    "Property Type",
+    "Community",
+    "Plot Number",
+    "Municipality Number",
+    "Area (Sq Meter)",
+    "Area (Sq Feet)",
+    "Owner Number",
+    "Owner Name",
+    "Land Registration Number",
+    "Purchase Date",
+    "Purchase Amount (AED)",
+    "Certificate Number",
+    "Issuing Authority"
+  ]
+}

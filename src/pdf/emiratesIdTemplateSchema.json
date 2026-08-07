@@ -1,0 +1,69 @@
+{
+  "templateId": "emirates-id-v1",
+  "templateLabel": "UAE Resident Identity Card",
+  "version": "1.0.0",
+  "updatedAt": "2026-08-07",
+  "pages": 2,
+  "sections": [
+    {
+      "id": "front",
+      "name": "Front Side",
+      "fields": [
+        { "key": "idNumber", "type": "string", "required": true },
+        { "key": "fullName", "type": "string", "required": true },
+        { "key": "dateOfBirth", "type": "date-string", "required": true },
+        { "key": "nationality", "type": "string", "required": true },
+        { "key": "issuingDate", "type": "date-string", "required": true },
+        { "key": "expiryDate", "type": "date-string", "required": true },
+        { "key": "sex", "type": "enum", "required": false, "allowedValues": ["M", "F"] }
+      ]
+    },
+    {
+      "id": "back",
+      "name": "Back Side",
+      "fields": [
+        { "key": "cardNumber", "type": "string", "required": false },
+        { "key": "occupation", "type": "string", "required": false },
+        { "key": "employer", "type": "string", "required": false },
+        { "key": "issuingPlace", "type": "string", "required": false }
+      ]
+    },
+    {
+      "id": "mrz",
+      "name": "Machine Readable Zone",
+      "fields": [
+        { "key": "mrzLine1", "type": "string", "required": false },
+        { "key": "mrzLine2", "type": "string", "required": false },
+        { "key": "mrzLine3", "type": "string", "required": false }
+      ]
+    }
+  ],
+  "requiredOwnerTag": true,
+  "ownerTagAllowedValues": ["tenant", "landlord"],
+  "minimumRequiredFields": [
+    "idNumber",
+    "fullName",
+    "dateOfBirth",
+    "nationality",
+    "issuingDate",
+    "expiryDate"
+  ],
+  "numberedScanItems": [
+    "Document Type",
+    "Owner Tag",
+    "ID Number",
+    "Full Name",
+    "Date of Birth",
+    "Nationality",
+    "Sex",
+    "Issuing Date",
+    "Expiry Date",
+    "Card Number",
+    "Occupation",
+    "Employer",
+    "Issuing Place",
+    "MRZ Line 1",
+    "MRZ Line 2",
+    "MRZ Line 3"
+  ]
+}

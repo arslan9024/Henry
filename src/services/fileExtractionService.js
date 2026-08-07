@@ -7,6 +7,7 @@
 
 const MAX_PDF_PAGES = 25;
 const MAX_TEXT_CHARS = 50_000; // protect Ollama prompt size
+const MAX_OCR_PDF_PAGES = 4;
 
 const isPdf = (file) => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name || '');
 
@@ -72,6 +73,85 @@ const extractPdfText = async (file) => {
   }
 
   const fullText = chunks.join('\n\n').trim();
+
+  const extractPdfTextViaOcr = async () => {
+    let createWorker;
+    try {
+      ({ createWorker } = await import('tesseract.js'));
+    } catch (err) {
+      return {
+        ok: false,
+        reason: 'OCR fallback unavailable because tesseract.js could not be loaded.',
+        detail: err?.message,
+      };
+    }
+
+    const ocrPageCount = Math.min(pageCount, MAX_OCR_PDF_PAGES);
+    const worker = await createWorker('eng');
+    const ocrChunks = [];
+
+    try {
+      for (let pageNum = 1; pageNum <= ocrPageCount; pageNum += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2 });
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+
+        if (!context) {
+          return { ok: false, reason: 'OCR fallback failed to create canvas context.' };
+        }
+
+        // eslint-disable-next-line no-await-in-loop
+        await page.render({ canvasContext: context, viewport }).promise;
+        // eslint-disable-next-line no-await-in-loop
+        const result = await worker.recognize(canvas);
+        const raw = result?.data?.text || '';
+        // eslint-disable-next-line no-control-regex
+        const cleaned = raw.replace(/\u0000/g, '').trim();
+        if (cleaned) ocrChunks.push(`--- OCR Page ${pageNum} ---\n${cleaned}`);
+      }
+    } finally {
+      await worker.terminate().catch(() => {});
+    }
+
+    const ocrText = ocrChunks.join('\n\n').trim();
+    if (!ocrText) {
+      return {
+        ok: false,
+        reason: 'No text detected from scanned PDF pages via OCR fallback.',
+      };
+    }
+
+    const { text: ocrTruncatedText, truncated: ocrCharsTruncated } = truncate(ocrText);
+    return {
+      ok: true,
+      kind: 'pdf',
+      text: ocrTruncatedText,
+      pageCount: ocrPageCount,
+      totalPages,
+      pagesTruncated: totalPages > ocrPageCount,
+      charsTruncated: ocrCharsTruncated,
+      ocrFallback: true,
+      durationMs: Math.round(performance.now() - t0),
+    };
+  };
+
+  if (!fullText) {
+    const ocrResult = await extractPdfTextViaOcr();
+    if (ocrResult.ok) return ocrResult;
+
+    return {
+      ok: false,
+      reason:
+        'No text layer found in PDF and OCR fallback could not extract readable text. Try uploading clear PNG/JPG pages.',
+      detail: ocrResult.reason,
+    };
+  }
+
   const { text, truncated: charsTruncated } = truncate(fullText);
 
   return {
