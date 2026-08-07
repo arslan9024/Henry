@@ -350,9 +350,9 @@ const EmiratesIdModulePage = () => {
   };
 
   return (
-    <main className="title-deed-page shell-page" id="main" tabIndex={-1}>
-      <section className="title-deed-header">
-        <div>
+    <main className="title-deed-page workflow-page shell-page" id="main" tabIndex={-1}>
+      <section className="title-deed-header workflow-page__header">
+        <div className="workflow-page__header-copy">
           <h2>Emirates ID Extractor</h2>
           <p>
             Upload Emirates ID to extract personal information for tenancy workflows. Owner tag is mandatory
@@ -369,7 +369,7 @@ const EmiratesIdModulePage = () => {
         </div>
       </section>
 
-      <section className="title-deed-grid">
+      <section className="title-deed-grid title-deed-grid--primary workflow-page__grid workflow-page__grid--three-rail">
         <Card variant="outlined" className="title-deed-upload" as="aside">
           <Card.Header>
             <h3>Upload + Tag</h3>
@@ -466,7 +466,7 @@ const EmiratesIdModulePage = () => {
         </Card>
       </section>
 
-      <section className="title-deed-grid">
+      <section className="title-deed-grid title-deed-grid--secondary">
         <Card variant="outlined" className="title-deed-history">
           <Card.Header>
             <h3>Saved Emirates ID References</h3>

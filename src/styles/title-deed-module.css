@@ -1,13 +1,11 @@
 .title-deed-page {
   padding: var(--space-4);
-  display: grid;
-  gap: var(--space-4);
+  --workflow-left-col: 320px;
+  --workflow-main-col-min: 440px;
+  --workflow-right-col: 320px;
 }
 
 .title-deed-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: var(--space-3);
 }
 
@@ -22,9 +20,12 @@
 
 .title-deed-grid {
   display: grid;
-  grid-template-columns: 320px 1fr 320px;
   gap: var(--space-4);
   align-items: start;
+}
+
+.title-deed-grid--secondary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .title-deed-facts {
@@ -66,7 +67,7 @@
 }
 
 @media (max-width: 1280px) {
-  .title-deed-grid {
+  .title-deed-grid--secondary {
     grid-template-columns: 1fr;
   }
 }
