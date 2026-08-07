@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { APP_PAGES } from '../store/appRouteSlice';
 
 const mocks = vi.hoisted(() => ({
@@ -16,6 +16,8 @@ vi.mock('../hooks/useAppNavigation', () => ({
 import DocumentWorkspacePage from './DocumentWorkspacePage';
 
 describe('DocumentWorkspacePage', () => {
+  const LAST_JOURNEY_STORAGE_KEY = 'henry.documentWorkspace.lastJourney.v1';
+
   beforeAll(() => {
     if (typeof HTMLDialogElement !== 'undefined') {
       if (!HTMLDialogElement.prototype.showModal) {
@@ -79,5 +81,31 @@ describe('DocumentWorkspacePage', () => {
       screen.getByRole('dialog', { name: /upload → extract → review → confirm → apply/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/required preview & safety controls/i)).toBeInTheDocument();
+  });
+
+  it('restores last journey from localStorage and can re-open modal', () => {
+    window.localStorage.setItem(LAST_JOURNEY_STORAGE_KEY, 'reference-preview-apply');
+    render(<DocumentWorkspacePage />);
+
+    const resumeSection = screen.getByLabelText(/resume last journey/i);
+    expect(within(resumeSection).getByText(/resume:/i)).toBeInTheDocument();
+    expect(within(resumeSection).getByText(/open saved reference → preview → apply/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /re-open journey/i }));
+    expect(
+      screen.getByRole('dialog', { name: /open saved reference → preview → apply/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('navigates via resume quick action and clears saved journey', () => {
+    window.localStorage.setItem(LAST_JOURNEY_STORAGE_KEY, 'reference-preview-apply');
+    render(<DocumentWorkspacePage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /continue in document hub/i }));
+    expect(mocks.goToPage).toHaveBeenCalledWith(APP_PAGES.DOCUMENT_HUB);
+
+    fireEvent.click(screen.getByRole('button', { name: /^clear$/i }));
+    expect(window.localStorage.getItem(LAST_JOURNEY_STORAGE_KEY)).toBeNull();
+    expect(screen.queryByLabelText(/resume last journey/i)).toBeNull();
   });
 });
