@@ -31,6 +31,7 @@ const AppSidebar = () => {
     <aside
       className={`app-sidebar ${collapsed ? 'is-collapsed' : ''}`}
       aria-label="Primary navigation sidebar"
+      aria-expanded={!collapsed}
     >
       <div className="app-sidebar__header">
         <button
@@ -62,7 +63,9 @@ const AppSidebar = () => {
               aria-current={active ? 'page' : undefined}
               title={item.label}
             >
-              <span aria-hidden="true">{item.icon}</span>
+              <span className="app-sidebar__nav-icon" aria-hidden="true">
+                {item.icon}
+              </span>
               {!collapsed ? <span>{item.label}</span> : null}
             </button>
           );

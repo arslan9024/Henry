@@ -112,6 +112,10 @@ body {
   align-items: start;
 }
 
+.henry-shell.is-sidebar-collapsed {
+  grid-template-columns: var(--left-rail-collapsed-w) minmax(0, 1fr);
+}
+
 .henry-shell__content {
   min-width: 0;
 }
@@ -155,6 +159,12 @@ body {
   background: rgba(30, 41, 59, 0.85);
 }
 
+.app-sidebar__toggle:focus-visible,
+.app-sidebar__nav-item:focus-visible {
+  outline: 2px solid #fde68a;
+  outline-offset: 2px;
+}
+
 .app-sidebar__header-copy h2 {
   margin: 0;
   font-size: var(--fs-sm);
@@ -189,6 +199,12 @@ body {
   text-align: left;
 }
 
+.app-sidebar__nav-icon {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .app-sidebar__nav-item:hover {
   background: rgba(51, 65, 85, 0.78);
 }
@@ -213,6 +229,37 @@ body {
   .app-sidebar {
     position: static;
     min-height: auto;
+  }
+
+  .app-sidebar__header {
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+
+  .app-sidebar__nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .app-sidebar.is-collapsed {
+    width: 100%;
+    padding: var(--space-3);
+  }
+
+  .app-sidebar.is-collapsed .app-sidebar__nav-item {
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+@media (max-width: 860px) {
+  .app-sidebar__nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .app-sidebar__nav {
+    grid-template-columns: 1fr;
   }
 }
 
