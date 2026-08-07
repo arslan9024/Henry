@@ -4188,9 +4188,7 @@ body {
   gap: 8px;
 }
 
-.top-navbar__action-grid > * {
-  flex: 1 1 140px;
-}
+/* action-grid item sizing is controlled by the later grid hardening block */
 
 .hub-overview {
   display: grid;
@@ -4582,19 +4580,11 @@ body {
   .footer-action-bar__right {
     grid-template-columns: 1fr;
   }
-
-  .top-navbar__action-grid > * {
-    flex-basis: calc(50% - 5px);
-  }
 }
 
 @media (max-width: 640px) {
   .top-navbar {
     padding: 16px;
-  }
-
-  .top-navbar__action-grid > * {
-    flex-basis: 100%;
   }
 
   .top-navbar__brand {
