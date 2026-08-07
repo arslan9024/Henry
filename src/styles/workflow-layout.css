@@ -1,0 +1,55 @@
+.workflow-page {
+  --workflow-gap: var(--space-4);
+  --workflow-left-col: 260px;
+  --workflow-main-col-min: 440px;
+  --workflow-right-col: 340px;
+  display: grid;
+  gap: var(--workflow-gap);
+  width: 100%;
+}
+
+.workflow-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--workflow-gap);
+}
+
+.workflow-page__header-copy h2 {
+  margin: 0 0 var(--space-2);
+}
+
+.workflow-page__header-copy p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.workflow-page__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.workflow-page__grid {
+  display: grid;
+  gap: var(--workflow-gap);
+  align-items: start;
+}
+
+.workflow-page__grid--three-rail {
+  grid-template-columns:
+    minmax(220px, var(--workflow-left-col))
+    minmax(var(--workflow-main-col-min), 1fr)
+    minmax(280px, var(--workflow-right-col));
+}
+
+.workflow-page__rail,
+.workflow-page__main {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .workflow-page__grid--three-rail {
+    grid-template-columns: 1fr;
+  }
+}

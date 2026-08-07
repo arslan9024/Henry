@@ -737,21 +737,21 @@ const TenancyContractBuilderPage = () => {
   };
 
   return (
-    <main className="tenancy-builder-page shell-page" id="main" tabIndex={-1}>
-      <section className="tenancy-builder-header">
-        <div>
+    <main className="tenancy-builder-page workflow-page shell-page" id="main" tabIndex={-1}>
+      <section className="tenancy-builder-header workflow-page__header">
+        <div className="workflow-page__header-copy">
           <h2>Tenancy Contract Builder</h2>
           <p>Upload tenancy template, complete guided steps, and export contract + addendum package.</p>
         </div>
-        <div className="tenancy-builder-header__actions">
+        <div className="tenancy-builder-header__actions workflow-page__header-actions">
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
           </Button>
         </div>
       </section>
 
-      <section className="tenancy-builder-grid">
-        <Card variant="outlined" className="tenancy-builder-steps" as="aside">
+      <section className="tenancy-builder-grid workflow-page__grid workflow-page__grid--three-rail">
+        <Card variant="outlined" className="tenancy-builder-steps workflow-page__rail" as="aside">
           <Card.Header>
             <h3>Workflow Steps</h3>
           </Card.Header>
@@ -781,7 +781,7 @@ const TenancyContractBuilderPage = () => {
           </Card.Body>
         </Card>
 
-        <Card variant="elevated" className="tenancy-builder-form">
+        <Card variant="elevated" className="tenancy-builder-form workflow-page__main">
           <Card.Header>
             <h3>{currentStep.title}</h3>
             <p>{currentStep.description}</p>
@@ -1140,7 +1140,7 @@ const TenancyContractBuilderPage = () => {
           </Card.Footer>
         </Card>
 
-        <Card variant="outlined" className="tenancy-builder-side" as="aside">
+        <Card variant="outlined" className="tenancy-builder-side workflow-page__rail" as="aside">
           <Card.Header>
             <h3>Template + Export</h3>
           </Card.Header>

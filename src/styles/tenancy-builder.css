@@ -1,14 +1,8 @@
 .tenancy-builder-page {
   padding: var(--space-4);
-  display: grid;
-  gap: var(--space-4);
-}
-
-.tenancy-builder-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-4);
+  --workflow-left-col: 260px;
+  --workflow-main-col-min: 440px;
+  --workflow-right-col: 340px;
 }
 
 .tenancy-builder-header h2 {
@@ -18,13 +12,6 @@
 .tenancy-builder-header p {
   margin: 0;
   color: var(--text-muted);
-}
-
-.tenancy-builder-grid {
-  display: grid;
-  grid-template-columns: 260px minmax(440px, 1fr) 340px;
-  gap: var(--space-4);
-  align-items: start;
 }
 
 .tenancy-builder-steps ol {
@@ -137,10 +124,6 @@
 }
 
 @media (max-width: 1200px) {
-  .tenancy-builder-grid {
-    grid-template-columns: 1fr;
-  }
-
   .tenancy-form-grid {
     grid-template-columns: 1fr;
   }
