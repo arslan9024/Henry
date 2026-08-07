@@ -19,7 +19,15 @@ const PlacementActionPanel = ({
   addendumReady = false,
   landlordReady = false,
   tenantReady = false,
+  canFinalize = false,
+  finalizationBlockers = [],
+  sharePhoneValid = false,
+  sharePhoneValidationText = '',
 }) => {
+  const hasBlockers = finalizationBlockers.length > 0;
+  const disableFinalizeButtons = isBusy || !canFinalize;
+  const disableQueueButton = disableFinalizeButtons || !sharePhone.trim() || !sharePhoneValid;
+
   return (
     <div className="placement-action-panel tenancy-form-stack">
       <div className="tenancy-template-meta">
@@ -43,6 +51,21 @@ const PlacementActionPanel = ({
             Mapping {mappingReadyCount}/{mappingTotal}
           </Badge>
         </div>
+
+        {hasBlockers ? (
+          <div className="tenancy-final-action-blockers" role="status" aria-live="polite">
+            <p>
+              <strong>Finalize blocked until these are resolved:</strong>
+            </p>
+            <ul>
+              {finalizationBlockers.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="tenancy-final-action-ready">All required gates are ready for final actions.</p>
+        )}
       </div>
 
       <FormField label="Output mode">
@@ -54,10 +77,10 @@ const PlacementActionPanel = ({
       </FormField>
 
       <div className="tenancy-gate-actions">
-        <Button variant="secondary" onClick={onSave} disabled={isBusy}>
+        <Button variant="secondary" onClick={onSave} disabled={disableFinalizeButtons}>
           {isBusy ? 'Processing…' : 'Save final package'}
         </Button>
-        <Button variant="primary" onClick={onDownload} disabled={isBusy}>
+        <Button variant="primary" onClick={onDownload} disabled={disableFinalizeButtons}>
           {isBusy ? 'Processing…' : 'Download PDF package'}
         </Button>
       </div>
@@ -70,6 +93,12 @@ const PlacementActionPanel = ({
         />
       </FormField>
 
+      {sharePhoneValidationText ? (
+        <p className={`tenancy-share-validation ${sharePhoneValid ? 'is-valid' : 'is-invalid'}`}>
+          {sharePhoneValidationText}
+        </p>
+      ) : null}
+
       <FormField label="WhatsApp share message">
         <Textarea
           value={shareMessage}
@@ -79,7 +108,7 @@ const PlacementActionPanel = ({
         />
       </FormField>
 
-      <Button variant="ghost" onClick={onQueueWhatsApp} disabled={isBusy || !sharePhone.trim()}>
+      <Button variant="ghost" onClick={onQueueWhatsApp} disabled={disableQueueButton}>
         {isBusy ? 'Processing…' : 'Queue WhatsApp share'}
       </Button>
 

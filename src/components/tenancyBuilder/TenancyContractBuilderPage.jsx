@@ -128,6 +128,12 @@ const downloadBlobFile = ({ blob, fileName }) => {
   URL.revokeObjectURL(url);
 };
 
+const normalizeSharePhone = (phone) =>
+  String(phone || '')
+    .trim()
+    .replace(/[\s()-]/g, '');
+const isValidSharePhone = (phone) => /^\+?\d{8,15}$/.test(normalizeSharePhone(phone));
+
 const TenancyContractBuilderPage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
@@ -562,6 +568,20 @@ const TenancyContractBuilderPage = () => {
   };
 
   const executeFinalActions = async ({ saveCase = false, downloadPdf = false, shareWhatsapp = false }) => {
+    if (!canFinalize) {
+      toast('warning', 'Final action blocked', finalizationBlockers[0] || 'Complete required gates first.');
+      return;
+    }
+
+    if (shareWhatsapp && !sharePhoneValid) {
+      toast(
+        'warning',
+        'Invalid WhatsApp phone',
+        'Enter a valid phone number before queueing WhatsApp share (8-15 digits, optional +).',
+      );
+      return;
+    }
+
     setIsBusy(true);
     try {
       const artifacts = await buildExportArtifacts();
@@ -625,6 +645,25 @@ const TenancyContractBuilderPage = () => {
     currentValue: readByPath(documentData, field.path),
   }));
   const mappingReadyCount = mappingPreview.filter((item) => !isMissing(item.currentValue)).length;
+  const contractStepReady = Boolean(completionMap.contract?.completed && completionMap.tenant?.completed);
+  const sharePhoneValid = isValidSharePhone(sharePhone);
+  const sharePhoneValidationText = sharePhone.trim()
+    ? sharePhoneValid
+      ? 'Phone format looks valid for queueing.'
+      : 'Enter a valid phone like +971528643118 (8-15 digits, optional +).'
+    : 'Phone is required before queueing WhatsApp share.';
+
+  const finalizationBlockers = [
+    !landlordGateStatus.ready
+      ? `Landlord gate is incomplete: ${landlordGateStatus.missing.join(', ') || 'required documents missing'}.`
+      : null,
+    !tenantGateStatus.ready
+      ? `Tenant gate is incomplete: ${tenantGateStatus.missing.join(', ') || 'required documents missing'}.`
+      : null,
+    !contractStepReady ? 'Contract export is not ready yet. Complete tenant + contract steps first.' : null,
+  ].filter(Boolean);
+
+  const canFinalize = finalizationBlockers.length === 0;
 
   const handleTenantProofUpload = async (event, type) => {
     const file = event.target.files?.[0];
@@ -1219,10 +1258,14 @@ const TenancyContractBuilderPage = () => {
               isBusy={isBusy}
               mappingReadyCount={mappingReadyCount}
               mappingTotal={mappingPreview.length}
-              contractReady={completionMap.contract?.completed && completionMap.tenant?.completed}
+              contractReady={contractStepReady}
               addendumReady={completionMap.addendum?.completed}
               landlordReady={landlordGateStatus.ready}
               tenantReady={tenantGateStatus.ready}
+              canFinalize={canFinalize}
+              finalizationBlockers={finalizationBlockers}
+              sharePhoneValid={sharePhoneValid}
+              sharePhoneValidationText={sharePhoneValidationText}
             />
 
             <p className="tenancy-builder-note">
