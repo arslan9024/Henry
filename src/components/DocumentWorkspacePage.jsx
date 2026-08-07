@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { APP_PAGES } from '../store/appRouteSlice';
 import useAppNavigation from '../hooks/useAppNavigation';
-import { Badge, Button, Card, Modal } from './ui';
+import { Badge, Button, Card, FormField, Input, Modal, Select } from './ui';
 
 const JOURNEY_TASKS = [
   {
@@ -73,14 +73,38 @@ const PREVIEW_CAPABILITIES = [
   'Side-by-side bilingual field toggle',
 ];
 
+const LAYOUT_PRESETS = [
+  { value: 'split', label: 'Split View (recommended)' },
+  { value: 'focus', label: 'Focus Mode (form-first)' },
+  { value: 'compact', label: 'Compact Operations' },
+];
+
+const PAPER_SIZE_OPTIONS = [
+  { value: 'A4', label: 'A4 (default)' },
+  { value: 'Letter', label: 'Letter' },
+  { value: 'Legal', label: 'Legal' },
+];
+
+const ORIENTATION_OPTIONS = [
+  { value: 'portrait', label: 'Portrait' },
+  { value: 'landscape', label: 'Landscape' },
+];
+
 const DocumentWorkspacePage = () => {
   const { goToPage } = useAppNavigation();
   const [activeJourneyId, setActiveJourneyId] = useState(null);
+  const [layoutPreset, setLayoutPreset] = useState('split');
+  const [paperSize, setPaperSize] = useState('A4');
+  const [orientation, setOrientation] = useState('portrait');
+  const [previewScale, setPreviewScale] = useState(100);
+  const [previewPaneWidth, setPreviewPaneWidth] = useState(38);
 
   const activeJourney = useMemo(
     () => JOURNEY_TASKS.find((journey) => journey.id === activeJourneyId) || null,
     [activeJourneyId],
   );
+
+  const workspaceLayoutClass = `workspace-ops-layout workspace-ops-layout--${layoutPreset}`;
 
   return (
     <main className="workspace-page shell-page" id="main" tabIndex={-1}>
@@ -108,34 +132,128 @@ const DocumentWorkspacePage = () => {
         <Badge tone="warning">Big-bang migration in progress</Badge>
       </section>
 
-      <section className="workspace-page__grid" aria-label="Journey launcher cards">
-        {JOURNEY_TASKS.map((journey) => (
-          <Card key={journey.id} variant="outlined" className="workspace-task-card" as="article">
+      <section
+        className={workspaceLayoutClass}
+        style={{ '--workspace-preview-width': `${previewPaneWidth}%` }}
+        aria-label="Document workspace layout"
+      >
+        <div className="workspace-ops-layout__main">
+          <Card variant="outlined" className="workspace-page-setup" as="article">
             <Card.Header>
-              <h3>{journey.title}</h3>
+              <h3>Document View Setup</h3>
             </Card.Header>
             <Card.Body>
-              <p>{journey.description}</p>
-              <div className="workspace-task-card__links">
-                {journey.quickLinks.map((link) => (
-                  <Button
-                    key={`${journey.id}-${link.page}`}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => goToPage(link.page)}
-                  >
-                    Open {link.label}
+              <div className="workspace-page-setup__grid">
+                <FormField label="Layout preset">
+                  <Select
+                    value={layoutPreset}
+                    onChange={(e) => setLayoutPreset(e.target.value)}
+                    options={LAYOUT_PRESETS}
+                  />
+                </FormField>
+                <FormField label="Paper size">
+                  <Select
+                    value={paperSize}
+                    onChange={(e) => setPaperSize(e.target.value)}
+                    options={PAPER_SIZE_OPTIONS}
+                  />
+                </FormField>
+                <FormField label="Orientation">
+                  <Select
+                    value={orientation}
+                    onChange={(e) => setOrientation(e.target.value)}
+                    options={ORIENTATION_OPTIONS}
+                  />
+                </FormField>
+                <FormField label="Preview scale (%)">
+                  <Input
+                    type="number"
+                    min="60"
+                    max="140"
+                    step="5"
+                    value={previewScale}
+                    onChange={(e) => setPreviewScale(Number(e.target.value) || 100)}
+                  />
+                </FormField>
+              </div>
+
+              <FormField label="Preview pane width">
+                <input
+                  type="range"
+                  min="30"
+                  max="50"
+                  value={previewPaneWidth}
+                  onChange={(e) => setPreviewPaneWidth(Number(e.target.value))}
+                />
+              </FormField>
+            </Card.Body>
+          </Card>
+
+          <section className="workspace-page__grid" aria-label="Journey launcher cards">
+            {JOURNEY_TASKS.map((journey) => (
+              <Card key={journey.id} variant="outlined" className="workspace-task-card" as="article">
+                <Card.Header>
+                  <h3>{journey.title}</h3>
+                </Card.Header>
+                <Card.Body>
+                  <p>{journey.description}</p>
+                  <div className="workspace-task-card__links">
+                    {journey.quickLinks.map((link) => (
+                      <Button
+                        key={`${journey.id}-${link.page}`}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => goToPage(link.page)}
+                      >
+                        Open {link.label}
+                      </Button>
+                    ))}
+                  </div>
+                </Card.Body>
+                <Card.Footer>
+                  <Button variant="primary" onClick={() => setActiveJourneyId(journey.id)}>
+                    Launch Journey Modal
                   </Button>
-                ))}
+                </Card.Footer>
+              </Card>
+            ))}
+          </section>
+        </div>
+
+        <aside className="workspace-ops-layout__preview" aria-label="Document preview and export panel">
+          <Card variant="elevated" className="workspace-preview-card">
+            <Card.Header>
+              <h3>Preview & Export Console</h3>
+            </Card.Header>
+            <Card.Body>
+              <div className="workspace-preview-card__meta">
+                <Badge tone="info">{paperSize}</Badge>
+                <Badge tone="neutral">{orientation}</Badge>
+                <Badge tone="success">Scale {previewScale}%</Badge>
+              </div>
+
+              <div className="workspace-preview-card__canvas" role="img" aria-label="Document preview area">
+                <p>Preview pane ready for generated documents and uploaded source files.</p>
+                <small>
+                  Tip: use the Tenancy Builder export journey for final package generation, then return here
+                  for cross-workflow review.
+                </small>
+              </div>
+
+              <div className="workspace-preview-card__actions">
+                <Button variant="secondary" onClick={() => goToPage(APP_PAGES.TENANCY_BUILDER)}>
+                  Open package builder
+                </Button>
+                <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
+                  Open preview/print tools
+                </Button>
+                <Button variant="ghost" onClick={() => goToPage(APP_PAGES.TITLE_DEED)}>
+                  Open document scanner
+                </Button>
               </div>
             </Card.Body>
-            <Card.Footer>
-              <Button variant="primary" onClick={() => setActiveJourneyId(journey.id)}>
-                Launch Journey Modal
-              </Button>
-            </Card.Footer>
           </Card>
-        ))}
+        </aside>
       </section>
 
       <Modal
