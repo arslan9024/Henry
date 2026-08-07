@@ -1,17 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTemplateLabel, selectPolicyMeta, selectHenry } from '../store/selectors';
+import { APP_PAGE_NAV_ITEMS, APP_PAGES, navigateToPage, selectCurrentPage } from '../store/appRouteSlice';
 import {
-  APP_PAGES,
-  selectCurrentPage,
-  goToPayroll,
-  goToDocumentHub,
-  goToTenancyBuilder,
-  goToTitleDeed,
-  goToEmiratesId,
-  goToTenantIdentityDocs,
-} from '../store/appRouteSlice';
-import { openCommandPalette as openCommandPaletteCommand, toggleLeftRail } from '../store/uiCommandSlice';
+  closeCommandPalette,
+  closeDrawer,
+  closePreview,
+  openCommandPalette as openCommandPaletteCommand,
+  toggleLeftRail,
+} from '../store/uiCommandSlice';
 import useDensity from '../hooks/useDensity';
 import useTheme from '../hooks/useTheme';
 import AutosaveIndicator from './AutosaveIndicator';
@@ -42,29 +39,27 @@ const TopNavbar = React.memo(() => {
     dispatch(openCommandPaletteCommand());
   }, [dispatch]);
 
+  const handleNavigate = useCallback(
+    (targetPage) => {
+      dispatch(navigateToPage(targetPage));
+      dispatch(closeDrawer());
+      dispatch(closePreview());
+      dispatch(closeCommandPalette());
+    },
+    [dispatch],
+  );
+
   const togglePage = useCallback(() => {
     if (currentPage === APP_PAGES.PAYROLL) {
-      dispatch(goToDocumentHub());
+      handleNavigate(APP_PAGES.DOCUMENT_HUB);
     } else {
-      dispatch(goToPayroll());
+      handleNavigate(APP_PAGES.PAYROLL);
     }
-  }, [currentPage, dispatch]);
+  }, [currentPage, handleNavigate]);
 
-  const goToBuilderPage = useCallback(() => {
-    dispatch(goToTenancyBuilder());
-  }, [dispatch]);
-
-  const goToTitleDeedPage = useCallback(() => {
-    dispatch(goToTitleDeed());
-  }, [dispatch]);
-
-  const goToEmiratesIdPage = useCallback(() => {
-    dispatch(goToEmiratesId());
-  }, [dispatch]);
-
-  const goToTenantIdentityDocsPage = useCallback(() => {
-    dispatch(goToTenantIdentityDocs());
-  }, [dispatch]);
+  const topNavQuickRoutes = APP_PAGE_NAV_ITEMS.filter(
+    (item) => item.key !== APP_PAGES.DOCUMENT_HUB && item.key !== APP_PAGES.PAYROLL,
+  );
 
   useEffect(() => {
     if (!identityOpen) return undefined;
@@ -215,42 +210,18 @@ const TopNavbar = React.memo(() => {
           >
             {currentPage === APP_PAGES.PAYROLL ? '📄 Documents' : '💳 Payroll'}
           </button>
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={goToBuilderPage}
-            aria-label="Navigate to Tenancy Contract Builder"
-            title="Tenancy Contract Builder"
-          >
-            🧩 Builder
-          </button>
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={goToTitleDeedPage}
-            aria-label="Navigate to Title Deed Extractor"
-            title="Title Deed Extractor"
-          >
-            🏷️ Title Deed
-          </button>
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={goToEmiratesIdPage}
-            aria-label="Navigate to Emirates ID Extractor"
-            title="Emirates ID Extractor"
-          >
-            🪪 Emirates ID
-          </button>
-          <button
-            type="button"
-            className="density-toggle payroll-nav-btn"
-            onClick={goToTenantIdentityDocsPage}
-            aria-label="Navigate to Tenant Passport and Residence Permit Scanner"
-            title="Tenant Passport and Residence Permit Scanner"
-          >
-            🛂 Tenant Docs
-          </button>
+          {topNavQuickRoutes.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className="density-toggle payroll-nav-btn"
+              onClick={() => handleNavigate(item.key)}
+              aria-label={`Navigate to ${item.label}`}
+              title={item.label}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
           <button
             type="button"
             className="density-toggle"
