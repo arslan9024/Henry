@@ -1,0 +1,207 @@
+import React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+
+import documentReducer from '../../store/documentSlice';
+import templateReducer from '../../store/templateSlice';
+
+const mocks = vi.hoisted(() => ({
+  goToPage: vi.fn(),
+  gateState: {
+    landlordGateStatus: {
+      ready: false,
+      missing: ['Landlord mobile', 'Title deed upload'],
+      titleDeedCount: 0,
+      landlordEmiratesIdCount: 0,
+    },
+    tenantGateStatus: {
+      ready: false,
+      missing: ['Tenant mobile', 'Passport upload'],
+      tenantEmiratesIdCount: 0,
+      passportCount: 0,
+      residencePermitCount: 0,
+    },
+    completionMap: {
+      landlord: { completed: false, missing: ['landlord.phone'] },
+      property: { completed: false, missing: ['property.unit'] },
+      tenant: { completed: false, missing: ['tenant.contactNo'] },
+      contract: { completed: false, missing: ['payments.contractStartDate'] },
+      terms: { completed: true, missing: [] },
+      addendum: { completed: false, missing: ['addendum.effectiveDate'] },
+    },
+    getStepBlockCopy: () => ({
+      title: 'Step blocked',
+      body: 'Missing required fields.',
+    }),
+  },
+}));
+
+vi.mock('../../hooks/useAppNavigation', () => ({
+  default: () => ({
+    goToPage: mocks.goToPage,
+  }),
+}));
+
+vi.mock('../../hooks/useGateStatus', () => ({
+  default: () => mocks.gateState,
+}));
+
+vi.mock('../../records/templateStore', () => ({
+  loadTenancyTemplates: () => [],
+  getTenancyTemplateFolders: () => ({
+    master: 'records/templates/master',
+    workingCopies: 'records/templates/working-copies',
+  }),
+  saveTenancyTemplate: vi.fn(),
+  createEditableTemplateCopy: vi.fn(),
+}));
+
+vi.mock('../../records/titleDeedStore', () => ({
+  loadTitleDeedReferences: () => [],
+}));
+
+vi.mock('../../records/emiratesIdStore', () => ({
+  loadEmiratesIdReferences: () => [],
+}));
+
+vi.mock('../../records/tenantDocumentStore', () => ({
+  loadTenantDocumentReferences: () => [],
+  saveTenantDocumentReference: vi.fn(),
+}));
+
+vi.mock('../../services/fileExtractionService', () => ({
+  extractTextFromFile: vi.fn(),
+}));
+
+vi.mock('../../services/whatsappQueueService', () => ({
+  queueWhatsAppSharePackage: vi.fn(),
+}));
+
+vi.mock('../../records/archiveService', () => ({
+  persistRecordFile: vi.fn(),
+}));
+
+vi.mock('../../pdf/templateFieldRegistry', () => ({
+  getTenancyFieldProfile: () => ({ label: 'Tenancy Registry Profile' }),
+  getRequiredMappedFields: () => [
+    { path: 'tenant.fullName', label: 'Tenant Name' },
+    { path: 'property.unit', label: 'Property Unit' },
+  ],
+}));
+
+vi.mock('./PlacementActionPanel', () => ({
+  default: (props) => (
+    <div
+      data-testid="placement-action-panel-stub"
+      data-can-finalize={String(props.canFinalize)}
+      data-landlord-ready={String(props.landlordReady)}
+      data-tenant-ready={String(props.tenantReady)}
+      data-contract-ready={String(props.contractReady)}
+      data-blocker-count={String((props.finalizationBlockers || []).length)}
+    >
+      <span>{props.sharePhoneValidationText}</span>
+    </div>
+  ),
+}));
+
+import TenancyContractBuilderPage from './TenancyContractBuilderPage';
+
+const makeStore = () =>
+  configureStore({
+    reducer: {
+      document: documentReducer,
+      template: templateReducer,
+    },
+  });
+
+const renderPage = () =>
+  render(
+    <Provider store={makeStore()}>
+      <TenancyContractBuilderPage />
+    </Provider>,
+  );
+
+describe('TenancyContractBuilderPage integration shell', () => {
+  beforeEach(() => {
+    mocks.goToPage.mockReset();
+  });
+
+  it('renders shell/workflow semantic classes and key heading', () => {
+    renderPage();
+
+    const main = screen.getByRole('main');
+    expect(main).toHaveClass('tenancy-builder-page');
+    expect(main).toHaveClass('workflow-page');
+    expect(main).toHaveClass('shell-page');
+    expect(screen.getByRole('heading', { name: /tenancy contract builder/i })).toBeInTheDocument();
+  });
+
+  it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
+    mocks.gateState = {
+      ...mocks.gateState,
+      landlordGateStatus: {
+        ...mocks.gateState.landlordGateStatus,
+        ready: false,
+      },
+      tenantGateStatus: {
+        ...mocks.gateState.tenantGateStatus,
+        ready: false,
+      },
+      completionMap: {
+        ...mocks.gateState.completionMap,
+        tenant: { completed: false, missing: ['tenant.contactNo'] },
+        contract: { completed: false, missing: ['payments.contractStartDate'] },
+      },
+    };
+
+    renderPage();
+
+    const panel = await screen.findByTestId('placement-action-panel-stub');
+    expect(panel).toHaveAttribute('data-can-finalize', 'false');
+    expect(panel).toHaveAttribute('data-landlord-ready', 'false');
+    expect(panel).toHaveAttribute('data-tenant-ready', 'false');
+    expect(Number(panel.getAttribute('data-blocker-count'))).toBeGreaterThan(0);
+  });
+
+  it('passes ready finalization state when all gates and contract readiness are complete', async () => {
+    mocks.gateState = {
+      ...mocks.gateState,
+      landlordGateStatus: {
+        ...mocks.gateState.landlordGateStatus,
+        ready: true,
+        missing: [],
+        titleDeedCount: 1,
+        landlordEmiratesIdCount: 1,
+      },
+      tenantGateStatus: {
+        ...mocks.gateState.tenantGateStatus,
+        ready: true,
+        missing: [],
+        tenantEmiratesIdCount: 1,
+        passportCount: 1,
+        residencePermitCount: 1,
+      },
+      completionMap: {
+        landlord: { completed: true, missing: [] },
+        property: { completed: true, missing: [] },
+        tenant: { completed: true, missing: [] },
+        contract: { completed: true, missing: [] },
+        terms: { completed: true, missing: [] },
+        addendum: { completed: true, missing: [] },
+      },
+    };
+
+    renderPage();
+
+    const panel = await screen.findByTestId('placement-action-panel-stub');
+    await waitFor(() => {
+      expect(panel).toHaveAttribute('data-can-finalize', 'true');
+      expect(panel).toHaveAttribute('data-landlord-ready', 'true');
+      expect(panel).toHaveAttribute('data-tenant-ready', 'true');
+      expect(panel).toHaveAttribute('data-contract-ready', 'true');
+      expect(panel).toHaveAttribute('data-blocker-count', '0');
+    });
+  });
+});
