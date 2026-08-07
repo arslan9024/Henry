@@ -197,6 +197,34 @@ describe('TenancyContractBuilderPage integration shell', () => {
     expect(mocks.goToPage).toHaveBeenNthCalledWith(4, APP_PAGES.TENANT_IDENTITY_DOCS);
   });
 
+  it('keeps user on current step when Continue is blocked by missing required fields', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: /^landlord$/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByRole('heading', { name: /^landlord$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /^property$/i })).not.toBeInTheDocument();
+  });
+
+  it('advances to next step when current step requirements are complete', async () => {
+    mocks.gateState = {
+      ...mocks.gateState,
+      completionMap: {
+        ...mocks.gateState.completionMap,
+        landlord: { completed: true, missing: [] },
+      },
+    };
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^property$/i })).toBeInTheDocument();
+    });
+  });
+
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
     mocks.gateState = {
       ...mocks.gateState,
