@@ -225,6 +225,28 @@ describe('TenancyContractBuilderPage integration shell', () => {
     });
   });
 
+  it('returns to previous step when Previous is clicked after step advance', async () => {
+    mocks.gateState = {
+      ...mocks.gateState,
+      completionMap: {
+        ...mocks.gateState.completionMap,
+        landlord: { completed: true, missing: [] },
+      },
+    };
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^property$/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /previous/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^landlord$/i })).toBeInTheDocument();
+    });
+  });
+
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
     mocks.gateState = {
       ...mocks.gateState,
