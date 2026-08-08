@@ -10,6 +10,7 @@ import {
   evaluateTitleDeedReadiness,
   parseTitleDeedText,
 } from '../../services/titleDeedExtractionService';
+import { mapTitleDeedToProperty } from '../../services/extractionAutofillService';
 import { persistRecordFile } from '../../records/archiveService';
 import { loadTitleDeedReferences, saveTitleDeedReference } from '../../records/titleDeedStore';
 import { Badge, Button, Card, FormField, Input } from '../ui';
@@ -53,88 +54,40 @@ const TitleDeedModulePage = () => {
 
   const toast = (tone, title, body) => dispatch(pushToast({ tone, title, body }));
 
-  const buildSizeValue = (sourceParsed) => {
-    const sqm = sourceParsed?.areaSqMeter;
-    const sqf = sourceParsed?.areaSqFeet;
-    if (sqm && sqf) return `${sqm} sqm / ${sqf} sqft`;
-    if (sqm) return `${sqm} sqm`;
-    if (sqf) return `${sqf} sqft`;
-    return '';
-  };
-
   const buildApplyPlan = (sourceParsed = parsed) => {
     if (!sourceParsed) return null;
 
-    const previousValues = {
-      documentDate: documentData?.property?.documentDate || '',
-      propertyType: documentData?.property?.propertyType || '',
-      community: documentData?.property?.community || '',
-      plotNo: documentData?.property?.plotNo || '',
-      size: documentData?.property?.size || '',
-      buildingNumber: documentData?.property?.buildingNumber || '',
-    };
-
-    const nextValues = {
-      ...previousValues,
-      documentDate: sourceParsed.issueDate || previousValues.documentDate,
-      propertyType: sourceParsed.propertyType || previousValues.propertyType,
-      community: sourceParsed.community || previousValues.community,
-      plotNo: sourceParsed.plotNo || previousValues.plotNo,
-      size: buildSizeValue(sourceParsed) || previousValues.size,
-      buildingNumber: sourceParsed.municipalityNo || previousValues.buildingNumber,
-    };
-
-    const diffRows = [
-      {
-        key: 'property.documentDate',
-        label: 'Property Document Date',
-        currentValue: previousValues.documentDate,
-        nextValue: nextValues.documentDate,
-        changed: previousValues.documentDate !== nextValues.documentDate,
-      },
-      {
-        key: 'property.propertyType',
-        label: 'Property Type',
-        currentValue: previousValues.propertyType,
-        nextValue: nextValues.propertyType,
-        changed: previousValues.propertyType !== nextValues.propertyType,
-      },
-      {
-        key: 'property.community',
-        label: 'Community',
-        currentValue: previousValues.community,
-        nextValue: nextValues.community,
-        changed: previousValues.community !== nextValues.community,
-      },
-      {
-        key: 'property.plotNo',
-        label: 'Plot Number',
-        currentValue: previousValues.plotNo,
-        nextValue: nextValues.plotNo,
-        changed: previousValues.plotNo !== nextValues.plotNo,
-      },
-      {
-        key: 'property.size',
-        label: 'Size',
-        currentValue: previousValues.size,
-        nextValue: nextValues.size,
-        changed: previousValues.size !== nextValues.size,
-      },
-      {
-        key: 'property.buildingNumber',
-        label: 'Municipality / Building Number',
-        currentValue: previousValues.buildingNumber,
-        nextValue: nextValues.buildingNumber,
-        changed: previousValues.buildingNumber !== nextValues.buildingNumber,
-      },
+    const previousValues = { ...documentData.property };
+    const nextValues = mapTitleDeedToProperty(sourceParsed, previousValues);
+    const fields = [
+      ['documentDate', 'Property Document Date'],
+      ['propertyType', 'Property Type'],
+      ['community', 'Community'],
+      ['plotNo', 'Plot Number'],
+      ['size', 'Size'],
+      ['buildingNumber', 'Municipality / Building Number'],
+      ['titleDeedMortgageStatus', 'Mortgage Status'],
+      ['titleDeedOwnerName', 'Title Deed Owner Name'],
+      ['titleDeedOwnerNumber', 'Title Deed Owner Number'],
+      ['landRegistrationNo', 'Land Registration Number'],
+      ['titleDeedPurchaseDate', 'Purchase Date'],
+      ['titleDeedPurchaseAmountAed', 'Purchase Amount (AED)'],
+      ['titleDeedCertificateNo', 'Certificate Number'],
     ];
+    const diffRows = fields.map(([field, label]) => ({
+      key: `property.${field}`,
+      label,
+      currentValue: previousValues[field],
+      nextValue: nextValues[field],
+      changed: previousValues[field] !== nextValues[field],
+    }));
 
     return {
       previousValues,
       nextValues,
       diffRows,
       successBody:
-        'Selected title deed fields were applied to the property section (date, type, community, plot, size, municipality/building).',
+        'Title deed property, ownership, registration, mortgage, purchase, and certificate metadata were applied.',
     };
   };
 

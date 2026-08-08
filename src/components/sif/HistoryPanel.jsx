@@ -47,7 +47,7 @@ export default function HistoryPanel() {
       </div>
 
       <div className="sif-history-list">
-        {history.map((record, index) => (
+        {history.map((record) => (
           <div key={record.id} className="sif-history-item">
             <div className="sif-history-item__main">
               <div className="sif-history-filename">📄 {record.sifFilename}</div>

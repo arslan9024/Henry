@@ -11,6 +11,7 @@ import {
   parseEmiratesIdText,
 } from '../../services/emiratesIdExtractionService';
 import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
+import { mapEmiratesIdToParty } from '../../services/extractionAutofillService';
 import { persistRecordFile } from '../../records/archiveService';
 import { loadEmiratesIdReferences, saveEmiratesIdReference } from '../../records/emiratesIdStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
@@ -99,50 +100,33 @@ const EmiratesIdModulePage = () => {
 
     if (sourceOwnerTag === 'tenant') {
       const section = 'tenant';
-      const previousValues = {
-        fullName: documentData?.tenant?.fullName || '',
-        nationality: documentData?.tenant?.nationality || '',
-        emiratesId: documentData?.tenant?.emiratesId || '',
-        idExpiryDate: documentData?.tenant?.idExpiryDate || '',
-      };
-      const nextValues = {
-        ...previousValues,
-        fullName: preferred.name.value || previousValues.fullName,
-        nationality: preferred.nationality.value || previousValues.nationality,
-        emiratesId: sourceParsed.idNumber || previousValues.emiratesId,
-        idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
-      };
-
-      const diffRows = [
-        {
-          key: 'tenant.fullName',
-          label: 'Tenant Full Name',
-          currentValue: previousValues.fullName,
-          nextValue: nextValues.fullName,
-          changed: previousValues.fullName !== nextValues.fullName,
-        },
-        {
-          key: 'tenant.nationality',
-          label: 'Tenant Nationality',
-          currentValue: previousValues.nationality,
-          nextValue: nextValues.nationality,
-          changed: previousValues.nationality !== nextValues.nationality,
-        },
-        {
-          key: 'tenant.emiratesId',
-          label: 'Tenant Emirates ID',
-          currentValue: previousValues.emiratesId,
-          nextValue: nextValues.emiratesId,
-          changed: previousValues.emiratesId !== nextValues.emiratesId,
-        },
-        {
-          key: 'tenant.idExpiryDate',
-          label: 'Tenant ID Expiry',
-          currentValue: previousValues.idExpiryDate,
-          nextValue: nextValues.idExpiryDate,
-          changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
-        },
+      const previousValues = { ...documentData.tenant };
+      const nextValues = mapEmiratesIdToParty({
+        parsed: sourceParsed,
+        current: previousValues,
+        preferred,
+        ownerTag: sourceOwnerTag,
+      });
+      const fields = [
+        ['fullName', 'Tenant Full Name'],
+        ['nationality', 'Tenant Nationality'],
+        ['emiratesId', 'Tenant Emirates ID'],
+        ['dateOfBirth', 'Date of Birth'],
+        ['gender', 'Gender'],
+        ['idIssueDate', 'ID Issue Date'],
+        ['idExpiryDate', 'ID Expiry Date'],
+        ['identityCardNumber', 'Card Number'],
+        ['occupation', 'Occupation'],
+        ['employer', 'Employer'],
+        ['idIssuingPlace', 'Issuing Place'],
       ];
+      const diffRows = fields.map(([field, label]) => ({
+        key: `tenant.${field}`,
+        label,
+        currentValue: previousValues[field],
+        nextValue: nextValues[field],
+        changed: previousValues[field] !== nextValues[field],
+      }));
 
       return {
         section,
@@ -156,32 +140,32 @@ const EmiratesIdModulePage = () => {
     }
 
     const section = 'landlord';
-    const previousValues = {
-      emiratesId: documentData?.landlord?.emiratesId || '',
-      idExpiryDate: documentData?.landlord?.idExpiryDate || '',
-    };
-    const nextValues = {
-      ...previousValues,
-      emiratesId: sourceParsed.idNumber || previousValues.emiratesId,
-      idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
-    };
-
-    const diffRows = [
-      {
-        key: 'landlord.emiratesId',
-        label: 'Landlord Emirates ID',
-        currentValue: previousValues.emiratesId,
-        nextValue: nextValues.emiratesId,
-        changed: previousValues.emiratesId !== nextValues.emiratesId,
-      },
-      {
-        key: 'landlord.idExpiryDate',
-        label: 'Landlord ID Expiry',
-        currentValue: previousValues.idExpiryDate,
-        nextValue: nextValues.idExpiryDate,
-        changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
-      },
+    const previousValues = { ...documentData.landlord };
+    const nextValues = mapEmiratesIdToParty({
+      parsed: sourceParsed,
+      current: previousValues,
+      preferred,
+      ownerTag: sourceOwnerTag,
+    });
+    const fields = [
+      ['nationality', 'Landlord Nationality'],
+      ['emiratesId', 'Landlord Emirates ID'],
+      ['dateOfBirth', 'Date of Birth'],
+      ['gender', 'Gender'],
+      ['idIssueDate', 'ID Issue Date'],
+      ['idExpiryDate', 'ID Expiry Date'],
+      ['identityCardNumber', 'Card Number'],
+      ['occupation', 'Occupation'],
+      ['employer', 'Employer'],
+      ['idIssuingPlace', 'Issuing Place'],
     ];
+    const diffRows = fields.map(([field, label]) => ({
+      key: `landlord.${field}`,
+      label,
+      currentValue: previousValues[field],
+      nextValue: nextValues[field],
+      changed: previousValues[field] !== nextValues[field],
+    }));
 
     return {
       section,
@@ -190,7 +174,7 @@ const EmiratesIdModulePage = () => {
       preferred,
       diffRows,
       successTitle: 'Landlord Emirates ID applied',
-      successBody: 'Landlord Emirates ID number and expiry date were copied into the current contract.',
+      successBody: 'Landlord Emirates ID identity and employment metadata were copied into the contract.',
     };
   };
 

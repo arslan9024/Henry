@@ -12,6 +12,7 @@ import {
   parseTenantIdentityText,
 } from '../../services/tenantIdentityExtractionService';
 import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
+import { mapTenantIdentityToTenant } from '../../services/extractionAutofillService';
 import { persistRecordFile } from '../../records/archiveService';
 import { loadTenantDocumentReferences, saveTenantDocumentReference } from '../../records/tenantDocumentStore';
 import { Badge, Button, Card, FormField, Input, Select } from '../ui';
@@ -95,51 +96,37 @@ const TenantIdentityDocsPage = () => {
     }
 
     const preferred = getPreferredTenantFields(sourceParsed);
-    const previousValues = {
-      passportNo: documentData?.tenant?.passportNo || '',
-      nationality: documentData?.tenant?.nationality || '',
-      idExpiryDate: documentData?.tenant?.idExpiryDate || '',
-      fullName: documentData?.tenant?.fullName || '',
-    };
-
-    const nextValues = {
-      ...previousValues,
-      passportNo: sourceParsed.passportNo || previousValues.passportNo,
-      nationality: preferred.nationality.value || previousValues.nationality,
-      idExpiryDate: sourceParsed.expiryDate || previousValues.idExpiryDate,
-      fullName: preferred.name.value || previousValues.fullName,
-    };
-
-    const diffRows = [
-      {
-        key: 'tenant.fullName',
-        label: 'Tenant Full Name',
-        currentValue: previousValues.fullName,
-        nextValue: nextValues.fullName,
-        changed: previousValues.fullName !== nextValues.fullName,
-      },
-      {
-        key: 'tenant.passportNo',
-        label: sourceType === 'passport' ? 'Passport Number' : 'Permit / Visa Number',
-        currentValue: previousValues.passportNo,
-        nextValue: nextValues.passportNo,
-        changed: previousValues.passportNo !== nextValues.passportNo,
-      },
-      {
-        key: 'tenant.nationality',
-        label: 'Tenant Nationality',
-        currentValue: previousValues.nationality,
-        nextValue: nextValues.nationality,
-        changed: previousValues.nationality !== nextValues.nationality,
-      },
-      {
-        key: 'tenant.idExpiryDate',
-        label: 'ID Expiry Date',
-        currentValue: previousValues.idExpiryDate,
-        nextValue: nextValues.idExpiryDate,
-        changed: previousValues.idExpiryDate !== nextValues.idExpiryDate,
-      },
+    const previousValues = { ...documentData.tenant };
+    const nextValues = mapTenantIdentityToTenant({
+      parsed: sourceParsed,
+      current: previousValues,
+      preferred,
+      sourceType,
+    });
+    const fields = [
+      ['fullName', 'Tenant Full Name'],
+      ['passportNo', 'Passport Number'],
+      ['residencePermitNo', 'Residence Permit / Visa Number'],
+      ['nationality', 'Tenant Nationality'],
+      ['dateOfBirth', 'Date of Birth'],
+      ['gender', 'Gender'],
+      ['identityIssueDate', 'Document Issue Date'],
+      ['idExpiryDate', 'Document Expiry Date'],
+      ['identityIssuingPlace', 'Place of Issue'],
+      ['sponsor', 'Sponsor'],
+      ['employer', 'Employer'],
+      ['visaType', 'Visa Type'],
+      ['immigrationFileNo', 'Immigration File Number'],
+      ['unifiedNo', 'Unified Number'],
+      ['lastIdentityDocumentType', 'Source Document Type'],
     ];
+    const diffRows = fields.map(([field, label]) => ({
+      key: `tenant.${field}`,
+      label,
+      currentValue: previousValues[field],
+      nextValue: nextValues[field],
+      changed: previousValues[field] !== nextValues[field],
+    }));
 
     return {
       sourceType,

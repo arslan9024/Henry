@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveTemplate, setErrorMessage, setSuccessMessage } from '../../store/payrollSlice';
-import { selectCurrentFile, selectCurrentTemplateName } from '../../store/payrollSlice';
+import { selectCurrentFile } from '../../store/payrollSlice';
 
 export default function SaveTemplateForm() {
   const dispatch = useDispatch();
   const currentFile = useSelector(selectCurrentFile);
-  const currentTemplateName = useSelector(selectCurrentTemplateName);
   const [templateName, setTemplateName] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

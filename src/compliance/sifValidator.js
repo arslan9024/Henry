@@ -172,7 +172,6 @@ export function validatePayDates(startDate, endDate) {
 
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const now = new Date();
 
   if (Number.isNaN(start.getTime())) {
     return {

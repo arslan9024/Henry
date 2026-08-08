@@ -6,6 +6,7 @@ import {
   removeAddendumClause,
   removeTenancyTerm,
   setDocumentValue,
+  updateDocumentSection,
 } from '../../store/documentSlice';
 import { setActiveTemplate } from '../../store/templateSlice';
 import { pushToast } from '../../store/uiSlice';
@@ -34,6 +35,11 @@ import {
   parseTenantIdentityText,
 } from '../../services/tenantIdentityExtractionService';
 import { resolvePreferredBilingualValue } from '../../services/multilingualTextUtils';
+import {
+  mapEmiratesIdToParty,
+  mapTenantIdentityToTenant,
+  mapTitleDeedToProperty,
+} from '../../services/extractionAutofillService';
 import { Badge, Button, Card, FormField, Input, Select, Textarea } from '../ui';
 import PlacementActionPanel from './PlacementActionPanel';
 import { getTenancyFieldProfile, getRequiredMappedFields } from '../../pdf/templateFieldRegistry';
@@ -93,9 +99,6 @@ const isMissing = (value) => {
   if (typeof value === 'number') return Number.isNaN(value);
   return false;
 };
-
-const getMissingFields = (documentData, requiredPaths) =>
-  requiredPaths.filter((path) => isMissing(readByPath(documentData, path)));
 
 const Field = ({ label, value, onChange, type = 'text', placeholder = '' }) => (
   <FormField label={label}>
@@ -219,16 +222,18 @@ const TenancyContractBuilderPage = () => {
     }
 
     const latest = refs[0]?.parsed || {};
-    updateValue('property', 'plotNo', latest.plotNo || '');
-    updateValue('property', 'community', latest.community || documentData.property.community || '');
-    updateValue('property', 'propertyType', latest.propertyType || documentData.property.propertyType || '');
-    updateValue(
-      'property',
-      'size',
-      latest.areaSqMeter ? `${latest.areaSqMeter}` : documentData.property.size || '',
+    dispatch(
+      updateDocumentSection({
+        section: 'property',
+        values: mapTitleDeedToProperty(latest, documentData.property),
+      }),
     );
 
-    toast('success', 'Property fields updated', 'Applied latest title deed values to property section.');
+    toast(
+      'success',
+      'Property fields updated',
+      'Applied property, ownership, registration, mortgage, purchase, and certificate metadata.',
+    );
   };
 
   const applyLatestLandlordEmiratesId = () => {
@@ -243,12 +248,24 @@ const TenancyContractBuilderPage = () => {
     }
 
     const latest = refs[0]?.parsed || {};
-    updateValue('landlord', 'emiratesId', latest.idNumber || documentData.landlord.emiratesId || '');
-    updateValue('landlord', 'idExpiryDate', latest.expiryDate || documentData.landlord.idExpiryDate || '');
-    updateValue('landlord', 'phone', documentData.landlord.phone || DEFAULT_LANDLORD_PHONE);
-    updateValue('landlord', 'email', documentData.landlord.email || DEFAULT_LANDLORD_EMAIL);
+    const preferred = getPreferredTenantValues(latest);
+    dispatch(
+      updateDocumentSection({
+        section: 'landlord',
+        values: mapEmiratesIdToParty({
+          parsed: latest,
+          current: {
+            ...documentData.landlord,
+            phone: documentData.landlord.phone || DEFAULT_LANDLORD_PHONE,
+            email: documentData.landlord.email || DEFAULT_LANDLORD_EMAIL,
+          },
+          preferred,
+          ownerTag: 'landlord',
+        }),
+      }),
+    );
 
-    toast('success', 'Landlord fields updated', 'Applied latest landlord Emirates ID details.');
+    toast('success', 'Landlord fields updated', 'Applied latest landlord identity and employment details.');
   };
 
   const applyLatestTenantEmiratesId = () => {
@@ -260,16 +277,21 @@ const TenancyContractBuilderPage = () => {
 
     const latest = refs[0]?.parsed || {};
     const preferred = getPreferredTenantValues(latest);
-    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
-    updateValue('tenant', 'emiratesId', latest.idNumber || documentData.tenant.emiratesId || '');
-    updateValue('tenant', 'idExpiryDate', latest.expiryDate || documentData.tenant.idExpiryDate || '');
-    updateValue(
-      'tenant',
-      'nationality',
-      preferred.nationality.value || documentData.tenant.nationality || '',
+    dispatch(
+      updateDocumentSection({
+        section: 'tenant',
+        values: mapEmiratesIdToParty({
+          parsed: latest,
+          current: {
+            ...documentData.tenant,
+            contactNo: documentData.tenant.contactNo || DEFAULT_TENANT_PHONE,
+            email: documentData.tenant.email || DEFAULT_TENANT_EMAIL,
+          },
+          preferred,
+          ownerTag: 'tenant',
+        }),
+      }),
     );
-    updateValue('tenant', 'contactNo', documentData.tenant.contactNo || DEFAULT_TENANT_PHONE);
-    updateValue('tenant', 'email', documentData.tenant.email || DEFAULT_TENANT_EMAIL);
 
     toast(
       'success',
@@ -291,14 +313,17 @@ const TenancyContractBuilderPage = () => {
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
     const preferred = getPreferredTenantValues(parsed);
-    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
-    updateValue('tenant', 'passportNo', parsed.passportNo || documentData.tenant.passportNo || '');
-    updateValue(
-      'tenant',
-      'nationality',
-      preferred.nationality.value || documentData.tenant.nationality || '',
+    dispatch(
+      updateDocumentSection({
+        section: 'tenant',
+        values: mapTenantIdentityToTenant({
+          parsed,
+          current: documentData.tenant,
+          preferred,
+          sourceType: 'passport',
+        }),
+      }),
     );
-    updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
     toast(
       'success',
@@ -321,13 +346,17 @@ const TenancyContractBuilderPage = () => {
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
     const preferred = getPreferredTenantValues(parsed);
-    updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
-    updateValue(
-      'tenant',
-      'nationality',
-      preferred.nationality.value || documentData.tenant.nationality || '',
+    dispatch(
+      updateDocumentSection({
+        section: 'tenant',
+        values: mapTenantIdentityToTenant({
+          parsed,
+          current: documentData.tenant,
+          preferred,
+          sourceType: 'residence-permit',
+        }),
+      }),
     );
-    updateValue('tenant', 'idExpiryDate', parsed.expiryDate || documentData.tenant.idExpiryDate || '');
 
     toast(
       'success',
@@ -353,30 +382,19 @@ const TenancyContractBuilderPage = () => {
     const permitParsed = permitRefs[0]?.parsed || {};
     const preferredPassport = getPreferredTenantValues(passportParsed);
     const preferredPermit = getPreferredTenantValues(permitParsed);
-
-    updateValue(
-      'tenant',
-      'fullName',
-      preferredPassport.name.value || preferredPermit.name.value || documentData.tenant.fullName || '',
-    );
-    updateValue(
-      'tenant',
-      'passportNo',
-      passportParsed.passportNo || permitParsed.passportNo || documentData.tenant.passportNo || '',
-    );
-    updateValue(
-      'tenant',
-      'nationality',
-      preferredPassport.nationality.value ||
-        preferredPermit.nationality.value ||
-        documentData.tenant.nationality ||
-        '',
-    );
-    updateValue(
-      'tenant',
-      'idExpiryDate',
-      passportParsed.expiryDate || permitParsed.expiryDate || documentData.tenant.idExpiryDate || '',
-    );
+    const passportValues = mapTenantIdentityToTenant({
+      parsed: passportParsed,
+      current: documentData.tenant,
+      preferred: preferredPassport,
+      sourceType: 'passport',
+    });
+    const combinedValues = mapTenantIdentityToTenant({
+      parsed: permitParsed,
+      current: passportValues,
+      preferred: preferredPermit,
+      sourceType: 'residence-permit',
+    });
+    dispatch(updateDocumentSection({ section: 'tenant', values: combinedValues }));
 
     toast(
       'success',
@@ -750,17 +768,17 @@ const TenancyContractBuilderPage = () => {
 
       const appliedParsed = parsedDoc || {};
       const preferred = getPreferredTenantValues(appliedParsed);
-      if (normalizedType === 'passport') {
-        updateValue('tenant', 'fullName', preferred.name.value || documentData.tenant.fullName || '');
-        updateValue('tenant', 'passportNo', appliedParsed.passportNo || documentData.tenant.passportNo || '');
-      }
-      if (preferred.nationality.value) {
-        updateValue(
-          'tenant',
-          'nationality',
-          preferred.nationality.value || documentData.tenant.nationality || '',
-        );
-      }
+      dispatch(
+        updateDocumentSection({
+          section: 'tenant',
+          values: mapTenantIdentityToTenant({
+            parsed: appliedParsed,
+            current: documentData.tenant,
+            preferred,
+            sourceType: normalizedType,
+          }),
+        }),
+      );
 
       toast(
         'success',
@@ -912,6 +930,36 @@ const TenancyContractBuilderPage = () => {
                     value={documentData.landlord.phone}
                     onChange={(e) => updateValue('landlord', 'phone', e.target.value)}
                   />
+                  <Field
+                    label="Landlord nationality"
+                    value={documentData.landlord.nationality}
+                    onChange={(e) => updateValue('landlord', 'nationality', e.target.value)}
+                  />
+                  <Field
+                    label="Landlord date of birth"
+                    value={documentData.landlord.dateOfBirth}
+                    onChange={(e) => updateValue('landlord', 'dateOfBirth', e.target.value)}
+                  />
+                  <Field
+                    label="Landlord ID issue date"
+                    value={documentData.landlord.idIssueDate}
+                    onChange={(e) => updateValue('landlord', 'idIssueDate', e.target.value)}
+                  />
+                  <Field
+                    label="Landlord ID expiry date"
+                    value={documentData.landlord.idExpiryDate}
+                    onChange={(e) => updateValue('landlord', 'idExpiryDate', e.target.value)}
+                  />
+                  <Field
+                    label="Landlord occupation"
+                    value={documentData.landlord.occupation}
+                    onChange={(e) => updateValue('landlord', 'occupation', e.target.value)}
+                  />
+                  <Field
+                    label="Landlord employer"
+                    value={documentData.landlord.employer}
+                    onChange={(e) => updateValue('landlord', 'employer', e.target.value)}
+                  />
                 </div>
               </div>
             ) : null}
@@ -937,6 +985,41 @@ const TenancyContractBuilderPage = () => {
                   label="Makani No"
                   value={documentData.property.makaniNo}
                   onChange={(e) => updateValue('property', 'makaniNo', e.target.value)}
+                />
+                <Field
+                  label="Property type"
+                  value={documentData.property.propertyType}
+                  onChange={(e) => updateValue('property', 'propertyType', e.target.value)}
+                />
+                <Field
+                  label="Plot number"
+                  value={documentData.property.plotNo}
+                  onChange={(e) => updateValue('property', 'plotNo', e.target.value)}
+                />
+                <Field
+                  label="Municipality / building number"
+                  value={documentData.property.buildingNumber}
+                  onChange={(e) => updateValue('property', 'buildingNumber', e.target.value)}
+                />
+                <Field
+                  label="Property size"
+                  value={documentData.property.size}
+                  onChange={(e) => updateValue('property', 'size', e.target.value)}
+                />
+                <Field
+                  label="Land registration number"
+                  value={documentData.property.landRegistrationNo}
+                  onChange={(e) => updateValue('property', 'landRegistrationNo', e.target.value)}
+                />
+                <Field
+                  label="Title deed certificate number"
+                  value={documentData.property.titleDeedCertificateNo}
+                  onChange={(e) => updateValue('property', 'titleDeedCertificateNo', e.target.value)}
+                />
+                <Field
+                  label="Mortgage status"
+                  value={documentData.property.titleDeedMortgageStatus}
+                  onChange={(e) => updateValue('property', 'titleDeedMortgageStatus', e.target.value)}
                 />
               </div>
             ) : null}
@@ -1056,6 +1139,46 @@ const TenancyContractBuilderPage = () => {
                     label="Tenant contact"
                     value={documentData.tenant.contactNo}
                     onChange={(e) => updateValue('tenant', 'contactNo', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant passport number"
+                    value={documentData.tenant.passportNo}
+                    onChange={(e) => updateValue('tenant', 'passportNo', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant residence permit number"
+                    value={documentData.tenant.residencePermitNo}
+                    onChange={(e) => updateValue('tenant', 'residencePermitNo', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant nationality"
+                    value={documentData.tenant.nationality}
+                    onChange={(e) => updateValue('tenant', 'nationality', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant date of birth"
+                    value={documentData.tenant.dateOfBirth}
+                    onChange={(e) => updateValue('tenant', 'dateOfBirth', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant document issue date"
+                    value={documentData.tenant.identityIssueDate || documentData.tenant.idIssueDate}
+                    onChange={(e) => updateValue('tenant', 'identityIssueDate', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant document expiry date"
+                    value={documentData.tenant.idExpiryDate}
+                    onChange={(e) => updateValue('tenant', 'idExpiryDate', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant employer"
+                    value={documentData.tenant.employer}
+                    onChange={(e) => updateValue('tenant', 'employer', e.target.value)}
+                  />
+                  <Field
+                    label="Tenant sponsor"
+                    value={documentData.tenant.sponsor}
+                    onChange={(e) => updateValue('tenant', 'sponsor', e.target.value)}
                   />
                 </div>
 

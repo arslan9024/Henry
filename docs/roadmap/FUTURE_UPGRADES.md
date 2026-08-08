@@ -24,10 +24,15 @@
 **Evidence:** validated `appRoute.context` contract, contextual builder CTAs, extractor preselection/return
 behavior, `extractorRouteContext.test.jsx`, and full suite at 141 files / 2,460 tests.
 
-### Phase B — Autofill expansion ⏳ Next
-- Apply more title deed fields automatically
-- Add passport/visa extraction support if needed
-- Sync extracted values into more tenant/landlord fields
+### Phase B — Autofill expansion ✅ Complete (2026-08-08)
+- [x] Apply full supported title deed property, ownership, registration, mortgage, purchase, and certificate metadata
+- [x] Apply passport and residence-permit fields through a shared normalized mapping service
+- [x] Sync richer Emirates ID identity/employment metadata into tenant and landlord records
+- [x] Expose expanded autofill values in Tenancy Builder for review and correction
+
+**Evidence:** `extractionAutofillService.js` + unit tests, expanded guarded document schema, shared
+mapping across extractor journeys/builder shortcuts/inline scans, lint clean, and full suite at 142 files /
+2,464 tests.
 
 ### Phase C — PDF output maturity
 - Complete merged PDF generation engine
