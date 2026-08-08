@@ -56,6 +56,18 @@ const safeJoinUnderRecords = (logicalPath) => {
   return resolved;
 };
 
+const resolvePersistedFile = (persistedPath) => {
+  const root = path.resolve(RECORDS_ROOT);
+  const cleaned = String(persistedPath || '')
+    .replace(/^[\\/]+/, '')
+    .replace(/^records[\\/]+/i, '');
+  const resolved = path.resolve(root, cleaned);
+  if (!resolved.startsWith(`${root}${path.sep}`)) {
+    throw new Error('Refused: requested path escapes records root');
+  }
+  return resolved;
+};
+
 const readBody = (req) =>
   new Promise((resolve, reject) => {
     const chunks = [];
@@ -101,7 +113,14 @@ const withCors = (res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-record-path,x-file-name');
 };
 
-const handleRecordsApi = async (req, res, pathname) => {
+const handleRecordsApi = async (req, res, pathname, searchParams) => {
+  // GET /api/records/file?path=/records/...
+  if (req.method === 'GET' && pathname === '/api/records/file') {
+    const persistedPath = searchParams.get('path');
+    if (!persistedPath) return sendJson(res, 400, { ok: false, error: 'Missing path query' });
+    return sendFile(res, resolvePersistedFile(persistedPath));
+  }
+
   // GET /api/records/archive
   if (req.method === 'GET' && pathname === '/api/records/archive') {
     try {
@@ -207,7 +226,7 @@ const server = http.createServer(async (req, res) => {
     const pathname = url.pathname;
 
     if (pathname.startsWith('/api/records')) {
-      return await handleRecordsApi(req, res, pathname);
+      return await handleRecordsApi(req, res, pathname, url.searchParams);
     }
 
     return await handleStatic(req, res, pathname === '/' ? '/index.html' : pathname);

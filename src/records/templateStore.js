@@ -101,3 +101,19 @@ export const createEditableTemplateCopy = ({ templateId, createdBy = 'Henry User
 
   return { ok: true, entry: copy, source };
 };
+
+export const updateTenancyTemplateProfile = ({ templateId, profile }) => {
+  const templates = loadTenancyTemplates();
+  const index = templates.findIndex((item) => item.id === templateId);
+  if (index < 0) return { ok: false, reason: 'template-not-found' };
+  if (templates[index].kind !== 'working-copy') return { ok: false, reason: 'master-read-only' };
+
+  const updated = {
+    ...templates[index],
+    mappingProfile: profile,
+    updatedAt: new Date().toISOString(),
+  };
+  const next = templates.map((item, itemIndex) => (itemIndex === index ? updated : item));
+  persistTenancyTemplates(next);
+  return { ok: true, entry: updated };
+};

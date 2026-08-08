@@ -16,12 +16,14 @@ import useGateStatus from '../../hooks/useGateStatus';
 import { generateQuotationPdfBlob } from '../../pdf/generateQuotationPdf';
 import { buildPdfFileName, sanitizeFileNameSegment } from '../../pdf/pdfHelpers';
 import { mergePdfBlobs } from '../../pdf/mergePdfBlobs';
-import { persistRecordFile } from '../../records/archiveService';
+import { renderConfiguredTemplatePdf } from '../../pdf/templatePdfService';
+import { fetchRecordFile, persistRecordFile } from '../../records/archiveService';
 import {
   createEditableTemplateCopy,
   getTenancyTemplateFolders,
   loadTenancyTemplates,
   saveTenancyTemplate,
+  updateTenancyTemplateProfile,
 } from '../../records/templateStore';
 import { loadTitleDeedReferences } from '../../records/titleDeedStore';
 import { loadEmiratesIdReferences } from '../../records/emiratesIdStore';
@@ -42,6 +44,7 @@ import {
 } from '../../services/extractionAutofillService';
 import { Badge, Button, Card, FormField, Input, Select, Textarea } from '../ui';
 import PlacementActionPanel from './PlacementActionPanel';
+import TemplateMappingEditor from './TemplateMappingEditor';
 import { getTenancyFieldProfile, getRequiredMappedFields } from '../../pdf/templateFieldRegistry';
 
 const DEFAULT_LANDLORD_PHONE = '+254 720 985595';
@@ -527,13 +530,33 @@ const TenancyContractBuilderPage = () => {
       throw new Error('Complete contract and tenant steps before export.');
     }
 
+    const buildTenancyBlob = async () => {
+      if (!selectedTemplate) {
+        return generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' });
+      }
+      if (selectedTemplate.kind !== 'working-copy') {
+        throw new Error('Create and select an editable working copy before custom-template export.');
+      }
+      if (!selectedTemplate.mappingProfile) {
+        throw new Error('Save the selected template mapping profile before export.');
+      }
+      const persistedPath = selectedTemplate.sourcePersistedPath || selectedTemplate.persistedPath;
+      const result = await fetchRecordFile(persistedPath);
+      if (!result.ok) throw new Error(`Template file unavailable: ${result.reason || 'read failed'}.`);
+      return renderConfiguredTemplatePdf({
+        templateBlob: result.blob,
+        documentData,
+        profile: selectedTemplate.mappingProfile,
+      });
+    };
+
     if (exportMode === 'merged') {
       if (!canExportAddendum) {
         throw new Error('Complete addendum fields first, or switch output mode to separate files.');
       }
 
       const [tenancyBlob, addendumBlob] = await Promise.all([
-        generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' }),
+        buildTenancyBlob(),
         generateQuotationPdfBlob({ documentData, templateKey: 'addendum' }),
       ]);
 
@@ -556,7 +579,7 @@ const TenancyContractBuilderPage = () => {
     }
 
     const files = [];
-    const tenancyBlob = await generateQuotationPdfBlob({ documentData, templateKey: 'tenancy' });
+    const tenancyBlob = await buildTenancyBlob();
     files.push({
       key: 'tenancy',
       label: 'Tenancy contract PDF',
@@ -657,6 +680,23 @@ const TenancyContractBuilderPage = () => {
   };
 
   const selectedTemplate = templates.find((item) => item.id === selectedTemplateId) || null;
+
+  const handleSaveMappingProfile = (profile) => {
+    if (!selectedTemplate) return;
+    const result = updateTenancyTemplateProfile({ templateId: selectedTemplate.id, profile });
+    if (!result.ok) {
+      toast(
+        'error',
+        'Mapping profile not saved',
+        result.reason === 'master-read-only'
+          ? 'Master templates are read-only. Create an editable copy first.'
+          : 'Could not update the selected template.',
+      );
+      return;
+    }
+    setTemplates(loadTenancyTemplates());
+    toast('success', 'Mapping profile saved', `${profile.mappings.length} field mappings stored.`);
+  };
   const tenantGateTone = tenantGateStatus.ready ? 'success' : 'warning';
   const mappingPreview = requiredMappedFields.map((field) => ({
     ...field,
@@ -1414,6 +1454,15 @@ const TenancyContractBuilderPage = () => {
                   <strong>Working-copy folder:</strong> {folderConfig.workingCopies}
                 </p>
               </div>
+            ) : null}
+
+            {selectedTemplate ? (
+              <TemplateMappingEditor
+                template={selectedTemplate}
+                fields={fieldProfile.fields}
+                onSave={handleSaveMappingProfile}
+                onNotify={toast}
+              />
             ) : null}
 
             <div className="tenancy-template-meta">

@@ -34,10 +34,16 @@ behavior, `extractorRouteContext.test.jsx`, and full suite at 141 files / 2,460 
 mapping across extractor journeys/builder shortcuts/inline scans, lint clean, and full suite at 142 files /
 2,464 tests.
 
-### Phase C — PDF output maturity
-- Complete merged PDF generation engine
-- Add static coordinate mapping editor
-- Add fillable PDF field editor
+### Phase C — PDF output maturity ✅ Complete (2026-08-08)
+- [x] Complete merged PDF generation engine with ordered-page validation and actionable failures
+- [x] Add bilingual static coordinate mapping editor with persisted working-copy profiles
+- [x] Add fillable PDF field editor with AcroForm discovery and field population
+- [x] Render selected custom templates in separate and merged export journeys
+- [x] Keep master templates read-only and preserve generated-template fallback
+
+**Evidence:** `templatePdfService.js`, `TemplateMappingEditor.jsx`, safe persisted binary retrieval,
+profile persistence tests, hardened `mergePdfBlobs.js`, lint clean, and full suite at 146 files /
+2,475 tests with production build pass.
 
 ### Phase D — Audit and traceability
 - Show which source document populated each field

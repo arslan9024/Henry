@@ -7,6 +7,7 @@
 //   POST /api/records/file           -> multipart-less raw upload:
 //                                       headers: x-record-path, x-file-name
 //                                       body: binary PDF
+//   GET  /api/records/file?path=...  -> reads a persisted binary under records/
 //
 // Notes:
 //  - Active in dev (vite dev) only. For production deploys, run a real server.
@@ -56,6 +57,18 @@ const sendJson = (res, status, payload) => {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(payload));
+};
+
+const resolvePersistedFile = (rootDir, persistedPath) => {
+  const recordsRoot = path.resolve(rootDir, 'records');
+  const cleaned = String(persistedPath || '')
+    .replace(/^[\\/]+/, '')
+    .replace(/^records[\\/]+/i, '');
+  const resolved = path.resolve(recordsRoot, cleaned);
+  if (!resolved.startsWith(`${recordsRoot}${path.sep}`)) {
+    throw new Error('Refused: requested path escapes records root');
+  }
+  return resolved;
 };
 
 export default function henryRecordsApi() {
@@ -137,6 +150,20 @@ export default function henryRecordsApi() {
             await fsp.writeFile(fullPath, body);
             const relative = path.relative(rootDir, fullPath).split(path.sep).join('/');
             return sendJson(res, 200, { ok: true, path: '/' + relative });
+          }
+
+          if (req.method === 'GET' && req.url.startsWith('/api/records/file')) {
+            const requestUrl = new URL(req.url, 'http://localhost');
+            const persistedPath = requestUrl.searchParams.get('path');
+            if (!persistedPath) return sendJson(res, 400, { ok: false, error: 'Missing path query' });
+            const fullPath = resolvePersistedFile(rootDir, persistedPath);
+            const stat = await fsp.stat(fullPath);
+            if (!stat.isFile()) return sendJson(res, 404, { ok: false, error: 'File not found' });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Length', String(stat.size));
+            fs.createReadStream(fullPath).pipe(res);
+            return;
           }
 
           return sendJson(res, 404, { ok: false, error: 'Unknown records endpoint' });

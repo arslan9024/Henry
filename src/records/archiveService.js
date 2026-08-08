@@ -87,6 +87,21 @@ export const persistRecordFile = async ({ recordPath, fileName, blob }) => {
   }
 };
 
+export const fetchRecordFile = async (persistedPath) => {
+  if (typeof window === 'undefined') return { ok: false, reason: 'no-window' };
+  if (!persistedPath || typeof persistedPath !== 'string') {
+    return { ok: false, reason: 'missing-path' };
+  }
+
+  try {
+    const response = await fetch(`${FILE_API}?path=${encodeURIComponent(persistedPath)}`);
+    if (!response.ok) return { ok: false, reason: `HTTP ${response.status}` };
+    return { ok: true, blob: await response.blob() };
+  } catch (error) {
+    return { ok: false, reason: error.message || 'fetch-failed' };
+  }
+};
+
 export const fetchArchiveFromBackend = async () => {
   if (typeof window === 'undefined') return null;
   try {
