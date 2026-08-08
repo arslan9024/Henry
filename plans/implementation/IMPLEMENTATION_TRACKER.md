@@ -1,7 +1,7 @@
 # IMPLEMENTATION TRACKER
 
 **Progress:** 51/51 tasks complete (100%)
-**Last Updated:** 2026-04-25
+**Last Updated:** 2026-08-08
 **Owner:** Henry (AI Record Keeper)
 
 ## 🚀 Post-V1 Roadmap Progress
@@ -113,6 +113,7 @@ _None_
 | 2026-08-08 | Post-V1 Phase C — PDF output maturity | `npm run lint` + `npm test` + `npm run build` | ✅ Static coordinate + fillable AcroForm editors, persisted working-copy mappings, configured custom-template rendering, hardened merged PDF engine, safe binary retrieval; 146 files / 2,475 tests pass; production build pass |
 | 2026-08-08 | Post-V1 Phase D — audit and traceability | `npm run lint` + `npm test` + `npm run build` | ✅ Field-level source provenance, upload/apply/generation timeline events, searchable validation dashboard, persisted source metadata; 148 files / 2,479 tests pass; production build pass |
 | 2026-08-08 | Post-V1 Phase E — team-scale upgrades | `npm run lint` + `npm test` + `npm run build` | ✅ Provider-neutral local/Firebase persistence, Firebase Auth boundary, Operator/Manager/Admin RBAC, approval state machine + console, immutable template profiles and rollback; 151 files / 2,486 tests pass; production build pass |
+| 2026-08-08 | Phase E production-readiness hardening | `npm run lint` + `npm test` + `npm run build` + diagnostics | ✅ Removed Firebase bearer token from build-time environment and Redux-safe user state; authenticated Storage uses runtime session memory; deployment checklist and public docs synchronized; 151 files / 2,487 tests pass; production build pass |
 | 2026-04-23 | Production build                        | `npm run build`                                                                                                                                                                        | ✅ Pass (Vite 5.4.21)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-04-23 | Source diagnostics                      | `get_errors src/`                                                                                                                                                                      | ✅ No errors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 2026-04-23 | `plans/` structure                      | `Get-ChildItem plans -Recurse`                                                                                                                                                         | ✅ Created                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -178,11 +179,13 @@ _None_
 | 2026-04-23 | Local Ollama is default LLM mode               | Privacy-first, no cloud dependency           |
 | 2026-04-23 | Footer hosts chat + Generate PDF               | Better screen-density and discoverability    |
 | 2026-04-23 | Official DLD Ejari = source of truth for Ejari | Regulatory accuracy                          |
+| 2026-08-08 | Firebase bearer tokens are runtime-only       | `VITE_*` values are embedded in client bundles; short-lived Auth tokens stay in session memory |
+| 2026-08-08 | Production activation is an environment gate  | Firebase project/rules/claims and secrets belong to deployment administration, not source control |
 
 ---
 
 ## ⏭️ Next Actions
 
-1. Drop official DLD Ejari source at `src/templates/sources/DLD_EJARI_OFFICIAL.pdf` to unblock T-01.
-2. Live UI verification of footer chat across breakpoints (1366/1024/768/375).
-3. Add a thin production server (or Electron IPC) mirroring the dev plugin so filesystem persistence works in non-dev builds.
+1. Execute the staging checklist in `plans/implementation/PHASE_E_PRODUCTION_READINESS.md` with platform and business owners.
+2. Configure Firebase project, Storage rules, authorized domains, users, and custom role claims outside source control.
+3. Run role-by-role staging acceptance for upload → apply → validate → generate → approve → persist and template rollback.

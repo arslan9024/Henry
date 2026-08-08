@@ -34,9 +34,10 @@ Every session **must** follow the operating loop below. The tracker is the proje
 
 ## Current Active Initiatives
 
-- Official DLD Ejari template adoption
-- Footer chat assistant (Local Ollama)
-- Generate PDF button relocation to footer
-- Filesystem record archiving
+- Phase E staging and production environment sign-off
+- Firebase Storage rules, Auth users, and custom role claims
+- Role-by-role acceptance testing and operational handoff
+- Future performance/code-splitting planning (non-blocking)
 
-See `implementation/IMPLEMENTATION_TRACKER.md` for live status.
+See `implementation/IMPLEMENTATION_TRACKER.md` for live status and
+`implementation/PHASE_E_PRODUCTION_READINESS.md` for deployment gates.

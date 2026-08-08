@@ -4,8 +4,8 @@
 
 Henry generates, verifies, and archives every official real-estate document White Caves issues — viewing forms, booking forms, tenancy contracts, addenda, invoices, key-handover checklists, government-employee bookings, and DLD offer letters — with built-in **RERA / DLD compliance checking** and a full **auditable trail**.
 
-[![CI](https://github.com/USER/Henry/actions/workflows/ci.yml/badge.svg)](https://github.com/USER/Henry/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-307%20passing-brightgreen)
+[![CI](https://github.com/arslan9024/Henry/actions/workflows/ci.yml/badge.svg)](https://github.com/arslan9024/Henry/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-2487%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-97.75%25-brightgreen)
 ![Lint](https://img.shields.io/badge/eslint-0%20warnings-brightgreen)
 ![Format](https://img.shields.io/badge/prettier-passing-brightgreen)
@@ -21,6 +21,8 @@ Henry generates, verifies, and archives every official real-estate document Whit
 - **AI extraction (chat dock)** — drop a PDF / image / Emirates ID and Henry suggests field updates with confidence scores. Every applied field is logged.
 - **Audit log** — persisted to `localStorage` (capped at 100), groupable by date, searchable, exportable, and re-importable as JSON. Destructive operations push a 10-second toast with **Undo**.
 - **Records archive** — every generated PDF is filed under `records/{YEAR}/{MONTH}/{PROPERTY}/` via the in-repo Vite dev plugin (`vite-plugins/henryRecordsApi.js`) in development or the production server (`scripts/records-server.mjs`) in deployed builds.
+- **Team workflow** — Operator → Manager → Admin permissions, approval queue/history, validation dashboard, field provenance, and immutable template-profile rollback.
+- **Provider-neutral persistence** — local records API by default, with Firebase Auth/Storage activation through deployment environment configuration and short-lived runtime session tokens.
 - **Density toggle** + `Ctrl+/` chat shortcut + `inert`-shielded backgrounds when a drawer / chat overlay is open.
 - **Global toast system** with `info` / `success` / `warning` / `error` tones and inline action buttons.
 
@@ -34,7 +36,7 @@ npm run dev          # http://localhost:5000
 ```
 
 ```powershell
-npm test             # 141 tests, ~10s
+npm test             # complete Vitest regression suite
 npm run test:watch   # vitest watch mode
 npm run test:coverage   # writes coverage/ + index.html
 npm run lint         # 0 errors / 0 warnings
@@ -63,17 +65,18 @@ The server provides the same records API contract used in dev:
 - `GET /api/records/archive`
 - `POST /api/records/archive`
 - `POST /api/records/file` (binary body + `x-record-path` + `x-file-name` headers)
+- `GET /api/records/file?path=...` (records-root-constrained binary retrieval)
 
 ---
 
 ## 🧪 Testing
 
-| Layer                                 | Tool                                   | Files  | Tests   |
-| ------------------------------------- | -------------------------------------- | ------ | ------- |
-| Pure logic (slices, selectors, utils) | Vitest                                 | 11     | 92      |
-| Hooks (jsdom + RTL `renderHook`)      | Vitest + Testing Library               | 4      | 23      |
-| Components (jsdom + RTL `render`)     | Vitest + Testing Library + `userEvent` | 3      | 26      |
-| **Total**                             |                                        | **18** | **141** |
+| Layer                                 | Tool                     | Current baseline            |
+| ------------------------------------- | ------------------------ | --------------------------- |
+| Pure logic/services/stores            | Vitest                   | Included                    |
+| Hooks/components/workflows            | Vitest + Testing Library | Included                    |
+| PDF, extraction, persistence, routing | Vitest + pdf-lib/jsdom   | Included                    |
+| **Total**                             |                          | **151 files / 2,487 tests** |
 
 **Coverage on the included surface: 97.75% lines / 88.7% functions** (entry points and pure-render JSX templates are intentionally excluded — see `vite.config.js → test.coverage.include`).
 
@@ -130,8 +133,8 @@ Coverage trend over the last sessions:
 
 ### Stack
 
-- **React 18.3** + **Redux Toolkit 2.2** + **Vite 5.4**
-- **Vitest 2.1** + **jsdom 25** + **Testing Library** (`react@16`, `jest-dom@6`, `user-event@14`) + **`@vitest/coverage-v8`**
+- **React 18.3** + **Redux Toolkit 2.2** + **Vite 8.0**
+- **Vitest 4.1** + **jsdom 25** + **Testing Library** (`react@16`, `jest-dom@6`, `user-event@14`) + **`@vitest/coverage-v8`**
 - **`@react-pdf/renderer`** for PDF generation (lazy-loaded — large chunk warning silenced)
 - **`pdfjs-dist`** + **`tesseract.js`** for OCR draft extraction
 

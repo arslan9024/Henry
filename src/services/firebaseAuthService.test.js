@@ -10,9 +10,13 @@ describe('firebaseAuthService', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('normalizes custom role claims and defaults unknown roles to operator', () => {
-    expect(
-      normalizeFirebaseUser({ localId: '1', email: 'm@h.test', idToken: tokenFor({ role: 'manager' }) }).role,
-    ).toBe('manager');
+    const manager = normalizeFirebaseUser({
+      localId: '1',
+      email: 'm@h.test',
+      idToken: tokenFor({ role: 'manager' }),
+    });
+    expect(manager.role).toBe('manager');
+    expect(manager).not.toHaveProperty('idToken');
     expect(normalizeFirebaseUser({ localId: '2', idToken: tokenFor({ role: 'owner' }) }).role).toBe(
       'operator',
     );

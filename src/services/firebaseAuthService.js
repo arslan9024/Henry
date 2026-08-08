@@ -1,3 +1,5 @@
+import { clearCloudAuthToken, setCloudAuthToken } from './cloudPersistenceService';
+
 const decodeTokenPayload = (token) => {
   try {
     const encoded = String(token || '').split('.')[1];
@@ -18,9 +20,10 @@ export const normalizeFirebaseUser = (response) => {
     displayName: response?.displayName || claims.name || response?.email || 'Henry User',
     role,
     provider: 'firebase',
-    idToken: response?.idToken || '',
   };
 };
+
+export const signOutFirebaseSession = () => clearCloudAuthToken();
 
 export const signInWithFirebasePassword = async ({ email, password, apiKey }) => {
   if (!apiKey) throw new Error('VITE_FIREBASE_API_KEY is required for Firebase Auth.');
@@ -34,7 +37,10 @@ export const signInWithFirebasePassword = async ({ email, password, apiKey }) =>
     },
   );
   const data = await response.json();
-  if (!response.ok)
+  if (!response.ok) {
+    clearCloudAuthToken();
     throw new Error(data?.error?.message || `Firebase Auth failed (HTTP ${response.status}).`);
+  }
+  setCloudAuthToken(data.idToken || '');
   return normalizeFirebaseUser(data);
 };

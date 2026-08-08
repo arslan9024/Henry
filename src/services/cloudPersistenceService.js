@@ -4,10 +4,19 @@ const normalizePath = (value) =>
     .replace(/\.{2,}/g, '')
     .replace(/[^a-zA-Z0-9._/-]/g, '_');
 
+let runtimeFirebaseToken = '';
+
+export const setCloudAuthToken = (token) => {
+  runtimeFirebaseToken = typeof token === 'string' ? token : '';
+};
+
+export const clearCloudAuthToken = () => {
+  runtimeFirebaseToken = '';
+};
+
 export const getCloudPersistenceConfig = (env = import.meta.env) => ({
   provider: env.VITE_HENRY_STORAGE_PROVIDER || 'local',
   firebaseBucket: env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  firebaseToken: env.VITE_FIREBASE_STORAGE_TOKEN || '',
 });
 
 const localAdapter = {
@@ -29,18 +38,19 @@ const localAdapter = {
   },
 };
 
-const createFirebaseAdapter = ({ firebaseBucket, firebaseToken }) => ({
+const createFirebaseAdapter = ({ firebaseBucket, authToken }) => ({
   id: 'firebase',
   persist: async ({ path, blob }) => {
-    if (!firebaseBucket || !firebaseToken) {
-      throw new Error('Firebase Storage requires VITE_FIREBASE_STORAGE_BUCKET and a runtime storage token.');
+    const token = authToken || runtimeFirebaseToken;
+    if (!firebaseBucket || !token) {
+      throw new Error('Firebase Storage requires VITE_FIREBASE_STORAGE_BUCKET and an authenticated session.');
     }
     const objectName = normalizePath(path);
     const endpoint = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(firebaseBucket)}/o?uploadType=media&name=${encodeURIComponent(objectName)}`;
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${firebaseToken}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': blob.type || 'application/octet-stream',
       },
       body: blob,

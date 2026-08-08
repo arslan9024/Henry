@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createPersistenceAdapter } from './cloudPersistenceService';
+import { clearCloudAuthToken, createPersistenceAdapter, setCloudAuthToken } from './cloudPersistenceService';
 
 describe('cloudPersistenceService', () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    clearCloudAuthToken();
+  });
 
   it('uses the local records API by default', async () => {
     const fetchSpy = vi
@@ -26,12 +29,29 @@ describe('cloudPersistenceService', () => {
     const result = await createPersistenceAdapter({
       provider: 'firebase',
       firebaseBucket: 'bucket',
-      firebaseToken: 'token',
+      authToken: 'token',
     }).persist({ path: 'cases/a.pdf', blob: new Blob(['a'], { type: 'application/pdf' }) });
     expect(result.path).toBe('firebase://bucket/cases/a.pdf');
     expect(fetchSpy).toHaveBeenCalledWith(
       expect.stringContaining('firebasestorage.googleapis.com'),
       expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer token' }) }),
+    );
+  });
+
+  it('uses only a short-lived runtime session token when no token is passed to the adapter', async () => {
+    setCloudAuthToken('session-token');
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true, json: async () => ({ name: 'a.pdf' }) });
+    await createPersistenceAdapter({ provider: 'firebase', firebaseBucket: 'bucket' }).persist({
+      path: 'cases/a.pdf',
+      blob: new Blob(['a']),
+    });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer session-token' }),
+      }),
     );
   });
 });
