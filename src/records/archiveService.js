@@ -6,6 +6,8 @@
 //     under <repoRoot>/records/{YEAR}/{MONTH}/{PROPERTY}/ via the Henry dev plugin.
 //   - PDF binaries are uploaded via persistRecordFile().
 
+import { persistWithConfiguredProvider } from '../services/cloudPersistenceService';
+
 const STORAGE_KEY = 'henry.archive.records.v1';
 const ARCHIVE_API = '/api/records/archive';
 const FILE_API = '/api/records/file';
@@ -65,21 +67,7 @@ export const persistRecordFile = async ({ recordPath, fileName, blob }) => {
   }
 
   try {
-    const response = await fetch(FILE_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'x-record-path': recordPath,
-        'x-file-name': fileName,
-      },
-      body: blob,
-    });
-
-    if (!response.ok) {
-      return { ok: false, reason: `HTTP ${response.status}` };
-    }
-
-    const data = await response.json().catch(() => ({}));
+    const data = await persistWithConfiguredProvider({ path: `${recordPath}/${fileName}`, blob });
     const path = typeof data?.path === 'string' ? data.path : null;
     return { ok: true, path };
   } catch (error) {

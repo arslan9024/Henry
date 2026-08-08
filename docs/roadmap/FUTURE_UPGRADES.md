@@ -55,10 +55,21 @@ profile persistence tests, hardened `mergePdfBlobs.js`, lint clean, and full sui
 `ValidationDashboardPage.jsx`, route/store integration, lint clean, and full suite at 148 files /
 2,479 tests with production build pass.
 
-### Phase E — Team-scale upgrades
-- Cloud storage/back-end persistence layer
-- Role-based access and approval flow
-- Versioned template profiles
+### Phase E — Team-scale upgrades ✅ Complete (2026-08-08)
+- [x] Provider-neutral persistence with local back-end fallback and Firebase Storage adapter
+- [x] Firebase Auth REST boundary with custom-claim role normalization
+- [x] Operator → Manager → Admin permission matrix and enforced approval transitions
+- [x] Team Workflow console for identity, approval queue, storage readiness, and template versions
+- [x] Immutable named template profiles with working-copy rollback
+- [x] Environment-only cloud configuration with no committed credentials
+
+**Deployment boundary:** local persistence works without configuration. Firebase storage/auth activate when the
+deployment supplies the values in `.env.example` and a short-lived runtime token. No production secret is
+stored in source control.
+
+**Evidence:** `cloudPersistenceService.js`, `firebaseAuthService.js`, `userAccessSlice.js`,
+`approvalSlice.js`, `TeamWorkflowPage.jsx`, version/rollback contracts in `templateStore.js`, lint clean,
+and full suite at 151 files / 2,486 tests with production build pass.
 
 ---
 

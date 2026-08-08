@@ -117,3 +117,44 @@ export const updateTenancyTemplateProfile = ({ templateId, profile }) => {
   persistTenancyTemplates(next);
   return { ok: true, entry: updated };
 };
+
+export const createTenancyTemplateVersion = ({ templateId, label, createdBy = 'Henry User' }) => {
+  const templates = loadTenancyTemplates();
+  const source = templates.find((item) => item.id === templateId);
+  if (!source) return { ok: false, reason: 'template-not-found' };
+  if (source.kind !== 'working-copy') return { ok: false, reason: 'working-copy-required' };
+
+  const existingVersions = templates.filter((item) => item.kind === 'version' && item.parentTemplateId === templateId);
+  const version = {
+    ...source,
+    id: `tpl_version_${Date.now()}`,
+    kind: 'version',
+    parentTemplateId: templateId,
+    version: `1.${existingVersions.length + 1}.0`,
+    profileLabel: String(label || 'Standard').trim() || 'Standard',
+    createdBy,
+    savedAt: new Date().toISOString(),
+    immutable: true,
+  };
+  persistTenancyTemplates([version, ...templates].slice(0, 120));
+  return { ok: true, entry: version };
+};
+
+export const rollbackTenancyTemplateVersion = ({ workingCopyId, versionId }) => {
+  const templates = loadTenancyTemplates();
+  const workingIndex = templates.findIndex((item) => item.id === workingCopyId && item.kind === 'working-copy');
+  const version = templates.find((item) => item.id === versionId && item.kind === 'version');
+  if (workingIndex < 0 || !version || version.parentTemplateId !== workingCopyId) {
+    return { ok: false, reason: 'version-mismatch' };
+  }
+  const restored = {
+    ...templates[workingIndex],
+    mode: version.mode,
+    mappingProfile: version.mappingProfile,
+    rolledBackFrom: version.id,
+    updatedAt: new Date().toISOString(),
+  };
+  const next = templates.map((item, index) => (index === workingIndex ? restored : item));
+  persistTenancyTemplates(next);
+  return { ok: true, entry: restored };
+};

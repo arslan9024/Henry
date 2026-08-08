@@ -9,6 +9,7 @@ export const APP_PAGES = {
   EMIRATES_ID: 'emiratesId',
   TENANT_IDENTITY_DOCS: 'tenantIdentityDocs',
   VALIDATION_DASHBOARD: 'validationDashboard',
+  TEAM_WORKFLOW: 'teamWorkflow',
 };
 
 export const APP_PAGE_NAV_ITEMS = [
@@ -20,6 +21,7 @@ export const APP_PAGE_NAV_ITEMS = [
   { key: APP_PAGES.EMIRATES_ID, label: 'Emirates ID', icon: '🪪' },
   { key: APP_PAGES.PAYROLL, label: 'Payroll', icon: '💳' },
   { key: APP_PAGES.VALIDATION_DASHBOARD, label: 'Validation', icon: '✅' },
+  { key: APP_PAGES.TEAM_WORKFLOW, label: 'Team Workflow', icon: '👥' },
 ];
 
 const VALID_PAGES = new Set(APP_PAGE_NAV_ITEMS.map((item) => item.key));
@@ -115,6 +117,10 @@ const appRouteSlice = createSlice({
       state.currentPage = APP_PAGES.VALIDATION_DASHBOARD;
       state.context = null;
     },
+    goToTeamWorkflow: (state) => {
+      state.currentPage = APP_PAGES.TEAM_WORKFLOW;
+      state.context = null;
+    },
   },
 });
 
@@ -130,6 +136,7 @@ export const {
   goToEmiratesId,
   goToTenantIdentityDocs,
   goToValidationDashboard,
+  goToTeamWorkflow,
 } = appRouteSlice.actions;
 export default appRouteSlice.reducer;
 
@@ -148,3 +155,4 @@ export const selectIsTenantIdentityDocsPage = (state) =>
   state.appRoute.currentPage === APP_PAGES.TENANT_IDENTITY_DOCS;
 export const selectIsValidationDashboardPage = (state) =>
   state.appRoute.currentPage === APP_PAGES.VALIDATION_DASHBOARD;
+export const selectIsTeamWorkflowPage = (state) => state.appRoute.currentPage === APP_PAGES.TEAM_WORKFLOW;

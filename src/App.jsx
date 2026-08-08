@@ -9,6 +9,7 @@ import TitleDeedModulePage from './components/titleDeed/TitleDeedModulePage';
 import EmiratesIdModulePage from './components/emiratesId/EmiratesIdModulePage';
 import TenantIdentityDocsPage from './components/tenantIdentity/TenantIdentityDocsPage';
 import ValidationDashboardPage from './components/ValidationDashboardPage';
+import TeamWorkflowPage from './components/TeamWorkflowPage';
 import UnifiedAppShell from './components/layout/UnifiedAppShell';
 import useAutosaveDebounce from './hooks/useAutosaveDebounce';
 
@@ -28,6 +29,7 @@ const App = () => {
     [APP_PAGES.EMIRATES_ID]: <EmiratesIdModulePage />,
     [APP_PAGES.TENANT_IDENTITY_DOCS]: <TenantIdentityDocsPage />,
     [APP_PAGES.VALIDATION_DASHBOARD]: <ValidationDashboardPage />,
+    [APP_PAGES.TEAM_WORKFLOW]: <TeamWorkflowPage />,
   };
 
   const resolvePage = () => {

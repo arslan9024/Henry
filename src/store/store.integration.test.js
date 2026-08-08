@@ -69,9 +69,9 @@ describe('store — all reducer slices registered', () => {
     expect(store.getState().appRoute).toBeDefined();
   });
 
-  it('has exactly 14 top-level state keys', () => {
+  it('has exactly 16 top-level state keys', () => {
     const keys = Object.keys(store.getState());
-    expect(keys).toHaveLength(14);
+    expect(keys).toHaveLength(16);
   });
 });
 

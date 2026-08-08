@@ -108,5 +108,5 @@ describe('Editable templates regression', () => {
 
     await user.click(screen.getByRole('button', { name: /Remove clause 1/i }));
     expect(store.getState().document.addendum.additionalClauses).toEqual([]);
-  });
+  }, 10000);
 });

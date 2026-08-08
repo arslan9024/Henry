@@ -18,6 +18,8 @@ import fieldSourceReducer, {
   persistFieldSources,
   recordFieldSources,
 } from './fieldSourceSlice';
+import userAccessReducer from './userAccessSlice';
+import approvalReducer from './approvalSlice';
 
 const listenerMiddleware = createListenerMiddleware();
 
@@ -69,6 +71,8 @@ export const store = configureStore({
     payroll: payrollReducer,
     appRoute: appRouteReducer,
     fieldSources: fieldSourceReducer,
+    userAccess: userAccessReducer,
+    approvals: approvalReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware),
 });
