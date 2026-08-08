@@ -86,3 +86,5 @@ and full suite at 151 files / 2,486 tests with production build pass.
 - Signature capture platform
 - Full OCR extraction for every possible tenant support document
 - Enterprise workflow orchestration beyond current scope
+
+These items are no longer an ambiguous “next phase.” Candidate value, estimates, dependencies, risks, and decision gates are groomed in `plans/roadmap/PHASE_F_CANDIDATES.md`; none is authorized until Product and Engineering record a selection.

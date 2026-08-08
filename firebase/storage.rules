@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasRole(role) {
+      return signedIn() && request.auth.token.role == role;
+    }
+
+    function isKnownRole() {
+      return hasRole('operator') || hasRole('manager') || hasRole('admin');
+    }
+
+    function isReviewer() {
+      return hasRole('manager') || hasRole('admin');
+    }
+
+    function isKnownNamespace(namespace) {
+      return namespace == 'records'
+        || namespace == 'tenancy-builder'
+        || namespace == 'emirates-id'
+        || namespace == 'tenant-identity'
+        || namespace == 'title-deed'
+        || namespace == 'templates'
+        || namespace == 'whatsapp-queue';
+    }
+
+    function isWithinUploadLimit() {
+      return request.resource != null
+        && request.resource.size < 25 * 1024 * 1024;
+    }
+
+    // A tenant/organization path segment and matching token claim must be added
+    // before enabling multi-organization hosting.
+    match /{namespace}/{path=**} {
+      allow read: if isKnownNamespace(namespace) && isKnownRole();
+      allow create: if isKnownNamespace(namespace) && isKnownRole() && isWithinUploadLimit();
+      allow update: if isKnownNamespace(namespace) && isReviewer() && isWithinUploadLimit();
+      allow delete: if isKnownNamespace(namespace) && hasRole('admin');
+    }
+
+    // Deny every object outside the explicit application namespace.
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

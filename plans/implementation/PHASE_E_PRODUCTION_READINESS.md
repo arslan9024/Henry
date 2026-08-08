@@ -46,10 +46,12 @@ Firebase bearer tokens are **not** environment variables. `signInWithFirebasePas
 - [ ] Add custom role claims: `operator`, `manager`, or `admin`.
 - [ ] Configure authorized domains for each deployment environment.
 - [ ] Create the Storage bucket and lifecycle/retention policy.
-- [ ] Deploy Storage rules that require authentication and authorize paths by role/tenant.
+- [ ] Review and deploy `firebase/storage.rules`; add an organization claim/path boundary before any multi-organization rollout.
 - [ ] Populate deployment environment variables from `.env.example`.
 - [ ] Confirm sign-out invokes `signOutFirebaseSession()` to clear the in-memory token.
 - [ ] Verify upload, download, expired-token, forbidden-path, and offline behavior in staging.
+
+Use the operational procedures in `plans/deployment/OPS_RUNBOOK.md` and record acceptance evidence in `plans/deployment/STAGING_CHECKLIST.md`. The rules are deployable with `firebase deploy --only storage` after the Firebase CLI is authenticated to the intended project.
 
 ## 4. Local/production records server
 
@@ -126,3 +128,5 @@ npm run readiness:check
 | Role assignments       | Business owner         | Pending deployment roster  |
 | Backup/retention       | Operations             | Pending deployment policy  |
 | Production release     | Release manager        | Pending staging acceptance |
+
+Cross-browser automation scope and acceptance criteria are defined in `plans/testing/E2E_TEST_PLAN.md`. The current repository does not install Playwright; implementation requires explicit Phase F authorization and CI/staging credentials.

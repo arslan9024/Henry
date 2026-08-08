@@ -98,9 +98,11 @@ _None_
 
 ## ⚠️ Risks / Blockers
 
-- Official DLD Ejari source file not yet present in repo (blocks parity pass).
-- Records archiving currently localStorage-only; needs backend or Electron IPC for true filesystem writes.
-- `@react-pdf/renderer` chunk > 500KB (build warning); acceptable now, candidate for code-splitting later.
+- Firebase project provisioning, authorized domains, role claims, retention policy, and staging sign-off require Platform and Business owners with deployment access.
+- The supplied Firebase rules enforce authenticated role-based access, but multi-organization hosting remains blocked until object paths and Auth claims include an organization boundary.
+- Cross-browser E2E automation is groomed in `plans/testing/E2E_TEST_PLAN.md`; Playwright is intentionally not installed until Phase F scope is authorized.
+
+Resolved: the official DLD source is tracked, records use provider-neutral local/Firebase persistence, and the established PDF bundle warning is covered by the configured build threshold/lazy loading.
 
 ---
 
@@ -108,6 +110,7 @@ _None_
 
 | Date       | Check                                   | Command / Method                                                                                                                                                                       | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-08 | Post-Phase-E release handoff completion | `npm run readiness:check` + `npm run lint` + `npm test` + `npm run build` + diagnostics + `git diff --check` | ✅ Added deployable RBAC Firebase Storage rules, staging acceptance checklist, operations/rollback runbook, E2E execution plan, and groomed Phase F candidates; reconciled stale risks; 152 files / 2,491 tests pass; production build pass; no diagnostics |
 | 2026-08-08 | Post-V1 Phase A — builder navigation quality | `npm test` + `npm run build` | ✅ Validated route context, requirement deep links, extractor preselection, contextual return, and auto-return contract; 141 files / 2,460 tests pass; production build pass |
 | 2026-08-08 | Post-V1 Phase B — autofill expansion | `npm run lint` + `npm test` + `npm run build` | ✅ Shared rich extraction mapper, expanded guarded schema, builder/extractor parity; lint clean; 142 files / 2,464 tests pass; production build pass |
 | 2026-08-08 | Post-V1 Phase C — PDF output maturity | `npm run lint` + `npm test` + `npm run build` | ✅ Static coordinate + fillable AcroForm editors, persisted working-copy mappings, configured custom-template rendering, hardened merged PDF engine, safe binary retrieval; 146 files / 2,475 tests pass; production build pass |
@@ -187,6 +190,8 @@ _None_
 
 ## ⏭️ Next Actions
 
-1. Execute the staging checklist in `plans/implementation/PHASE_E_PRODUCTION_READINESS.md` with platform and business owners.
-2. Configure Firebase project, Storage rules, authorized domains, users, and custom role claims outside source control.
-3. Run role-by-role staging acceptance for upload → apply → validate → generate → approve → persist and template rollback.
+All unblocked Phase A–E source and handoff work is complete. Remaining release actions require external environment access or human approval:
+
+1. Platform/Ops provisions Firebase, deploys `firebase/storage.rules`, and follows `plans/deployment/OPS_RUNBOOK.md`.
+2. Engineering, QA, Platform, and Business execute and sign `plans/deployment/STAGING_CHECKLIST.md`.
+3. Product and Engineering authorize one candidate from `plans/roadmap/PHASE_F_CANDIDATES.md`; if E2E hardening is selected, implement `plans/testing/E2E_TEST_PLAN.md` as a separately verified engineering slice.
