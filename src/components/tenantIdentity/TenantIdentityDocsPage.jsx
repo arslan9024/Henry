@@ -4,6 +4,8 @@ import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
+import { addAuditLog } from '../../store/auditSlice';
+import { recordFieldSources } from '../../store/fieldSourceSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
   buildTenantIdentityNumberedItems,
@@ -57,6 +59,7 @@ const TenantIdentityDocsPage = () => {
   const [journeyStep, setJourneyStep] = useState(0);
   const [lastExtractionMeta, setLastExtractionMeta] = useState(null);
   const [references, setReferences] = useState(() => loadTenantDocumentReferences());
+  const [activeReference, setActiveReference] = useState(null);
 
   const normalizedType = useMemo(() => normalizeTenantIdentityType(documentType), [documentType]);
 
@@ -148,6 +151,28 @@ const TenantIdentityDocsPage = () => {
     if (!applyPlan) return;
 
     dispatch(updateDocumentSection({ section: 'tenant', values: applyPlan.nextValues }));
+    dispatch(
+      recordFieldSources({
+        section: 'tenant',
+        values: applyPlan.nextValues,
+        source: {
+          sourceId: activeReference?.id || null,
+          sourceType,
+          fileName: activeReference?.fileName || null,
+          sourcePath: activeReference?.sourcePath || null,
+        },
+      }),
+    );
+    dispatch(
+      addAuditLog({
+        type: 'SOURCE_FIELDS_APPLIED',
+        timestamp: new Date().toISOString(),
+        section: 'tenant',
+        sourceType,
+        sourceId: activeReference?.id || null,
+        fieldCount: Object.keys(applyPlan.nextValues).length,
+      }),
+    );
     dispatch(
       pushToast({
         tone: 'success',
@@ -260,6 +285,17 @@ const TenantIdentityDocsPage = () => {
         documentLabel: normalizedType === 'passport' ? 'Passport' : 'Residence Permit',
         fileKind: extraction.kind || file.type || null,
       });
+      setActiveReference(localEntry);
+      dispatch(
+        addAuditLog({
+          type: 'SOURCE_DOCUMENT_UPLOADED',
+          timestamp: new Date().toISOString(),
+          sourceType: normalizedType,
+          sourceId: localEntry.id,
+          fileName: file.name,
+          sourcePath: sourceSave.path || null,
+        }),
+      );
 
       setReferences(loadTenantDocumentReferences());
       setExtractedText(extraction.text);

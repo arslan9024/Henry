@@ -35,6 +35,8 @@ const TYPE_TONE = {
   LLM_FILE_FIELD_APPLIED: 'success',
   LLM_FILE_BULK_APPLIED: 'success',
   CHAT_FILE_UPLOADED: 'default',
+  SOURCE_DOCUMENT_UPLOADED: 'default',
+  SOURCE_FIELDS_APPLIED: 'success',
 };
 
 const TONE_DOT = {
@@ -64,6 +66,10 @@ const summaryFor = (entry) => {
       return `Bulk applied ${entry.appliedCount} field${entry.appliedCount === 1 ? '' : 's'} from ${entry.fileName || 'file'}`;
     case 'CHAT_FILE_UPLOADED':
       return `Uploaded ${entry.fileName || 'file'} · ${entry.suggestionCount ?? 0} suggestion${entry.suggestionCount === 1 ? '' : 's'}`;
+    case 'SOURCE_DOCUMENT_UPLOADED':
+      return `Uploaded ${entry.sourceType || 'source document'} · ${entry.fileName || 'file'}`;
+    case 'SOURCE_FIELDS_APPLIED':
+      return `Applied ${entry.fieldCount ?? 0} ${entry.section || ''} fields from ${entry.sourceType || 'source document'}`;
     default:
       return entry.type || 'Unknown event';
   }

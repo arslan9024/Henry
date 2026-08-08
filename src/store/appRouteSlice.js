@@ -8,6 +8,7 @@ export const APP_PAGES = {
   TITLE_DEED: 'titleDeed',
   EMIRATES_ID: 'emiratesId',
   TENANT_IDENTITY_DOCS: 'tenantIdentityDocs',
+  VALIDATION_DASHBOARD: 'validationDashboard',
 };
 
 export const APP_PAGE_NAV_ITEMS = [
@@ -18,6 +19,7 @@ export const APP_PAGE_NAV_ITEMS = [
   { key: APP_PAGES.TITLE_DEED, label: 'Title Deed', icon: '🏷️' },
   { key: APP_PAGES.EMIRATES_ID, label: 'Emirates ID', icon: '🪪' },
   { key: APP_PAGES.PAYROLL, label: 'Payroll', icon: '💳' },
+  { key: APP_PAGES.VALIDATION_DASHBOARD, label: 'Validation', icon: '✅' },
 ];
 
 const VALID_PAGES = new Set(APP_PAGE_NAV_ITEMS.map((item) => item.key));
@@ -109,6 +111,10 @@ const appRouteSlice = createSlice({
       state.currentPage = APP_PAGES.TENANT_IDENTITY_DOCS;
       state.context = null;
     },
+    goToValidationDashboard: (state) => {
+      state.currentPage = APP_PAGES.VALIDATION_DASHBOARD;
+      state.context = null;
+    },
   },
 });
 
@@ -123,6 +129,7 @@ export const {
   goToTitleDeed,
   goToEmiratesId,
   goToTenantIdentityDocs,
+  goToValidationDashboard,
 } = appRouteSlice.actions;
 export default appRouteSlice.reducer;
 
@@ -139,3 +146,5 @@ export const selectIsTitleDeedPage = (state) => state.appRoute.currentPage === A
 export const selectIsEmiratesIdPage = (state) => state.appRoute.currentPage === APP_PAGES.EMIRATES_ID;
 export const selectIsTenantIdentityDocsPage = (state) =>
   state.appRoute.currentPage === APP_PAGES.TENANT_IDENTITY_DOCS;
+export const selectIsValidationDashboardPage = (state) =>
+  state.appRoute.currentPage === APP_PAGES.VALIDATION_DASHBOARD;

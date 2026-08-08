@@ -4,6 +4,8 @@ import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
+import { addAuditLog } from '../../store/auditSlice';
+import { recordFieldSources } from '../../store/fieldSourceSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
   buildTitleDeedNumberedItems,
@@ -41,6 +43,7 @@ const TitleDeedModulePage = () => {
   const [journeyStep, setJourneyStep] = useState(0);
   const [lastExtractionMeta, setLastExtractionMeta] = useState(null);
   const [references, setReferences] = useState(() => loadTitleDeedReferences());
+  const [activeReference, setActiveReference] = useState(null);
 
   const numberedItems = useMemo(() => {
     if (!parsed) return [];
@@ -101,6 +104,28 @@ const TitleDeedModulePage = () => {
     if (!applyPlan) return;
 
     dispatch(updateDocumentSection({ section: 'property', values: applyPlan.nextValues }));
+    dispatch(
+      recordFieldSources({
+        section: 'property',
+        values: applyPlan.nextValues,
+        source: {
+          sourceId: activeReference?.id || null,
+          sourceType: 'title-deed',
+          fileName: activeReference?.fileName || null,
+          sourcePath: activeReference?.sourcePath || null,
+        },
+      }),
+    );
+    dispatch(
+      addAuditLog({
+        type: 'SOURCE_FIELDS_APPLIED',
+        timestamp: new Date().toISOString(),
+        section: 'property',
+        sourceType: 'title-deed',
+        fieldCount: Object.keys(applyPlan.nextValues).length,
+        sourceId: activeReference?.id || null,
+      }),
+    );
     dispatch(
       pushToast({
         tone: 'success',
@@ -196,6 +221,17 @@ const TitleDeedModulePage = () => {
         languageStats: extraction.languageStats || null,
         ocrLanguages: extraction.ocrLanguages || null,
       });
+      setActiveReference(localEntry);
+      dispatch(
+        addAuditLog({
+          type: 'SOURCE_DOCUMENT_UPLOADED',
+          timestamp: new Date().toISOString(),
+          sourceType: 'title-deed',
+          sourceId: localEntry.id,
+          fileName: file.name,
+          sourcePath: sourceSave.path || null,
+        }),
+      );
 
       setReferences(loadTitleDeedReferences());
       setExtractedText(extraction.text);

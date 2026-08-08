@@ -45,10 +45,15 @@ mapping across extractor journeys/builder shortcuts/inline scans, lint clean, an
 profile persistence tests, hardened `mergePdfBlobs.js`, lint clean, and full suite at 146 files /
 2,475 tests with production build pass.
 
-### Phase D — Audit and traceability
-- Show which source document populated each field
-- Add audit log timeline of uploads/applies/generation
-- Add validation dashboard for incomplete records
+### Phase D — Audit and traceability ✅ Complete (2026-08-08)
+- [x] Show source ID, type, file, path, and apply time for populated fields
+- [x] Add audit timeline events for source uploads, field applies, and PDF generation
+- [x] Add searchable/filterable validation dashboard for active records and archived artifacts
+- [x] Persist provenance locally and preserve exact source references across extractor journeys
+
+**Evidence:** `fieldSourceSlice.js`, builder provenance rail, normalized extractor audit events,
+`ValidationDashboardPage.jsx`, route/store integration, lint clean, and full suite at 148 files /
+2,479 tests with production build pass.
 
 ### Phase E — Team-scale upgrades
 - Cloud storage/back-end persistence layer

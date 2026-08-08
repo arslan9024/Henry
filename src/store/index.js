@@ -13,12 +13,21 @@ import payrollReducer from './payrollSlice';
 import appRouteReducer from './appRouteSlice';
 import uiCommandReducer, { persistUiCommandState } from './uiCommandSlice';
 import { persistArchiveEntries } from '../records/archiveService';
+import fieldSourceReducer, {
+  clearFieldSources,
+  persistFieldSources,
+  recordFieldSources,
+} from './fieldSourceSlice';
 
 const listenerMiddleware = createListenerMiddleware();
 
 listenerMiddleware.startListening({
   actionCreator: addAuditLog,
   effect: (_, api) => persistAuditLogs(api.getState().audit.logs),
+});
+listenerMiddleware.startListening({
+  matcher: (action) => action.type === recordFieldSources.type || action.type === clearFieldSources.type,
+  effect: (_, api) => persistFieldSources(api.getState().fieldSources.byField),
 });
 listenerMiddleware.startListening({
   actionCreator: clearAuditLogs,
@@ -59,6 +68,7 @@ export const store = configureStore({
     uiCommand: uiCommandReducer,
     payroll: payrollReducer,
     appRoute: appRouteReducer,
+    fieldSources: fieldSourceReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware),
 });

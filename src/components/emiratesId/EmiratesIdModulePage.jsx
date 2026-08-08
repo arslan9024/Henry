@@ -4,6 +4,8 @@ import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
+import { addAuditLog } from '../../store/auditSlice';
+import { recordFieldSources } from '../../store/fieldSourceSlice';
 import { extractTextFromFile, SUPPORTED_FILE_ACCEPT } from '../../services/fileExtractionService';
 import {
   buildEmiratesIdNumberedItems,
@@ -56,6 +58,7 @@ const EmiratesIdModulePage = () => {
   const [journeyStep, setJourneyStep] = useState(0);
   const [lastExtractionMeta, setLastExtractionMeta] = useState(null);
   const [references, setReferences] = useState(() => loadEmiratesIdReferences());
+  const [activeReference, setActiveReference] = useState(null);
 
   const numberedItems = useMemo(() => {
     if (!parsed) return [];
@@ -193,6 +196,29 @@ const EmiratesIdModulePage = () => {
 
     dispatch(updateDocumentSection({ section: applyPlan.section, values: applyPlan.nextValues }));
     dispatch(
+      recordFieldSources({
+        section: applyPlan.section,
+        values: applyPlan.nextValues,
+        source: {
+          sourceId: activeReference?.id || null,
+          sourceType: 'emirates-id',
+          fileName: activeReference?.fileName || null,
+          sourcePath: activeReference?.sourcePath || null,
+        },
+      }),
+    );
+    dispatch(
+      addAuditLog({
+        type: 'SOURCE_FIELDS_APPLIED',
+        timestamp: new Date().toISOString(),
+        section: applyPlan.section,
+        sourceType: 'emirates-id',
+        ownerTag: sourceOwnerTag,
+        sourceId: activeReference?.id || null,
+        fieldCount: Object.keys(applyPlan.nextValues).length,
+      }),
+    );
+    dispatch(
       pushToast({
         tone: 'success',
         title: applyPlan.successTitle,
@@ -308,6 +334,18 @@ const EmiratesIdModulePage = () => {
         languageStats: extraction.languageStats || null,
         ocrLanguages: extraction.ocrLanguages || null,
       });
+      setActiveReference(localEntry);
+      dispatch(
+        addAuditLog({
+          type: 'SOURCE_DOCUMENT_UPLOADED',
+          timestamp: new Date().toISOString(),
+          sourceType: 'emirates-id',
+          ownerTag,
+          sourceId: localEntry.id,
+          fileName: file.name,
+          sourcePath: sourceSave.path || null,
+        }),
+      );
 
       setReferences(loadEmiratesIdReferences());
       setExtractedText(extraction.text);

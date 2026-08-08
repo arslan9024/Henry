@@ -9,6 +9,8 @@ import {
   updateDocumentSection,
 } from '../../store/documentSlice';
 import { setActiveTemplate } from '../../store/templateSlice';
+import { addAuditLog } from '../../store/auditSlice';
+import { recordFieldSources, selectFieldSources } from '../../store/fieldSourceSlice';
 import { pushToast } from '../../store/uiSlice';
 import { APP_PAGES } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
@@ -144,6 +146,7 @@ const TenancyContractBuilderPage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
   const documentData = useSelector((state) => state.document);
+  const fieldSources = useSelector(selectFieldSources);
   const fieldProfile = useMemo(() => getTenancyFieldProfile(), []);
   const requiredMappedFields = useMemo(() => getRequiredMappedFields(), []);
   const folderConfig = useMemo(() => getTenancyTemplateFolders(), []);
@@ -200,6 +203,26 @@ const TenancyContractBuilderPage = () => {
     dispatch(setDocumentValue({ section, field, value }));
   };
 
+  const applySourcedValues = ({ section, values, reference, sourceType }) => {
+    dispatch(updateDocumentSection({ section, values }));
+    const source = {
+      sourceId: reference?.id || null,
+      sourceType,
+      fileName: reference?.fileName || reference?.sourceFileName || null,
+      sourcePath: reference?.sourcePath || null,
+    };
+    dispatch(recordFieldSources({ section, values, source }));
+    dispatch(
+      addAuditLog({
+        type: 'SOURCE_FIELDS_APPLIED',
+        timestamp: new Date().toISOString(),
+        section,
+        fieldCount: Object.keys(values).length,
+        ...source,
+      }),
+    );
+  };
+
   const getPreferredTenantValues = (parsedDoc = {}) => {
     const name = resolvePreferredBilingualValue({
       primary: parsedDoc.fullName,
@@ -224,13 +247,14 @@ const TenancyContractBuilderPage = () => {
       return;
     }
 
-    const latest = refs[0]?.parsed || {};
-    dispatch(
-      updateDocumentSection({
-        section: 'property',
-        values: mapTitleDeedToProperty(latest, documentData.property),
-      }),
-    );
+    const reference = refs[0];
+    const latest = reference?.parsed || {};
+    applySourcedValues({
+      section: 'property',
+      values: mapTitleDeedToProperty(latest, documentData.property),
+      reference,
+      sourceType: 'title-deed',
+    });
 
     toast(
       'success',
@@ -250,23 +274,24 @@ const TenancyContractBuilderPage = () => {
       return;
     }
 
-    const latest = refs[0]?.parsed || {};
+    const reference = refs[0];
+    const latest = reference?.parsed || {};
     const preferred = getPreferredTenantValues(latest);
-    dispatch(
-      updateDocumentSection({
-        section: 'landlord',
-        values: mapEmiratesIdToParty({
-          parsed: latest,
-          current: {
-            ...documentData.landlord,
-            phone: documentData.landlord.phone || DEFAULT_LANDLORD_PHONE,
-            email: documentData.landlord.email || DEFAULT_LANDLORD_EMAIL,
-          },
-          preferred,
-          ownerTag: 'landlord',
-        }),
+    applySourcedValues({
+      section: 'landlord',
+      values: mapEmiratesIdToParty({
+        parsed: latest,
+        current: {
+          ...documentData.landlord,
+          phone: documentData.landlord.phone || DEFAULT_LANDLORD_PHONE,
+          email: documentData.landlord.email || DEFAULT_LANDLORD_EMAIL,
+        },
+        preferred,
+        ownerTag: 'landlord',
       }),
-    );
+      reference,
+      sourceType: 'emirates-id',
+    });
 
     toast('success', 'Landlord fields updated', 'Applied latest landlord identity and employment details.');
   };
@@ -278,23 +303,24 @@ const TenancyContractBuilderPage = () => {
       return;
     }
 
-    const latest = refs[0]?.parsed || {};
+    const reference = refs[0];
+    const latest = reference?.parsed || {};
     const preferred = getPreferredTenantValues(latest);
-    dispatch(
-      updateDocumentSection({
-        section: 'tenant',
-        values: mapEmiratesIdToParty({
-          parsed: latest,
-          current: {
-            ...documentData.tenant,
-            contactNo: documentData.tenant.contactNo || DEFAULT_TENANT_PHONE,
-            email: documentData.tenant.email || DEFAULT_TENANT_EMAIL,
-          },
-          preferred,
-          ownerTag: 'tenant',
-        }),
+    applySourcedValues({
+      section: 'tenant',
+      values: mapEmiratesIdToParty({
+        parsed: latest,
+        current: {
+          ...documentData.tenant,
+          contactNo: documentData.tenant.contactNo || DEFAULT_TENANT_PHONE,
+          email: documentData.tenant.email || DEFAULT_TENANT_EMAIL,
+        },
+        preferred,
+        ownerTag: 'tenant',
       }),
-    );
+      reference,
+      sourceType: 'emirates-id',
+    });
 
     toast(
       'success',
@@ -316,17 +342,17 @@ const TenancyContractBuilderPage = () => {
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
     const preferred = getPreferredTenantValues(parsed);
-    dispatch(
-      updateDocumentSection({
-        section: 'tenant',
-        values: mapTenantIdentityToTenant({
-          parsed,
-          current: documentData.tenant,
-          preferred,
-          sourceType: 'passport',
-        }),
+    applySourcedValues({
+      section: 'tenant',
+      values: mapTenantIdentityToTenant({
+        parsed,
+        current: documentData.tenant,
+        preferred,
+        sourceType: 'passport',
       }),
-    );
+      reference: latest,
+      sourceType: 'passport',
+    });
 
     toast(
       'success',
@@ -349,17 +375,17 @@ const TenancyContractBuilderPage = () => {
     const latest = refs[0] || {};
     const parsed = latest.parsed || {};
     const preferred = getPreferredTenantValues(parsed);
-    dispatch(
-      updateDocumentSection({
-        section: 'tenant',
-        values: mapTenantIdentityToTenant({
-          parsed,
-          current: documentData.tenant,
-          preferred,
-          sourceType: 'residence-permit',
-        }),
+    applySourcedValues({
+      section: 'tenant',
+      values: mapTenantIdentityToTenant({
+        parsed,
+        current: documentData.tenant,
+        preferred,
+        sourceType: 'residence-permit',
       }),
-    );
+      reference: latest,
+      sourceType: 'residence-permit',
+    });
 
     toast(
       'success',
@@ -398,6 +424,26 @@ const TenancyContractBuilderPage = () => {
       sourceType: 'residence-permit',
     });
     dispatch(updateDocumentSection({ section: 'tenant', values: combinedValues }));
+    dispatch(
+      recordFieldSources({
+        section: 'tenant',
+        values: combinedValues,
+        source: {
+          sourceId: [passportRefs[0]?.id, permitRefs[0]?.id].filter(Boolean).join('+') || null,
+          sourceType: 'tenant-identity-bundle',
+          fileName: [passportRefs[0]?.fileName, permitRefs[0]?.fileName].filter(Boolean).join(' + '),
+        },
+      }),
+    );
+    dispatch(
+      addAuditLog({
+        type: 'SOURCE_FIELDS_APPLIED',
+        timestamp: new Date().toISOString(),
+        section: 'tenant',
+        sourceType: 'tenant-identity-bundle',
+        fieldCount: Object.keys(combinedValues).length,
+      }),
+    );
 
     toast(
       'success',
@@ -626,6 +672,18 @@ const TenancyContractBuilderPage = () => {
     setIsBusy(true);
     try {
       const artifacts = await buildExportArtifacts();
+      artifacts.files.forEach((file) =>
+        dispatch(
+          addAuditLog({
+            type: 'PDF_GENERATED',
+            timestamp: new Date().toISOString(),
+            fileName: file.fileName,
+            exportMode: artifacts.exportMode,
+            templateMode: selectedTemplate?.mappingProfile?.mode || 'generated',
+            persisted: saveCase,
+          }),
+        ),
+      );
 
       if (downloadPdf) {
         artifacts.files.forEach((file) => {
@@ -805,6 +863,16 @@ const TenancyContractBuilderPage = () => {
         documentLabel: normalizedType === 'passport' ? 'Passport' : 'Residence Permit',
         fileKind: extraction.kind || file.type || null,
       });
+
+      dispatch(
+        addAuditLog({
+          type: 'SOURCE_DOCUMENT_UPLOADED',
+          timestamp: new Date().toISOString(),
+          sourceType: normalizedType,
+          fileName: file.name,
+          sourcePath: result.path || null,
+        }),
+      );
 
       const appliedParsed = parsedDoc || {};
       const preferred = getPreferredTenantValues(appliedParsed);
@@ -1472,6 +1540,23 @@ const TenancyContractBuilderPage = () => {
               <p>
                 <strong>Required mapping readiness:</strong> {mappingReadyCount}/{mappingPreview.length}
               </p>
+            </div>
+
+            <div className="tenancy-template-meta" aria-label="Field source provenance">
+              <p>
+                <strong>Field provenance</strong>
+              </p>
+              {Object.keys(fieldSources).length ? (
+                <ul className="tenancy-provenance-list">
+                  {Object.entries(fieldSources).map(([path, source]) => (
+                    <li key={path}>
+                      <code>{path}</code> ← {source.fileName || source.sourceType || 'source document'}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No extracted fields have been applied yet.</p>
+              )}
             </div>
 
             <PlacementActionPanel
