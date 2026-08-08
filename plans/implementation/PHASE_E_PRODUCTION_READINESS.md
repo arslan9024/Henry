@@ -13,11 +13,21 @@
 - Roles: Operator → Manager → Admin
 - Workflow: submit, approve/reject, resubmit, audit events
 - Templates: immutable named versions with working-copy rollback
-- Last complete verification baseline: 151 test files / 2,487 tests, lint clean, production build pass
+- Last complete verification baseline: 152 test files / 2,491 tests, readiness gate + lint clean, production build pass
 
 ## 2. Environment configuration
 
 Copy `.env.example` to a deployment-managed environment file. Never commit the populated file.
+
+Validate the selected provider before build/deployment:
+
+```powershell
+npm run readiness:check
+```
+
+The command exits non-zero for unknown providers, incomplete Firebase public configuration, or any
+`VITE_FIREBASE_STORAGE_TOKEN` value. Local mode passes with a warning that TLS/authenticated reverse proxy
+remain infrastructure requirements.
 
 | Variable                       | Required         | Purpose                          |
 | ------------------------------ | ---------------- | -------------------------------- |
@@ -89,6 +99,7 @@ File reads and writes are constrained to the repository `records/` root. Run the
 npm run lint
 npm test
 npm run build
+npm run readiness:check
 ```
 
 - [ ] Commands pass on the release commit.

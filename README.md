@@ -5,7 +5,7 @@
 Henry generates, verifies, and archives every official real-estate document White Caves issues — viewing forms, booking forms, tenancy contracts, addenda, invoices, key-handover checklists, government-employee bookings, and DLD offer letters — with built-in **RERA / DLD compliance checking** and a full **auditable trail**.
 
 [![CI](https://github.com/arslan9024/Henry/actions/workflows/ci.yml/badge.svg)](https://github.com/arslan9024/Henry/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-2487%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2491%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-97.75%25-brightgreen)
 ![Lint](https://img.shields.io/badge/eslint-0%20warnings-brightgreen)
 ![Format](https://img.shields.io/badge/prettier-passing-brightgreen)
@@ -46,12 +46,14 @@ npm run format:check # CI gate — fails if anything is unformatted
 npm run build        # production bundle to dist/
 npm run preview      # serve the built bundle
 npm run serve:prod   # production server (serves dist + /api/records/*)
+npm run readiness:check # validate provider config and reject bundled tokens
 ```
 
 ### Production runtime (filesystem persistence enabled)
 
 ```powershell
 npm run build
+npm run readiness:check
 npm run serve:prod
 ```
 
@@ -76,7 +78,7 @@ The server provides the same records API contract used in dev:
 | Pure logic/services/stores            | Vitest                   | Included                    |
 | Hooks/components/workflows            | Vitest + Testing Library | Included                    |
 | PDF, extraction, persistence, routing | Vitest + pdf-lib/jsdom   | Included                    |
-| **Total**                             |                          | **151 files / 2,487 tests** |
+| **Total**                             |                          | **152 files / 2,491 tests** |
 
 **Coverage on the included surface: 97.75% lines / 88.7% functions** (entry points and pure-render JSX templates are intentionally excluded — see `vite.config.js → test.coverage.include`).
 

@@ -9,6 +9,7 @@ import {
   rollbackTenancyTemplateVersion,
 } from '../records/templateStore';
 import { getCloudPersistenceConfig } from '../services/cloudPersistenceService';
+import { evaluateDeploymentReadiness } from '../services/deploymentReadinessService';
 import { Badge, Button, Card, FormField, Input, Select } from './ui';
 
 const TeamWorkflowPage = () => {
@@ -19,6 +20,7 @@ const TeamWorkflowPage = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [profileLabel, setProfileLabel] = useState('Standard');
   const storage = getCloudPersistenceConfig();
+  const deploymentReadiness = evaluateDeploymentReadiness(import.meta.env);
   const canReview = ROLE_PERMISSIONS[user.role].includes('approval.review');
   const canVersion = ROLE_PERMISSIONS[user.role].includes('template.version');
   const workingCopies = templates.filter((item) => item.kind === 'working-copy');
@@ -99,6 +101,26 @@ const TeamWorkflowPage = () => {
               <strong>Storage:</strong> {storage.provider}
               {storage.provider === 'firebase' && !storage.firebaseBucket ? ' (configuration required)' : ''}
             </p>
+            <p>
+              <strong>Deployment configuration:</strong>{' '}
+              <Badge tone={deploymentReadiness.ready ? 'success' : 'warning'}>
+                {deploymentReadiness.ready ? 'Ready' : 'Blocked'}
+              </Badge>
+            </p>
+            {deploymentReadiness.errors.length ? (
+              <ul>
+                {deploymentReadiness.errors.map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            ) : null}
+            {deploymentReadiness.warnings.length ? (
+              <ul>
+                {deploymentReadiness.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
           </Card.Body>
         </Card>
         <Card variant="outlined">

@@ -17,6 +17,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx,css,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,css,json,md}\"",
     "smoke:extraction": "node scripts/smoke-extraction.mjs",
+    "readiness:check": "node scripts/check-production-readiness.mjs",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -29,6 +29,7 @@
 | Firebase token hardening | cloud/auth services, tests, `.env.example` | Removed token from Vite environment and Redux-safe user data; runtime memory only |
 | Deployment handoff       | `PHASE_E_PRODUCTION_READINESS.md`          | Added configuration, RBAC, approval, rollback, release, and sign-off procedures   |
 | Documentation sync       | tracker, plans README, root README         | Updated current baseline and next actions                                         |
+| Automated readiness gate | readiness service, CLI, Team Workflow      | Added shared provider checks, forbidden-token detection, and operator status       |
 
 ## Validation
 
@@ -37,7 +38,8 @@
 | Focused security tests | `npm test -- cloudPersistenceService firebaseAuthService archiveService` | 28/28 passed                 |
 | Lint                   | `npm run lint`                                                           | Passed                       |
 | Diagnostics            | `get_errors` on touched source                                           | Clean                        |
-| Full suite/build       | `npm test` + `npm run build`                                             | 151 files / 2,487 tests passed; production build passed |
+| Readiness gate         | `npm run readiness:check`                                                | Local mode ready; TLS/authenticated reverse-proxy warning emitted |
+| Full suite/build       | `npm test` + `npm run build`                                             | 152 files / 2,491 tests passed; production build passed |
 
 ## Decisions Made
 
