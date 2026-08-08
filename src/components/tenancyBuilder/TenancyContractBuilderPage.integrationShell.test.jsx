@@ -270,6 +270,25 @@ describe('TenancyContractBuilderPage integration shell', () => {
     expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled();
   });
 
+  it('disables Continue on final step and re-enables it after returning to an earlier step', async () => {
+    renderPage();
+
+    const stepsRail = screen.getByText(/workflow steps/i).closest('aside');
+    fireEvent.click(within(stepsRail).getByRole('button', { name: /6\.\s*addendum/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^addendum$/i })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /previous/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /additional terms/i })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /continue/i })).toBeEnabled();
+  });
+
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
     mocks.gateState = {
       ...mocks.gateState,
