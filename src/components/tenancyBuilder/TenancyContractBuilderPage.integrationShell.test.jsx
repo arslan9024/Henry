@@ -247,6 +247,29 @@ describe('TenancyContractBuilderPage integration shell', () => {
     });
   });
 
+  it('toggles Previous button from disabled to enabled once user advances a step', async () => {
+    mocks.gateState = {
+      ...mocks.gateState,
+      completionMap: {
+        ...mocks.gateState.completionMap,
+        landlord: { completed: true, missing: [] },
+      },
+    };
+
+    renderPage();
+
+    const previousButton = screen.getByRole('button', { name: /previous/i });
+    expect(previousButton).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /^property$/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled();
+  });
+
   it('passes blocked finalization state to PlacementActionPanel when gates are incomplete', async () => {
     mocks.gateState = {
       ...mocks.gateState,
