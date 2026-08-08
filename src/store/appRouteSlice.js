@@ -22,8 +22,40 @@ export const APP_PAGE_NAV_ITEMS = [
 
 const VALID_PAGES = new Set(APP_PAGE_NAV_ITEMS.map((item) => item.key));
 const DEFAULT_PAGE = APP_PAGES.DOCUMENT_WORKSPACE;
+const VALID_OWNER_TAGS = new Set(['tenant', 'landlord']);
+const VALID_DOCUMENT_TYPES = new Set(['passport', 'residence-permit']);
+const VALID_REQUIREMENTS = new Set([
+  'title-deed',
+  'landlord-emirates-id',
+  'tenant-emirates-id',
+  'passport',
+  'residence-permit',
+]);
 
 export const isValidAppPage = (page) => VALID_PAGES.has(page);
+
+export const normalizeRouteContext = (context) => {
+  if (!context || typeof context !== 'object' || Array.isArray(context)) return null;
+
+  const normalized = {};
+  if (isValidAppPage(context.returnTo)) normalized.returnTo = context.returnTo;
+  if (context.source === 'tenancy-builder') normalized.source = context.source;
+  if (VALID_OWNER_TAGS.has(context.ownerTag)) normalized.ownerTag = context.ownerTag;
+  if (VALID_DOCUMENT_TYPES.has(context.documentType)) normalized.documentType = context.documentType;
+  if (VALID_REQUIREMENTS.has(context.requirement)) normalized.requirement = context.requirement;
+  if (context.autoReturn === true) normalized.autoReturn = true;
+
+  return Object.keys(normalized).length ? normalized : null;
+};
+
+const resolveNavigationPayload = (payload) => {
+  if (typeof payload === 'string') {
+    return { page: isValidAppPage(payload) ? payload : DEFAULT_PAGE, context: null };
+  }
+
+  const page = isValidAppPage(payload?.page) ? payload.page : DEFAULT_PAGE;
+  return { page, context: normalizeRouteContext(payload?.context) };
+};
 
 /**
  * appRouteSlice
@@ -34,34 +66,48 @@ const appRouteSlice = createSlice({
   name: 'appRoute',
   initialState: {
     currentPage: DEFAULT_PAGE,
+    context: null,
   },
   reducers: {
     navigateToPage: (state, action) => {
-      state.currentPage = isValidAppPage(action.payload) ? action.payload : DEFAULT_PAGE;
+      const navigation = resolveNavigationPayload(action.payload);
+      state.currentPage = navigation.page;
+      state.context = navigation.context;
     },
     setCurrentPage: (state, action) => {
       state.currentPage = isValidAppPage(action.payload) ? action.payload : DEFAULT_PAGE;
+      state.context = null;
+    },
+    clearRouteContext: (state) => {
+      state.context = null;
     },
     goToDocumentHub: (state) => {
       state.currentPage = APP_PAGES.DOCUMENT_HUB;
+      state.context = null;
     },
     goToDocumentWorkspace: (state) => {
       state.currentPage = APP_PAGES.DOCUMENT_WORKSPACE;
+      state.context = null;
     },
     goToPayroll: (state) => {
       state.currentPage = APP_PAGES.PAYROLL;
+      state.context = null;
     },
     goToTenancyBuilder: (state) => {
       state.currentPage = APP_PAGES.TENANCY_BUILDER;
+      state.context = null;
     },
     goToTitleDeed: (state) => {
       state.currentPage = APP_PAGES.TITLE_DEED;
+      state.context = null;
     },
     goToEmiratesId: (state) => {
       state.currentPage = APP_PAGES.EMIRATES_ID;
+      state.context = null;
     },
     goToTenantIdentityDocs: (state) => {
       state.currentPage = APP_PAGES.TENANT_IDENTITY_DOCS;
+      state.context = null;
     },
   },
 });
@@ -69,6 +115,7 @@ const appRouteSlice = createSlice({
 export const {
   navigateToPage,
   setCurrentPage,
+  clearRouteContext,
   goToDocumentHub,
   goToDocumentWorkspace,
   goToPayroll,
@@ -81,6 +128,7 @@ export default appRouteSlice.reducer;
 
 // Selectors
 export const selectCurrentPage = (state) => state.appRoute.currentPage;
+export const selectRouteContext = (state) => state.appRoute.context || null;
 export const selectAppPageNavItems = () => APP_PAGE_NAV_ITEMS;
 export const selectIsDocumentWorkspacePage = (state) =>
   state.appRoute.currentPage === APP_PAGES.DOCUMENT_WORKSPACE;

@@ -7,8 +7,8 @@ const useAppNavigation = () => {
   const dispatch = useDispatch();
 
   const goToPage = useCallback(
-    (targetPage) => {
-      dispatch(navigateToPage(targetPage));
+    (targetPage, context = null) => {
+      dispatch(navigateToPage(context ? { page: targetPage, context } : targetPage));
       dispatch(closeDrawer());
       dispatch(closePreview());
       dispatch(closeCommandPalette());

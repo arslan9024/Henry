@@ -16,12 +16,15 @@
 
 ## Recommended next upgrades
 
-### Phase A — Builder navigation quality
-- Auto-return to Tenancy Builder after successful extractor save
-- Deep-link into missing gate requirements
-- Preselect ownerTag when launched from builder step context
+### Phase A — Builder navigation quality ✅ Complete (2026-08-08)
+- [x] Auto-return to Tenancy Builder after successful extractor reference save
+- [x] Deep-link into title deed, landlord/tenant Emirates ID, passport, and residence-permit requirements
+- [x] Preselect Emirates ID `ownerTag` and tenant identity `documentType` from validated builder context
 
-### Phase B — Autofill expansion
+**Evidence:** validated `appRoute.context` contract, contextual builder CTAs, extractor preselection/return
+behavior, `extractorRouteContext.test.jsx`, and full suite at 141 files / 2,460 tests.
+
+### Phase B — Autofill expansion ⏳ Next
 - Apply more title deed fields automatically
 - Add passport/visa extraction support if needed
 - Sync extracted values into more tenant/landlord fields

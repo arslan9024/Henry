@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { APP_PAGES } from '../../store/appRouteSlice';
+import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
@@ -46,7 +46,8 @@ const TenantIdentityDocsPage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
   const documentData = useSelector((state) => state.document);
-  const [documentType, setDocumentType] = useState('passport');
+  const routeContext = useSelector(selectRouteContext);
+  const [documentType, setDocumentType] = useState(() => routeContext?.documentType || 'passport');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
@@ -257,7 +258,7 @@ const TenantIdentityDocsPage = () => {
         );
       }
 
-      saveTenantDocumentReference({
+      const localEntry = saveTenantDocumentReference({
         type: normalizedType,
         fileName: file.name,
         sourcePath: sourceSave.path || null,
@@ -290,6 +291,10 @@ const TenantIdentityDocsPage = () => {
           scanItems.length
         } numbered items (detected language: ${extraction.detectedLanguage || 'unknown'}).`,
       );
+
+      if (localEntry?.id && routeContext?.autoReturn && routeContext?.returnTo) {
+        goToPage(routeContext.returnTo);
+      }
     } catch (error) {
       toast('error', 'Tenant identity workflow failed', error.message || 'Unexpected error.');
     } finally {

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { APP_PAGES } from '../../store/appRouteSlice';
+import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
@@ -32,6 +32,7 @@ const TitleDeedModulePage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
   const documentData = useSelector((state) => state.document);
+  const routeContext = useSelector(selectRouteContext);
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [parsed, setParsed] = useState(null);
@@ -264,6 +265,10 @@ const TitleDeedModulePage = () => {
       if (!localEntry?.id) {
         toast('info', 'Local reference', 'Parsed data available in current session.');
       }
+
+      if (localEntry?.id && routeContext?.autoReturn && routeContext?.returnTo) {
+        goToPage(routeContext.returnTo);
+      }
     } catch (error) {
       toast('error', 'Title deed workflow failed', error.message || 'Unexpected error.');
     } finally {
@@ -289,6 +294,11 @@ const TitleDeedModulePage = () => {
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
           </Button>
+          {routeContext?.returnTo && routeContext.returnTo !== APP_PAGES.DOCUMENT_HUB ? (
+            <Button variant="secondary" onClick={() => goToPage(routeContext.returnTo)}>
+              ← Back to Tenancy Builder
+            </Button>
+          ) : null}
         </div>
       </section>
 

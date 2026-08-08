@@ -852,10 +852,33 @@ const TenancyContractBuilderPage = () => {
                     </li>
                   </ul>
                   <div className="tenancy-gate-actions">
-                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.TITLE_DEED)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        goToPage(APP_PAGES.TITLE_DEED, {
+                          source: 'tenancy-builder',
+                          returnTo: APP_PAGES.TENANCY_BUILDER,
+                          requirement: 'title-deed',
+                          autoReturn: true,
+                        })
+                      }
+                    >
                       Upload Title Deed
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.EMIRATES_ID)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        goToPage(APP_PAGES.EMIRATES_ID, {
+                          source: 'tenancy-builder',
+                          returnTo: APP_PAGES.TENANCY_BUILDER,
+                          ownerTag: 'landlord',
+                          requirement: 'landlord-emirates-id',
+                          autoReturn: true,
+                        })
+                      }
+                    >
                       Upload Landlord Emirates ID
                     </Button>
                     <Button variant="ghost" size="sm" onClick={applyLatestTitleDeedToProperty}>
@@ -944,15 +967,50 @@ const TenancyContractBuilderPage = () => {
                     </li>
                   </ul>
                   <div className="tenancy-gate-actions">
-                    <Button variant="secondary" size="sm" onClick={() => goToPage(APP_PAGES.EMIRATES_ID)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        goToPage(APP_PAGES.EMIRATES_ID, {
+                          source: 'tenancy-builder',
+                          returnTo: APP_PAGES.TENANCY_BUILDER,
+                          ownerTag: 'tenant',
+                          requirement: 'tenant-emirates-id',
+                          autoReturn: true,
+                        })
+                      }
+                    >
                       Upload Tenant Emirates ID
                     </Button>
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => goToPage(APP_PAGES.TENANT_IDENTITY_DOCS)}
+                      onClick={() =>
+                        goToPage(APP_PAGES.TENANT_IDENTITY_DOCS, {
+                          source: 'tenancy-builder',
+                          returnTo: APP_PAGES.TENANCY_BUILDER,
+                          documentType: 'passport',
+                          requirement: 'passport',
+                          autoReturn: true,
+                        })
+                      }
                     >
-                      Open tenant identity scanner
+                      Upload Tenant Passport
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        goToPage(APP_PAGES.TENANT_IDENTITY_DOCS, {
+                          source: 'tenancy-builder',
+                          returnTo: APP_PAGES.TENANCY_BUILDER,
+                          documentType: 'residence-permit',
+                          requirement: 'residence-permit',
+                          autoReturn: true,
+                        })
+                      }
+                    >
+                      Upload Residence Permit
                     </Button>
                     <Button variant="ghost" size="sm" onClick={applyLatestTenantEmiratesId}>
                       Apply latest Tenant Emirates ID

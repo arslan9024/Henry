@@ -116,8 +116,8 @@ describe('store — initial slice defaults sanity check', () => {
     expect(store.getState().uiCommand.commandPaletteOpen).toBe(false);
   });
 
-  it('appRoute.currentPage starts as "documentHub"', () => {
-    expect(store.getState().appRoute.currentPage).toBe('documentHub');
+  it('appRoute.currentPage starts as "documentWorkspace"', () => {
+    expect(store.getState().appRoute.currentPage).toBe('documentWorkspace');
   });
 
   it('payroll.currentFile.employees starts as empty array', () => {

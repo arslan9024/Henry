@@ -7,10 +7,14 @@
 import { describe, it, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import appRouteReducer, {
+  APP_PAGES,
+  clearRouteContext,
+  navigateToPage,
   setCurrentPage,
   goToDocumentHub,
   goToPayroll,
   selectCurrentPage,
+  selectRouteContext,
   selectIsPayrollPage,
   selectIsDocumentHubPage,
 } from './appRouteSlice';
@@ -23,19 +27,19 @@ const makeStore = () =>
 // ─── Initial state ────────────────────────────────────────────────────────────
 
 describe('appRouteSlice — initial state', () => {
-  it('defaults to documentHub page', () => {
+  it('defaults to documentWorkspace page', () => {
     const store = makeStore();
-    expect(store.getState().appRoute.currentPage).toBe('documentHub');
+    expect(store.getState().appRoute.currentPage).toBe('documentWorkspace');
   });
 
-  it('selectCurrentPage returns documentHub initially', () => {
+  it('selectCurrentPage returns documentWorkspace initially', () => {
     const store = makeStore();
-    expect(selectCurrentPage(store.getState())).toBe('documentHub');
+    expect(selectCurrentPage(store.getState())).toBe('documentWorkspace');
   });
 
-  it('selectIsDocumentHubPage returns true initially', () => {
+  it('selectIsDocumentHubPage returns false initially', () => {
     const store = makeStore();
-    expect(selectIsDocumentHubPage(store.getState())).toBe(true);
+    expect(selectIsDocumentHubPage(store.getState())).toBe(false);
   });
 
   it('selectIsPayrollPage returns false initially', () => {
@@ -113,5 +117,74 @@ describe('setCurrentPage', () => {
     expect(selectIsPayrollPage(store.getState())).toBe(true);
     store.dispatch(setCurrentPage('documentHub'));
     expect(selectIsPayrollPage(store.getState())).toBe(false);
+  });
+});
+
+describe('route context', () => {
+  it('accepts validated context with object navigation payload', () => {
+    const store = makeStore();
+
+    store.dispatch(
+      navigateToPage({
+        page: APP_PAGES.EMIRATES_ID,
+        context: {
+          source: 'tenancy-builder',
+          returnTo: APP_PAGES.TENANCY_BUILDER,
+          ownerTag: 'landlord',
+          requirement: 'landlord-emirates-id',
+          autoReturn: true,
+        },
+      }),
+    );
+
+    expect(selectCurrentPage(store.getState())).toBe(APP_PAGES.EMIRATES_ID);
+    expect(selectRouteContext(store.getState())).toEqual({
+      source: 'tenancy-builder',
+      returnTo: APP_PAGES.TENANCY_BUILDER,
+      ownerTag: 'landlord',
+      requirement: 'landlord-emirates-id',
+      autoReturn: true,
+    });
+  });
+
+  it('drops invalid context fields instead of persisting unsafe values', () => {
+    const store = makeStore();
+
+    store.dispatch(
+      navigateToPage({
+        page: APP_PAGES.TENANT_IDENTITY_DOCS,
+        context: {
+          returnTo: 'unknown-page',
+          ownerTag: 'agent',
+          documentType: 'driver-license',
+          requirement: 'skip-gates',
+          autoReturn: 'yes',
+        },
+      }),
+    );
+
+    expect(selectRouteContext(store.getState())).toBeNull();
+  });
+
+  it('clears context on legacy string navigation and explicit clear', () => {
+    const store = makeStore();
+    store.dispatch(
+      navigateToPage({
+        page: APP_PAGES.TENANT_IDENTITY_DOCS,
+        context: { documentType: 'passport', returnTo: APP_PAGES.TENANCY_BUILDER },
+      }),
+    );
+
+    store.dispatch(clearRouteContext());
+    expect(selectRouteContext(store.getState())).toBeNull();
+
+    store.dispatch(
+      navigateToPage({
+        page: APP_PAGES.EMIRATES_ID,
+        context: { ownerTag: 'tenant' },
+      }),
+    );
+    store.dispatch(navigateToPage(APP_PAGES.DOCUMENT_HUB));
+    expect(selectRouteContext(store.getState())).toBeNull();
   });
 });

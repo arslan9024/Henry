@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { APP_PAGES } from '../../store/appRouteSlice';
+import { APP_PAGES, selectRouteContext } from '../../store/appRouteSlice';
 import useAppNavigation from '../../hooks/useAppNavigation';
 import { updateDocumentSection } from '../../store/documentSlice';
 import { pushToast } from '../../store/uiSlice';
@@ -45,7 +45,8 @@ const EmiratesIdModulePage = () => {
   const dispatch = useDispatch();
   const { goToPage } = useAppNavigation();
   const documentData = useSelector((state) => state.document);
-  const [ownerTag, setOwnerTag] = useState('');
+  const routeContext = useSelector(selectRouteContext);
+  const [ownerTag, setOwnerTag] = useState(() => routeContext?.ownerTag || '');
   const [languagePreference, setLanguagePreference] = useState('auto');
   const [isBusy, setIsBusy] = useState(false);
   const [extractedText, setExtractedText] = useState('');
@@ -312,7 +313,7 @@ const EmiratesIdModulePage = () => {
         );
       }
 
-      saveEmiratesIdReference({
+      const localEntry = saveEmiratesIdReference({
         fileName: file.name,
         ownerTag,
         sourcePath: sourceSave.path || null,
@@ -341,6 +342,10 @@ const EmiratesIdModulePage = () => {
           extraction.detectedLanguage || 'unknown'
         }.`,
       );
+
+      if (localEntry?.id && routeContext?.autoReturn && routeContext?.returnTo) {
+        goToPage(routeContext.returnTo);
+      }
     } catch (error) {
       toast('error', 'Emirates ID workflow failed', error.message || 'Unexpected error.');
     } finally {
@@ -366,6 +371,11 @@ const EmiratesIdModulePage = () => {
           <Button variant="secondary" onClick={() => goToPage(APP_PAGES.DOCUMENT_HUB)}>
             ← Back to Document Hub
           </Button>
+          {routeContext?.returnTo && routeContext.returnTo !== APP_PAGES.DOCUMENT_HUB ? (
+            <Button variant="secondary" onClick={() => goToPage(routeContext.returnTo)}>
+              ← Back to Tenancy Builder
+            </Button>
+          ) : null}
         </div>
       </section>
 

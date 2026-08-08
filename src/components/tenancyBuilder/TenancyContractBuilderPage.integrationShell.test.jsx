@@ -189,12 +189,34 @@ describe('TenancyContractBuilderPage integration shell', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /upload tenant emirates id/i }));
-    fireEvent.click(screen.getByRole('button', { name: /open tenant identity scanner/i }));
+    fireEvent.click(screen.getByRole('button', { name: /upload tenant passport/i }));
+    fireEvent.click(screen.getByRole('button', { name: /upload residence permit/i }));
 
-    expect(mocks.goToPage).toHaveBeenNthCalledWith(1, APP_PAGES.TITLE_DEED);
-    expect(mocks.goToPage).toHaveBeenNthCalledWith(2, APP_PAGES.EMIRATES_ID);
-    expect(mocks.goToPage).toHaveBeenNthCalledWith(3, APP_PAGES.EMIRATES_ID);
-    expect(mocks.goToPage).toHaveBeenNthCalledWith(4, APP_PAGES.TENANT_IDENTITY_DOCS);
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(
+      1,
+      APP_PAGES.TITLE_DEED,
+      expect.objectContaining({ requirement: 'title-deed', autoReturn: true }),
+    );
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(
+      2,
+      APP_PAGES.EMIRATES_ID,
+      expect.objectContaining({ ownerTag: 'landlord', requirement: 'landlord-emirates-id' }),
+    );
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(
+      3,
+      APP_PAGES.EMIRATES_ID,
+      expect.objectContaining({ ownerTag: 'tenant', requirement: 'tenant-emirates-id' }),
+    );
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(
+      4,
+      APP_PAGES.TENANT_IDENTITY_DOCS,
+      expect.objectContaining({ documentType: 'passport', requirement: 'passport' }),
+    );
+    expect(mocks.goToPage).toHaveBeenNthCalledWith(
+      5,
+      APP_PAGES.TENANT_IDENTITY_DOCS,
+      expect.objectContaining({ documentType: 'residence-permit', requirement: 'residence-permit' }),
+    );
   });
 
   it('keeps user on current step when Continue is blocked by missing required fields', () => {
