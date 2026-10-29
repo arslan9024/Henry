@@ -10,8 +10,12 @@ import EmiratesIdModulePage from './components/emiratesId/EmiratesIdModulePage';
 import TenantIdentityDocsPage from './components/tenantIdentity/TenantIdentityDocsPage';
 import ValidationDashboardPage from './components/ValidationDashboardPage';
 import TeamWorkflowPage from './components/TeamWorkflowPage';
+import StudioLayout from './components/tenancyStudio/StudioLayout';
+import ClassicStudioPage from './components/classicStudio/ClassicStudioPage';
+import WorkflowBlueprintsPage from './components/workflows/WorkflowBlueprintsPage';
 import UnifiedAppShell from './components/layout/UnifiedAppShell';
 import useAutosaveDebounce from './hooks/useAutosaveDebounce';
+import './styles/navbar-and-panel.css';
 
 const App = () => {
   // T-39 — single root-level debounce flushes the autosave pill from
@@ -30,6 +34,9 @@ const App = () => {
     [APP_PAGES.TENANT_IDENTITY_DOCS]: <TenantIdentityDocsPage />,
     [APP_PAGES.VALIDATION_DASHBOARD]: <ValidationDashboardPage />,
     [APP_PAGES.TEAM_WORKFLOW]: <TeamWorkflowPage />,
+    [APP_PAGES.TENANCY_STUDIO]: <StudioLayout />,
+    [APP_PAGES.CLASSIC_STUDIO]: <ClassicStudioPage />,
+    [APP_PAGES.WORKFLOW_BLUEPRINTS]: <WorkflowBlueprintsPage />,
   };
 
   const resolvePage = () => {

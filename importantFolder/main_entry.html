@@ -1,0 +1,403 @@
+<!-- FILE: main_entry.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>White Caves Real Estate - Tenancy Contract, Addendum &amp; Receipt Studio</title>
+
+    <!-- Core PDF Rendering & Stamping Engines (Online CDN PDF.js for Original DLD Template + Standalone Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/engine/pdf-lib.min.js"></script>
+
+    <!-- [Category 1: View] Unified Studio Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- [Category 2: Data Config] Static Blueprints, Schemas, Presets & Legal Text -->
+    <!-- Outbound Stamping & Calibration Coordinate Matrix (New Blank Template Only) -->
+    <script src="js/config/contract_mapper.js"></script>
+    <!-- Inbound Extraction Schema & Field Guidelines Matrix (Old Contract & Ejari Reading Only) -->
+    <script src="js/config/contract_inbound_mapper.js"></script>
+    <script src="js/config/contract_content_config.js"></script>
+    <script src="js/config/addendum_content_config.js"></script>
+    <script src="js/config/receipt_content_config.js"></script>
+    <script src="js/config/viewer_controls_config.js"></script>
+    <script src="js/config/upload_config.js"></script>
+
+    <!-- [Category 3: Values State] Live RAM Buffers, Cached Templates & LocalStorage -->
+    <script src="js/state/mapper_storage.js"></script>
+    <script src="js/state/form_metrics.js"></script>
+    <script src="js/state/addendum_data.js"></script>
+    <script src="js/state/receipt_data.js"></script>
+    <script src="js/state/document_upload_state.js"></script>
+    <script src="js/state/contract_diff_state.js"></script>
+    <script src="js/state/pdf_modal_state.js"></script>
+    <script src="js/state/smart_formatter.js"></script>
+    <script src="js/state/template_cache.js"></script>
+    <script src="js/state/template_autoloader.js"></script>
+
+    <!-- [Category 1: View] DOM Builders, Navigation, Sidebar & PDF Viewer Shell -->
+    <script src="js/view/form_layout.js"></script>
+    <script src="js/view/sidebar_status.js"></script>
+    <script src="js/view/navigation_view.js"></script>
+    <script src="js/view/viewer_toolbar_view.js"></script>
+    <script src="js/view/layout_toggle_view.js"></script>
+    <script src="js/view/addendum_form_view.js"></script>
+    <script src="js/view/cheque_schedule_view.js"></script>
+    <script src="js/view/client_handover_view.js"></script>
+    <script src="js/view/document_upload_view.js"></script>
+    <script src="js/view/contract_diff_view.js"></script>
+    <script src="js/view/pdf_modal_view.js"></script>
+    <script src="js/view/pdf_viewer.js"></script>
+
+    <!-- [Category 4: Event Handler] Interactive Drag & Keyboard Micro-Nudge Controller -->
+    <script src="js/handlers/pdf_drag_controller.js"></script>
+    <script src="js/handlers/pdf_modal_event_handler.js"></script>
+
+    <!-- [Category 5: Processing / Output] Canvas/PDF Engines, Binary Verifier & Exporters -->
+    <script src="js/engine/pdf_library_loader.js"></script>
+    <script src="js/engine/pdf_blueprint_canvas.js"></script>
+    <script src="js/engine/pdf_render_engine.js"></script>
+    <script src="js/engine/addendum_canvas_renderer.js"></script>
+    <script src="js/engine/addendum_pdf_builder.js"></script>
+    <script src="js/engine/addendum_engine.js"></script>
+    <script src="js/engine/receipt_canvas_renderer.js"></script>
+    <script src="js/engine/receipt_pdf_builder.js"></script>
+    <script src="js/engine/receipt_engine.js"></script>
+    <script src="js/engine/contract_parser_engine.js"></script>
+    <script src="js/engine/doc_intelligence_client.js"></script>
+    <script src="js/engine/pdf_verifier.js"></script>
+    <script src="js/engine/pdf_processor.js"></script>
+    <script src="js/engine/download_handler.js"></script>
+    <script src="js/engine/whatsapp_sharer.js"></script>
+
+    <!-- [Category 3: Values State] Master Session State Machine -->
+    <script src="js/state/workflow_engine.js"></script>
+</head>
+
+<body>
+
+    <!-- =========================================================================
+         SLIM COMPACT TOP HEADER NAVBAR
+         ========================================================================= -->
+    <header class="top-navbar">
+        <div class="navbar-inner">
+            <div class="brand-block">
+                <div class="brand-icon">🏔️</div>
+                <div>
+                    <h1 class="brand-title">White Caves Real Estate LLC</h1>
+                    <p class="brand-subtitle">6-Page Official DLD Contract, RERA Addendum &amp; Payment Receipt Studio</p>
+                </div>
+            </div>
+
+            <!-- Segmented Top Navigation Control (4 Streamlined Phases) -->
+            <nav class="stepper-nav" aria-label="Workflow Steps">
+                <button type="button" id="nav-step-1" class="step-nav-pill active">
+                    <span class="step-num-circle">1</span>
+                    <span>Deal &amp; DLD Inputs</span>
+                </button>
+                <button type="button" id="nav-step-2" class="step-nav-pill">
+                    <span class="step-num-circle">2</span>
+                    <span>RERA Addendum (P4–6)</span>
+                </button>
+                <button type="button" id="nav-step-3" class="step-nav-pill">
+                    <span class="step-num-circle">3</span>
+                    <span>Cheques &amp; Receipt (P7)</span>
+                </button>
+                <button type="button" id="nav-step-4" class="step-nav-pill">
+                    <span class="step-num-circle">4</span>
+                    <span>Review &amp; Export</span>
+                </button>
+            </nav>
+
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" id="btn-load-demo-deal" class="demo-deal-btn" title="Populate realistic demo contract parameters for quick testing">
+                    <span>⚡</span>
+                    <span>Load Demo Deal</span>
+                </button>
+                <button type="button" id="btn-toggle-col-b" class="navbar-toggle-btn" title="Show / Hide Center PDF Viewer (Column B)">
+                    <span>📄</span>
+                    <span id="label-toggle-col-b">Hide PDF</span>
+                </button>
+                <button type="button" id="btn-toggle-col-c" class="navbar-toggle-btn" title="Show / Hide Right Status Sidebar (Column C)">
+                    <span>📊</span>
+                    <span id="label-toggle-col-c">Hide Status</span>
+                </button>
+                <button type="button" id="btnTogglePdfModal" class="btn-navbar-pdf-modal" title="Open Fullscreen PDF Preview Modal">
+                    <span>👁️</span>
+                    <span>View Full PDF</span>
+                </button>
+                <div style="font-size:0.73rem; color:#93c5fd; font-weight:600;">
+                    🟢 DLD Active
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================================
+         3-COLUMN STUDIO SHELL (COL A: LEFT INPUTS | COL B: CENTER PDF VIEWER | COL C: RIGHT STATUS)
+         ========================================================================= -->
+    <div class="studio-shell">
+
+        <!-- =====================================================================
+             COLUMN A (LEFT): DEDICATED INPUTS & VIEW LAYOUT OF INPUTS
+             ===================================================================== -->
+        <main class="col-a-inputs" aria-label="Column A: Document Inputs & Editors">
+            <!-- Floating Quick Restore Strips when Col B or Col C is hidden -->
+            <div id="strip-toggle-col-b" class="column-uncollapse-strip" style="display:none;" title="Click to show Center PDF Viewer">
+                <span>📄</span> <span>Show Center PDF Viewer</span>
+            </div>
+            <div id="strip-toggle-col-c" class="column-uncollapse-strip" style="display:none;" title="Click to show Right Status Sidebar">
+                <span>📊</span> <span>Show Status Sidebar</span>
+            </div>
+
+            <!-- STEP 1: DEAL INTAKE & DLD CONTRACT INPUTS -->
+            <section id="step-form" style="display: block;">
+                <div class="step-header-banner">
+                    <div>
+                        <h2>📝 Step 1: Deal Intake &amp; Official DLD Tenancy Contract Inputs</h2>
+                        <p>Select contract mode, attach documents for instant auto-extraction, or enter the 24 Page 1 fields &amp; 5 Page 3 clauses.</p>
+                    </div>
+                </div>
+
+                <!-- Contract Mode Selector & Rapid Demo Action -->
+                <div class="contract-mode-selector" style="margin-bottom:12px;">
+                    <button type="button" id="hub-mode-renewal" class="mode-choice-card active-mode-card">
+                        <span class="mode-card-icon">🔄</span>
+                        <div>
+                            <div class="mode-card-title">Renewal Tenancy Contract</div>
+                            <div class="mode-card-desc">Returning tenant &amp; property details (142 Primrose, DAMAC Hills 2).</div>
+                        </div>
+                    </button>
+                    <button type="button" id="hub-mode-new" class="mode-choice-card">
+                        <span class="mode-card-icon">🆕</span>
+                        <div>
+                            <div class="mode-card-title">New Tenancy Contract</div>
+                            <div class="mode-card-desc">First-time lease for a new tenant with KYC verification.</div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Dynamic KYC / Verification Documents Upload Component -->
+                <div id="step1UploadRoot" style="margin-bottom: 12px;"></div>
+
+                <form id="contractDataForm">
+                    <div id="page1FieldsRoot"></div>
+                    <div id="page3ClausesRoot" style="margin-top: 14px;"></div>
+                </form>
+            </section>
+
+            <!-- STEP 2: 3-PAGE OFFICIAL RERA ADDENDUM BUILDER -->
+            <section id="step-addendum-builder" style="display: none;">
+                <div class="step-header-banner">
+                    <div>
+                        <h2>📑 Step 2: 3-Page Official RERA Addendum Inputs (Pages 4–6)</h2>
+                        <p>Tenant &amp; landlord details, rent, and premises are synchronized automatically. Customize special terms, maintenance threshold, and notice periods.</p>
+                    </div>
+                </div>
+                <div id="addendumFieldsRoot"></div>
+            </section>
+
+            <!-- STEP 3: PAYMENT RECEIPT & CHEQUES SCHEDULE BUILDER -->
+            <section id="step-receipt-builder" style="display: none;">
+                <div class="step-header-banner">
+                    <div>
+                        <h2>🧾 Step 3: Payment Receipt &amp; Cheques Schedule (Page 7)</h2>
+                        <p>Customize the <strong>White Caves Real Estate LLC Payment Receipt</strong> (5% Agency Fee + 5% VAT auto-calculated) and generate the multi-cheque payment schedule.</p>
+                    </div>
+                </div>
+                <div id="receiptFieldsRoot"></div>
+                <!-- Dynamic Cheque Schedule Generator Root -->
+                <div id="chequeScheduleRoot"></div>
+            </section>
+
+            <!-- STEP 4: PACKAGE SUMMARY, VERIFICATION & EXPORT -->
+            <section id="step-process-export" style="display: none;">
+                <div class="step-header-banner">
+                    <div>
+                        <h2>⚙️ Step 4: Package Summary, Verification &amp; Client Export</h2>
+                        <p>Select which documents to combine, click <strong>⚡ Process Selected PDF</strong> in the bottom footer, download the verified vector PDF, and send the handover breakdown to the client!</p>
+                    </div>
+                </div>
+
+                <div id="finalStatusNotification" class="alert-info warning-badge-override">
+                    ⏳ Click <strong>"⚡ Process Selected PDF"</strong> in the bottom footer bar to compile, verify, and unlock Download &amp; WhatsApp Sharing.
+                </div>
+
+                <!-- Client Handover Summary & Move-In Breakdown Root -->
+                <div id="clientHandoverRoot"></div>
+
+                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:9px; padding:13px; margin-top:14px;">
+                    <h3 style="margin:0 0 6px 0; color:#166534; font-size:0.86rem;">📜 Quick-Jump to Any Page in the Center Scroll Viewer</h3>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                        <button type="button" id="btn-jump-page-1" class="viewer-tab-btn" style="background:#1e3a8a;">P1: Contract Grid</button>
+                        <button type="button" id="btn-jump-page-2" class="viewer-tab-btn" style="background:#1e3a8a;">P2: DLD Terms</button>
+                        <button type="button" id="btn-jump-page-3" class="viewer-tab-btn" style="background:#1e3a8a;">P3: 5 Clauses</button>
+                        <button type="button" id="btn-jump-page-4" class="viewer-tab-btn" style="background:#065f46;">P4: Addendum 1</button>
+                        <button type="button" id="btn-jump-page-5" class="viewer-tab-btn" style="background:#065f46;">P5: Addendum 2</button>
+                        <button type="button" id="btn-jump-page-6" class="viewer-tab-btn" style="background:#991b1b;">P6: Payment Receipt</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- =====================================================================
+             COLUMN B (CENTER): LIVE PDF VIEWER & PRECISION CALIBRATION CONTROLS
+             ===================================================================== -->
+        <section class="col-b-viewer" aria-label="Column B: Center Live PDF Viewer & Calibration">
+            <!-- Compact Single-Row Viewer Toolbar (Page & Zoom Dropdowns + Collapsible Tools + Focus Mode) -->
+            <div class="viewer-toolbar">
+                <div class="toolbar-row toolbar-controls">
+                    <label class="viewer-select-wrap" title="Choose page to view">
+                        <span class="viewer-select-icon">📄</span>
+                        <select id="viewer-page-select" class="viewer-select" aria-label="Page"></select>
+                    </label>
+                    <label class="viewer-select-wrap" title="Zoom level">
+                        <span class="viewer-select-icon">🔍</span>
+                        <select id="viewer-zoom-select" class="viewer-select viewer-select-narrow" aria-label="Zoom"></select>
+                    </label>
+                    <button type="button" id="btn-toggle-viewer-tools" class="viewer-icon-btn" title="Show / hide precision coordinate calibration tools">📐 Calibrate Positions ▾</button>
+                    <button type="button" id="btn-collapse-col-b" class="viewer-collapse-btn" title="Hide Center PDF Viewer">✕ Hide</button>
+                </div>
+                <button type="button" id="btn-viewer-focus" class="viewer-icon-btn viewer-focus-btn" title="Hide controls for a clearer page view">⤢</button>
+            </div>
+            <div id="playground-page-indicator" class="viewer-page-caption">Page 1 of 7 — DLD Grid (24 Fields + ✓)</div>
+
+            <!-- Collapsible Precision Calibration Tools (Coordinate Readout + 1pt Nudge Buttons + Reset/Export) -->
+            <div id="viewer-calibration-tools" class="calibration-subbar is-collapsed">
+                <span id="selected-field-readout" style="color:#93c5fd; font-size:0.7rem;">🎯 Click or drag any tag on P1/P3</span>
+                <div class="nudge-pad-group">
+                    <button type="button" id="btn-nudge-left" class="nudge-btn" title="Nudge Left 1pt">◀</button>
+                    <button type="button" id="btn-nudge-up" class="nudge-btn" title="Nudge Up 1pt">▲</button>
+                    <button type="button" id="btn-nudge-down" class="nudge-btn" title="Nudge Down 1pt">▼</button>
+                    <button type="button" id="btn-nudge-right" class="nudge-btn" title="Nudge Right 1pt">▶</button>
+                    <button type="button" id="btn-reset-coordinates" class="nudge-btn" style="color:#fecaca;">↺ Reset</button>
+                    <button type="button" id="btn-export-script-file" class="nudge-btn" style="color:#fef08a;">💾 Mapper</button>
+                </div>
+            </div>
+
+            <div class="single-pane-viewer-viewport">
+                <div id="playground-stage-sizer" class="playground-stage-sizer">
+                    <div id="playground-canvas-area" class="a4-simulation-canvas"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             COLUMN C (RIGHT): LIVE STATUS, VERIFICATION GATES & DEAL SNAPSHOT
+             ===================================================================== -->
+        <aside class="col-c-status" aria-label="Column C: Right Verification Gates & Active Deal Snapshot">
+            <div class="sidebar-card">
+                <div class="sidebar-header">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <h3>🛡️ Verification Gates</h3>
+                        <span class="live-pill">Step-by-Step</span>
+                    </div>
+                    <button type="button" id="btn-collapse-col-c" class="sidebar-collapse-btn" title="Hide Right Status Sidebar">✕ Hide</button>
+                </div>
+
+                <div class="progress-track">
+                    <div id="sidebar-progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="sidebar-progress-text" class="progress-caption">
+                    2 of 8 Gates Confirmed
+                </div>
+
+                <div id="check-fields-p1" class="checklist-item status-pending">...</div>
+                <div id="check-fields-p3" class="checklist-item status-pending">...</div>
+                <div id="check-template" class="checklist-item status-confirmed">...</div>
+                <div id="check-engine" class="checklist-item status-confirmed">...</div>
+                <div id="check-calibration" class="checklist-item status-pending">...</div>
+                <div id="check-addendum" class="checklist-item status-pending">...</div>
+                <div id="check-receipt" class="checklist-item status-pending">...</div>
+                <div id="check-stamped-pdf" class="checklist-item status-pending">...</div>
+            </div>
+
+            <!-- Quick 3-Document Status & Switcher Card -->
+            <div class="sidebar-card">
+                <div class="sidebar-header" style="margin-bottom:6px; padding-bottom:5px;">
+                    <h3>📂 3-Document Status</h3>
+                    <span class="live-pill">Click to Edit</span>
+                </div>
+                <div id="btn-colc-doc1" class="doc-ready-row">
+                    <strong>1. DLD Contract (P1–3)</strong>
+                    <span id="doc-status-badge-1" class="doc-ready-pill pill-waiting">⏳ In Progress</span>
+                </div>
+                <div id="btn-colc-doc2" class="doc-ready-row">
+                    <strong>2. RERA Addendum (P4–5)</strong>
+                    <span id="doc-status-badge-2" class="doc-ready-pill pill-waiting">⏳ In Progress</span>
+                </div>
+                <div id="btn-colc-doc3" class="doc-ready-row">
+                    <strong>3. Payment Receipt (P6)</strong>
+                    <span id="doc-status-badge-3" class="doc-ready-pill pill-waiting">⏳ In Progress</span>
+                </div>
+            </div>
+
+            <!-- Active Deal Snapshot Card -->
+            <div class="sidebar-card">
+                <div class="sidebar-header" style="margin-bottom:6px; padding-bottom:5px;">
+                    <h3>📊 Active Deal Snapshot</h3>
+                    <span class="live-pill" style="background:#dcfce7; color:#166534;">6 Pages</span>
+                </div>
+                <div class="deal-summary-row">
+                    <span style="color:#64748b;">Contract Mode:</span>
+                    <strong id="summary-mode-val" style="color:#1e3a8a;">Renewal Contract</strong>
+                </div>
+                <div class="deal-summary-row">
+                    <span style="color:#64748b;">Premises:</span>
+                    <strong id="summary-unit-val" style="color:#0f172a;">142 PRIMROSE</strong>
+                </div>
+                <div class="deal-summary-row">
+                    <span style="color:#64748b;">Annual Rent:</span>
+                    <strong id="summary-rent-val" style="color:#059669;">115,000 AED</strong>
+                </div>
+                <div class="deal-summary-row">
+                    <span style="color:#64748b;">Receipt Total (5% + VAT):</span>
+                    <strong id="summary-fee-val" style="color:#7c3aed;">6,037.50 AED</strong>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- =========================================================================
+         SLIM COMPACT STICKY FOOTER (ALL JOURNEY, COMBINER, PROCESS, DOWNLOAD & WHATSAPP BUTTONS)
+         ========================================================================= -->
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <!-- 1. Left Cluster: Journey Stepper Controls -->
+            <div class="footer-cluster">
+                <button type="button" id="btn-footer-prev" class="nav-action-btn" disabled>&larr; Prev</button>
+                <button type="button" id="btn-footer-next" class="nav-action-btn primary-nav-btn">Start Doc 1: DLD Contract &rarr;</button>
+            </div>
+
+            <!-- 2. Center Cluster: Selective 3-Doc Combiner & Process Button -->
+            <div class="footer-cluster">
+                <span style="color:#94a3b8; font-weight:600;">Combine:</span>
+                <label class="doc-chk-label"><input type="checkbox" id="chk-doc-contract" checked> 1. Contract</label>
+                <label class="doc-chk-label"><input type="checkbox" id="chk-doc-addendum" checked> 2. Addendum</label>
+                <label class="doc-chk-label"><input type="checkbox" id="chk-doc-receipt" checked> 3. Receipt</label>
+                <button type="button" id="btn-footer-process" class="nav-action-btn process-footer-btn">⚡ Process Selected PDF</button>
+            </div>
+
+            <!-- 3. Right Cluster: Download PDF & Share on WhatsApp -->
+            <div class="footer-cluster">
+                <button type="button" id="btn-download-final-pdf" class="nav-action-btn download-footer-btn" disabled>🔒 Download Locked</button>
+                <button type="button" id="btn-share-whatsapp" class="nav-action-btn whatsapp-footer-btn" disabled>💬 Share on WhatsApp</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mount Point for Side-by-Side Old Contract Diff Modal -->
+    <div id="diffModalMountPoint"></div>
+
+    <!-- Mount Point for Fullscreen PDF Preview Modal -->
+    <div id="pdfModalMountPoint"></div>
+
+    <!-- [Category 4: Event Handler] Central Switchboard Event Orchestrator -->
+    <script src="js/handlers/event_orchestrator.js"></script>
+</body>
+
+</html>

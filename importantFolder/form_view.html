@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>White Caves Real Estate - Contract Input Form</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 25px; }
+        .wrapper { max-width: 900px; margin: 0 auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        h1 { color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 12px; margin-top: 0; font-size: 1.8em; }
+        .page-badge { background: #1e3a8a; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: bold; float: right; }
+        .tab-panel { border: 1px solid #cbd5e1; border-radius: 8px; padding: 25px; background: #f8fafc; margin-top: 20px; clear: both; }
+        .section-header { font-size: 1.1em; font-weight: bold; color: #2563eb; margin: 20px 0 10px 0; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-card { background: white; padding: 14px; border: 1px solid #e2e8f0; border-radius: 6px; }
+        label { display: block; font-weight: 600; font-size: 0.85em; color: #475569; margin-bottom: 6px; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 0.9em; }
+        input[type="text"]:focus { border-color: #3b82f6; outline: none; }
+        .submit-btn { width: 100%; background: #2563eb; color: white; padding: 16px; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 30px; transition: background 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+        .submit-btn:hover { background: #1d4ed8; }
+        .alert-info { background:#f1f5f9; padding:12px; border-left:5px solid #64748b; font-size:0.9em; color:#475569; margin:15px 0; border-radius:0 4px 4px 0; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h1>📝 Unified Contract Data Input Form</h1>
+    
+    <form id="contractDataForm">
+        <!-- PAGE 1 INPUT SECTION (EXACTLY 24 FIELDS) -->
+        <div>
+            <span class="page-badge">Page 1 Required Fields: 24</span>
+            <div class="section-header">A. Header Configuration (1 Field)</div>
+            <div class="grid-container">
+                <div class="input-card"><label>Contract Generation Date</label><input type="text" name="contract_date" value="27-10-2026"></div>
+            </div>
+
+            <div class="section-header">B. Owner / Lessor Registry Profile (5 Fields)</div>
+            <div class="grid-container">
+                <div class="input-card"><label>Owner's Full Name</label><input type="text" name="owner_name" value="BASHAR GHAZI MAJAR"></div>
+                <div class="input-card"><label>Lessor's Full Name</label><input type="text" name="lessor_name" value="BASHAR GHAZI MAJAR"></div>
+                <div class="input-card"><label>Lessor ID / Passport Number</label><input type="text" name="lessor_id" value="N 016004319 (PASSPORT NUMBER OF NON RESIDENT)"></div>
+                <div class="input-card"><label>Lessor's Email Address</label><input type="text" name="lessor_email" value="majar77@gmail.com"></div>
+                <div class="input-card"><label>Lessor's Phone Number</label><input type="text" name="lessor_phone" value="97450161610"></div>
+            </div>
+
+            <div class="section-header">C. Tenant Profile Information (4 Fields)</div>
+            <div class="grid-container">
+                <div class="input-card"><label>Tenant's Full Name</label><input type="text" name="tenant_name" value="HIRDESH BHAGIRATH PARSHOTAM LAL BHAGIRATH"></div>
+                <div class="input-card"><label>Tenant's Emirates ID</label><input type="text" name="tenant_eid" value="784-1976-9510275-2"></div>
+                <div class="input-card"><label>Tenant's Email Address</label><input type="text" name="tenant_email" value="HIRDESH.BHAGIRATH@GMAIL.COM"></div>
+                <div class="input-card"><label>Tenant's Phone Number</label><input type="text" name="tenant_phone" value="971569946568"></div>
+            </div>
+
+            <div class="section-header">D. Property Inventory Parameters (8 Fields)</div>
+            <div class="grid-container">
+                <div class="input-card"><label>Property Usage Selection Token</label><input type="text" name="prop_usage" value="X"></div>
+                <div class="input-card"><label>Plot Number</label><input type="text" name="plot_no" value="9049"></div>
+                <div class="input-card"><label>Building / Cluster Name</label><input type="text" name="building_name" value="PRIMROSE"></div>
+                <div class="input-card"><label>Property Type Designation</label><input type="text" name="property_type" value="LAND"></div>
+                <div class="input-card"><label>Community Location</label><input type="text" name="location" value="DAMAC HILLS 2"></div>
+                <div class="input-card"><label>Villa / Unit Property Number</label><input type="text" name="property_no" value="142"></div>
+                <div class="input-card"><label>Total Property Area (Sq.M)</label><input type="text" name="property_area" value="174.80"></div>
+                <div class="input-card"><label>DEWA Premises Number</label><input type="text" name="dewa_premises" value="916007758"></div>
+            </div>
+
+            <div class="section-header">E. Contract Lease Term Details (6 Fields)</div>
+            <div class="grid-container">
+                <div class="input-card"><label>Lease Period - From Date</label><input type="text" name="date_from" value="10-11-2026"></div>
+                <div class="input-card"><label>Lease Period - To Date</label><input type="text" name="date_to" value="09-11-2027"></div>
+                <div class="input-card"><label>Annual Rent Amount (AED)</label><input type="text" name="annual_rent" value="115,000 AED"></div>
+                <div class="input-card"><label>Total Declared Contract Value</label><input type="text" name="contract_value" value="115,000 AED"></div>
+                <div class="input-card"><label>Security Deposit Protection Value</label><input type="text" name="security_deposit" value="6,000 AED"></div>
+                <div class="input-card"><label>Mode of Payment Installments</label><input type="text" name="mode_of_payment" value="2 CHEQUES"></div>
+            </div>
+        </div>
+
+        <!-- PAGE 2 NOTIFICATION LAYER (0 FIELDS Required) -->
+        <div style="margin-top: 30px;">
+            <span class="page-badge" style="background:#64748b;">Page 2 Required Fields: 0</span>
+            <div class="section-header" style="color:#64748b;">📄 Page 2 Framework Notification</div>
+            <div class="alert-info">Standard DLD legal disclaimers active. No parameter modifications allowed on Page 2 fields.</div>
+        </div>
+
+        <!-- PAGE 3 INPUT SECTION (5 FIELDS) -->
+        <div style="margin-top: 30px;">
+            <span class="page-badge">Page 3 Required Fields: 5</span>
+            <div class="section-header">F. Custom Additional Operational Rules lines</div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="input-card"><label>Clause line 1</label><input type="text" name="term_line_1" value="1. The addendum attached to this is an integral part of the tenancy contract."></div>
+                <div class="input-card"><label>Clause line 2</label><input type="text" name="term_line_2" value="2. This contract is valid for 1 year only. Renewal of the contract is subject to the approval of the landlord."></div>
+                <div class="input-card"><label>Clause line 3</label><input type="text" name="term_line_3" value="3. The security deposit is non-refundable if the house isn't returned clean, undamaged, and with proof of required services."></div>
+                <div class="input-card"><label>Clause line 4</label><input type="text" name="term_line_4" value="4. The landlord will confirm and arrange the maintenance, including cleaning, painting, and AC service, for the tenant before MOVE-IN."></div>
+                <div class="input-card"><label>Clause line 5</label><input type="text" name="term_line_5" value="5. The key handover will be processed after the submission of EJARI, DEWA receipt, and MOVE-IN permit by DAMAC."></div>
+            </div>
+        </div>
+
+        <button type="button" class="submit-btn" id="transmitDataBtn">Transmit Parameters to Main Entry Node</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('transmitDataBtn').addEventListener('click', () => {
+        const formData = new FormData(document.getElementById('contractDataForm'));
+        const payload = { page1: {}, page3: {} };
+
+        // Categorize form inputs into appropriate dynamic structures
+        const p1Fields = ["contract_date", "owner_name", "lessor_name", "lessor_id", "lessor_email", "lessor_phone", "tenant_name", "tenant_eid", "tenant_email", "tenant_phone", "prop_usage", "plot_no", "building_name", "property_type", "location", "property_no", "property_area", "dewa_premises", "date_from", "date_to", "annual_rent", "contract_value", "security_deposit", "mode_of_payment"];
+        
+        p1Fields.forEach(field => { payload.page1[field] = formData.get(field); });
+        for(let i=1; i<=5; i++) { payload.page3[`term_line_${i}`] = formData.get(`term_line_${i}`); }
+
+        // Securely pass values over to the main entry receiver tab
+        localStorage.setItem('whitecaves_payload', JSON.stringify(payload));
+        alert('Parameters transmitted successfully. Switch over to main_entry.html to compile your contract PDF file!');
+    });
+</script>
+</body>
+</html>

@@ -10,8 +10,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import getHenryTheme from './theme';
 
-const readIsDark = () =>
-  typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
+const readIsDark = () => typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
 
 export default function HenryThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(readIsDark);

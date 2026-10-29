@@ -29,12 +29,12 @@ const makeStore = () =>
 describe('appRouteSlice — initial state', () => {
   it('defaults to documentWorkspace page', () => {
     const store = makeStore();
-    expect(store.getState().appRoute.currentPage).toBe('documentWorkspace');
+    expect(store.getState().appRoute.currentPage).toBe('tenancyStudio');
   });
 
   it('selectCurrentPage returns documentWorkspace initially', () => {
     const store = makeStore();
-    expect(selectCurrentPage(store.getState())).toBe('documentWorkspace');
+    expect(selectCurrentPage(store.getState())).toBe('tenancyStudio');
   });
 
   it('selectIsDocumentHubPage returns false initially', () => {

@@ -1,0 +1,98 @@
+/**
+ * [Category 1: View Stylesheet]
+ * Right Panel Layout (right-panel.css)
+ * Docked operations & AI assistant panel without backdrop or overlap.
+ */
+
+.right-panel__backdrop {
+  display: none !important;
+}
+
+.master-right-panel,
+.right-panel__aside {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  background-color: var(--surface, #ffffff) !important;
+  border-left: 1px solid var(--border, #e2e8f0) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  transition:
+    width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    min-width 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 20 !important;
+}
+
+.master-right-panel.is-collapsed,
+.right-panel__aside.is-collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  border-left: none !important;
+  display: none !important;
+}
+
+.right-panel__header {
+  height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border, #f1f5f9);
+  flex-shrink: 0;
+}
+
+.right-panel__header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.right-panel__title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+.right-panel__subtitle {
+  margin: 1px 0 0 0;
+  font-size: 0.65rem;
+  color: var(--text-muted, #64748b);
+}
+
+.right-panel__close-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-muted, #64748b);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.right-panel__close-btn:hover {
+  background-color: var(--surface-hover, #f1f5f9);
+  color: var(--text, #0f172a);
+}
+
+.right-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

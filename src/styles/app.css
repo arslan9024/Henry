@@ -202,7 +202,7 @@ body {
   display: flex;
   justify-content: space-between;
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: center;
 }
 
 .workspace-page__header h2 {
@@ -385,7 +385,7 @@ body {
 
 .app-sidebar__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
@@ -522,14 +522,14 @@ body {
   border-radius: 10px;
   padding: 12px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
 .top-navbar__brand {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
 }
 
@@ -572,7 +572,7 @@ body {
 
 .henry-identity {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   background: #fefce8;
   border: 1px solid #fde68a;
@@ -580,7 +580,7 @@ body {
   border-radius: 10px;
   padding: 8px 10px;
   min-width: 190px;
-  position: relative;
+  position: sticky;
 }
 
 .henry-identity__avatar {
@@ -1192,7 +1192,7 @@ body {
 }
 
 .signature-stage {
-  position: relative;
+  position: sticky;
   width: 220px;
   min-height: 90px;
 }
@@ -1208,7 +1208,7 @@ body {
 }
 
 .signature-stage .signature {
-  position: relative;
+  position: sticky;
   z-index: 10;
   margin-top: 16px;
 }
@@ -1413,7 +1413,7 @@ body {
   }
 
   .top-navbar__actions {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .henry-identity {
@@ -1638,7 +1638,7 @@ body {
 
 .llm-chat__settings-option {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   font-size: var(--fs-sm);
   color: var(--text);
@@ -2111,7 +2111,7 @@ body {
 
 .dc-warning {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 7px;
   padding: 7px 10px;
   border-radius: 7px;
@@ -3207,7 +3207,7 @@ body {
 .toast {
   pointer-events: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   padding: 10px 12px;
   background: var(--color-surface, #fff);
@@ -3789,7 +3789,7 @@ main#main:focus-visible {
   background: rgba(0, 0, 0, 0.48);
   z-index: 10000;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding-top: min(10vh, 80px);
   animation: cp-scrim-in var(--motion-fast, 140ms) var(--easing, ease-out);
@@ -3975,7 +3975,7 @@ main#main:focus-visible {
 /* Individual term row with remove button */
 .tc-term-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-2, 0.5rem);
   padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
   border-radius: var(--radius-sm, 6px);
@@ -4745,7 +4745,7 @@ body {
   }
 
   .top-navbar__brand {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .preview-area {
@@ -4857,7 +4857,7 @@ body {
 @media (max-width: 1200px) {
   .henry-shell {
     grid-template-columns: 1fr;
-    position: relative;
+    position: sticky;
     padding: 12px;
   }
 
@@ -5082,7 +5082,7 @@ body {
 
   .workspace-last-journey {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .workspace-preview-card {

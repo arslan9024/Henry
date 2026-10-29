@@ -1,0 +1,59 @@
+/**
+ * [Category 1: View Stylesheet]
+ * Master Shell Layout (master-shell.css)
+ * Zero-overlap master layout container.
+ * Integrates Top Navbar, Left Panel, Main 3-Column Screen, Right Panel, and Footer.
+ */
+
+.master-app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg, #f8fafc);
+  color: var(--text, #0f172a);
+}
+
+/* ── Center Workspace Row (between Top Navbar & Footer) ── */
+.master-workspace-body,
+.master-workspace-body.henry-shell {
+  flex: 1;
+  display: flex !important;
+  flex-direction: row !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  min-height: 0 !important;
+  position: relative !important;
+}
+
+/* ── Main Screen Viewport (between Left and Right Panels) ── */
+.master-main-screen,
+.master-main-screen.henry-shell__content {
+  flex: 1 1 0% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  position: relative !important;
+  background-color: var(--surface-subtle, #f8fafc) !important;
+}
+
+.master-main-screen__inner,
+.master-main-screen__inner.henry-shell__content-inner {
+  flex: 1 1 0% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}

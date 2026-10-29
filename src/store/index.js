@@ -20,6 +20,8 @@ import fieldSourceReducer, {
 } from './fieldSourceSlice';
 import userAccessReducer from './userAccessSlice';
 import approvalReducer from './approvalSlice';
+import tenancyStudioReducer from './tenancyStudioSlice';
+import documentVaultReducer from './documentVaultSlice';
 
 const listenerMiddleware = createListenerMiddleware();
 
@@ -73,6 +75,8 @@ export const store = configureStore({
     fieldSources: fieldSourceReducer,
     userAccess: userAccessReducer,
     approvals: approvalReducer,
+    tenancyStudio: tenancyStudioReducer,
+    documentVault: documentVaultReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware),
 });

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>White Caves Real Estate - Contract Generation Hub</title>
+
+    <!-- External Binary Assets Dependencies Handles -->
+    <script src="https://unpkg.com" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="pdf-lib.min.js"></script>
+
+    <!-- Link to Independent Isolated CSS Style Asset -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Workspace Modular System Architecture Script Pipeline Links -->
+    <script src="contract_mapper.js"></script>
+    <script src="form_layout.js"></script>
+    <script src="pdf_processor.js"></script>
+    <script src="workflow_engine.js"></script>
+    <script src="pdf_viewer.js"></script>
+    <script src="download_handler.js"></script>
+    <!-- Inside the <head> tag of main_entry.html, add this line right above pdf_processor.js: -->
+    <script src="pdf_library_loader.js"></script>
+    <script src="pdf_processor.js"></script>
+
+    <!-- Inside your main_entry.html, update the 'btn-compile-step3' click event listener block inside your script tag to look exactly like this: -->
+    <script>
+        document.getElementById('btn-compile-step3').addEventListener('click', () => {
+            if (window.WorkflowEngine) {
+                window.WorkflowEngine.processPdfFormLayers();
+                if (window.PdfViewerEngine) {
+                    // Forward BOTH form inputs data payload AND raw binary file array template buffer structures cleanly
+                    window.PdfViewerEngine.initializeVisualPlayground(
+                        window.WorkflowEngine.payload,
+                        window.WorkflowEngine.templateBuffer
+                    );
+                }
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <h1>🏠 White Caves Real Estate - Contract Generation Hub</h1>
+
+        <!-- STEP 1: RESTORED PARAMETERS SPECIFICATION COMPONENT -->
+        <div id="step-form" style="display: block;">
+            <form id="contractDataForm">
+                <!-- FormLayoutBuilder inserts the 24 inputs fields directly here -->
+                <div id="page1FieldsRoot"></div>
+
+                <div style="margin-top: 30px;">
+                    <span class="page-badge" style="background:#64748b;">Page 2 Required Fields: 0</span>
+                    <div class="section-header" style="color:#64748b;">📄 Page 2 Legal Framework Disclaimer</div>
+                    <div class="alert-info">Standard DLD legal terms active. No parameter entries required for Page 2
+                        layout panels.</div>
+                </div>
+
+                <div style="margin-top: 30px; margin-bottom: 25px;">
+                    <span class="page-badge">Page 3 Required Fields: 5</span>
+                    <div class="section-header">F. Custom Additional Operational Rules Lines</div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="input-card"><label>Clause line 1</label><input type="text" name="term_line_1"
+                                value="1. The addendum attached to this is an integral part of the tenancy contract.">
+                        </div>
+                        <div class="input-card"><label>Clause line 2</label><input type="text" name="term_line_2"
+                                value="2. This contract is valid for 1 year only. Renewal of the contract is subject to the approval of the landlord.">
+                        </div>
+                        <div class="input-card"><label>Clause line 3</label><input type="text" name="term_line_3"
+                                value="3. The security deposit is non-refundable if the house isn't returned clean, undamaged, and with proof of required services.">
+                        </div>
+                        <div class="input-card"><label>Clause line 4</label><input type="text" name="term_line_4"
+                                value="4. The landlord will confirm and arrange the maintenance, including cleaning, painting, and AC service, for the tenant before MOVE-IN.">
+                        </div>
+                        <div class="input-card"><label>Clause line 5</label><input type="text" name="term_line_5"
+                                value="5. The key handover will be processed after the submission of EJARI, DEWA receipt, and MOVE-IN permit by DAMAC.">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-lock-step1" class="primary-btn">Lock Form Parameters & Advance to
+                    Upload</button>
+            </form>
+        </div>
+
+        <!-- STEP 2: TEMPLATE ACQUISITION SYSTEM PANEL -->
+        <div id="step-upload" class="workflow-step">
+            <h3 style="margin-top:0; color:#1e3a8a;">📁 Step 2: Load Blank DLD Template Document</h3>
+            <p style="font-size:0.9em; color:#475569;">Select your blank 3-page government template background PDF from
+                your folder directory to analyze it.</p>
+            <input type="file" id="pdfFileInput" accept=".pdf"
+                style="width:100%; padding:12px; background:white; border:1px dashed #2563eb; border-radius:4px; box-sizing:border-box;">
+        </div>
+
+        <!-- STEP 3: SYSTEMS STABILITY CONFIRMATION CHECKLIST -->
+        <div id="step-confirm" class="workflow-step">
+            <h3 style="margin-top:0; color:#d97706;">🔍 Step 3: Verification & Alignment Confirmation</h3>
+            <p style="font-size:0.9em; color:#475569;">Our validation check has parsed your files. Once all system
+                parameters are checked and verified, the compilation action button will unlock automatically:</p>
+
+            <div id="check-fields-p1" class="checklist-item">...</div>
+            <div id="check-fields-p3" class="checklist-item">...</div>
+            <div id="check-template" class="checklist-item">...</div>
+            <div id="check-engine" class="checklist-item" style="background:#fef3c7; border-color:#fde68a;">...</div>
+
+            <button type="button" id="btn-compile-step3" class="primary-btn-disabled" disabled>Awaiting System Checks
+                Verification...</button>
+        </div>
+
+        <!-- STEP 4: INTERACTIVE DRAG-ALIGNMENT PLAYGROUND & FILE PRODUCTION EXPORT PANEL -->
+        <div id="step-download" class="workflow-step" style="text-align:center;">
+            <h3 style="margin-top:0; color:#10b981;">🎉 Step 4: Interactive Layout Playground & Export</h3>
+            <p style="font-size:0.9em; color:#475569; margin-bottom: 20px;">Use your mouse or trackpad to **drag fields
+                into their correct template locations**. Once satisfied, click 'Download Prepared PDF':</p>
+
+            <!-- Dynamic Simulated Playground Canvas Render Grid Node Container -->
+            <div class="playground-scroll-container">
+                <div id="playground-canvas-area" class="a4-simulation-canvas"></div>
+            </div>
+
+            <div id="statusUpdateText" style="font-weight:bold; color:#111827; margin:20px 0;"></div>
+
+            <div style="display:flex; gap:15px; margin-top:20px;">
+                <button type="button" id="btn-extract-coordinates" class="primary-btn process-btn"
+                    style="background:#f59e0b;">💾 Save Dragged Coordinates Module File</button>
+                <button type="button" id="btn-download-step4" class="primary-btn download-btn">Download Prepared Tenancy
+                    Contract PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Automatically fetch and build your 24 input text blocks onto Step 1 screen space
+            if (window.FormLayoutBuilder) {
+                window.FormLayoutBuilder.renderFormFields('page1FieldsRoot');
+            }
+
+            document.getElementById('btn-lock-step1').addEventListener('click', () => {
+                if (window.WorkflowEngine) window.WorkflowEngine.lockFormData();
+            });
+
+            document.getElementById('pdfFileInput').addEventListener('change', function () {
+                if (window.WorkflowEngine) window.WorkflowEngine.handleFileSelection(this);
+            });
+
+            document.getElementById('btn-compile-step3').addEventListener('click', () => {
+                if (window.WorkflowEngine) {
+                    window.WorkflowEngine.processPdfFormLayers();
+                    if (window.PdfViewerEngine) {
+                        window.PdfViewerEngine.initializeVisualPlayground(window.WorkflowEngine.payload);
+                    }
+                }
+            });
+
+            document.getElementById('btn-extract-coordinates').addEventListener('click', () => {
+                if (window.PdfViewerEngine) window.PdfViewerEngine.extractCalibratedCodeMatrix();
+            });
+
+            document.getElementById('btn-download-step4').addEventListener('click', () => {
+                if (window.WorkflowEngine && window.DownloadHandler) {
+                    window.WorkflowEngine.processPdfFormLayers();
+                    window.DownloadHandler.executeSecureDownload(window.WorkflowEngine.downloadBlobUrl);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

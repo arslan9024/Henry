@@ -38,6 +38,7 @@ const createInitialState = () => {
     printTrigger: 0,
     previewMode: false,
     commandPaletteOpen: false,
+    rightPanelOpen: false,
   };
 };
 
@@ -101,6 +102,15 @@ const uiCommandSlice = createSlice({
     toggleCommandPalette: (state) => {
       state.commandPaletteOpen = !state.commandPaletteOpen;
     },
+    openRightPanel: (state) => {
+      state.rightPanelOpen = true;
+    },
+    closeRightPanel: (state) => {
+      state.rightPanelOpen = false;
+    },
+    toggleRightPanel: (state) => {
+      state.rightPanelOpen = !state.rightPanelOpen;
+    },
   },
 });
 
@@ -121,9 +131,13 @@ export const {
   openCommandPalette,
   closeCommandPalette,
   toggleCommandPalette,
+  openRightPanel,
+  closeRightPanel,
+  toggleRightPanel,
 } = uiCommandSlice.actions;
 
 export const selectLeftRail = (state) => state.uiCommand.leftRail;
+export const selectRightPanelOpen = (state) => state.uiCommand.rightPanelOpen || false;
 export const selectDrawerTab = (state) => state.uiCommand.drawerTab;
 export const selectChatOpen = (state) => state.uiCommand.chatOpen;
 export const selectChatActivationKey = (state) => state.uiCommand.chatActivationKey;

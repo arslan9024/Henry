@@ -1,0 +1,91 @@
+/**
+ * [Category 1: View Stylesheet]
+ * Left Panel Layout (left-panel.css)
+ * Docked, collapsible side navigation panel without backdrop or overlap.
+ */
+
+.app-sidebar__backdrop {
+  display: none !important;
+}
+
+.master-left-panel,
+.app-sidebar {
+  width: 220px !important;
+  min-width: 220px !important;
+  max-width: 220px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  background-color: var(--surface, #ffffff) !important;
+  border-right: 1px solid var(--border, #e2e8f0) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition:
+    width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    min-width 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 20 !important;
+}
+
+.master-left-panel.is-collapsed,
+.app-sidebar.is-collapsed {
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  padding: 8px 4px !important;
+}
+
+.master-left-panel.is-hidden,
+.app-sidebar.is-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  border-right: none !important;
+  display: none !important;
+}
+
+.left-panel__header {
+  height: 42px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border, #f1f5f9);
+  flex-shrink: 0;
+}
+
+.left-panel__toggle-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--border, #cbd5e1);
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted, #64748b);
+  transition: all 0.12s ease;
+}
+
+.left-panel__toggle-btn:hover {
+  background-color: var(--surface-hover, #f1f5f9);
+  color: var(--text, #0f172a);
+}
+
+.left-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

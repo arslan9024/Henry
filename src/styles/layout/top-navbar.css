@@ -1,0 +1,146 @@
+/**
+ * [Category 1: View Stylesheet]
+ * Top Navbar Layout (top-navbar.css)
+ * Sleek, full-width, zero-overlap header bar.
+ */
+
+.master-top-navbar,
+.top-navbar {
+  width: 100% !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--border, #e2e8f0) !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  background-color: var(--surface, #ffffff) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 16px !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+  z-index: 30 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+.master-top-navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.master-top-navbar__center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.master-top-navbar__center::-webkit-scrollbar {
+  display: none;
+}
+
+.master-top-navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.top-nav-panel-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #cbd5e1);
+  background-color: var(--surface, #ffffff);
+  color: var(--text, #334155);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.top-nav-panel-toggle:hover {
+  background-color: var(--surface-hover, #f1f5f9);
+  border-color: var(--border-hover, #94a3b8);
+}
+
+.top-nav-panel-toggle.is-active {
+  background-color: var(--primary-subtle, #eff6ff);
+  border-color: var(--primary, #2563eb);
+  color: var(--primary, #2563eb);
+}
+
+/* ── Top Navbar Studio Stepper ── */
+.top-nav-stepper-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.top-nav-stepper-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.top-nav-stepper-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background-color: transparent;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.top-nav-stepper-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.top-nav-stepper-btn.is-active {
+  font-weight: 700;
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.top-nav-stepper-toolbox {
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.top-nav-stepper-toolbox:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}

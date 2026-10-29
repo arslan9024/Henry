@@ -915,6 +915,140 @@ const TenancyContractBuilderPage = () => {
         </div>
       </section>
 
+      {/* Upgraded Studio CTA Banner */}
+      <section
+        style={{
+          margin: '0 0 16px 0',
+          padding: '16px 20px',
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+          boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              fontSize: '26px',
+              backgroundColor: '#1e293b',
+              padding: '8px 12px',
+              borderRadius: '8px',
+            }}
+          >
+            🏔️
+          </div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#f8fafc', fontWeight: 'bold' }}>
+              White Caves Tenancy Studio v2.0
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+              Launch the upgraded studio with interactive canvas drag &amp; 1pt micro-nudging, 25-clause RERA
+              Addendum, and 5% VAT Payment Receipt compiler.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="primary"
+            onClick={() => goToPage(APP_PAGES.TENANCY_STUDIO)}
+            style={{
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              padding: '10px 18px',
+            }}
+          >
+            🚀 Prepare Tenancy Contract Studio
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => goToPage(APP_PAGES.CLASSIC_STUDIO)}
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#cbd5e1',
+              border: '1px solid #475569',
+              padding: '10px 14px',
+            }}
+          >
+            🏛️ Classic Studio (Legacy)
+          </Button>
+        </div>
+      </section>
+
+      {/* Upgraded Studio CTA Banner */}
+      <section
+        style={{
+          margin: '0 0 16px 0',
+          padding: '16px 20px',
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+          boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              fontSize: '26px',
+              backgroundColor: '#1e293b',
+              padding: '8px 12px',
+              borderRadius: '8px',
+            }}
+          >
+            🏔️
+          </div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#f8fafc', fontWeight: 'bold' }}>
+              White Caves Tenancy Studio v2.0
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+              Launch the upgraded studio with interactive canvas drag &amp; 1pt micro-nudging, 25-clause RERA
+              Addendum, and 5% VAT Payment Receipt compiler.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="primary"
+            onClick={() => goToPage(APP_PAGES.TENANCY_STUDIO)}
+            style={{
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              padding: '10px 18px',
+            }}
+          >
+            🚀 Prepare Tenancy Contract Studio
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => goToPage(APP_PAGES.CLASSIC_STUDIO)}
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#cbd5e1',
+              border: '1px solid #475569',
+              padding: '10px 14px',
+            }}
+          >
+            🏛️ Classic Studio (Legacy)
+          </Button>
+        </div>
+      </section>
+
       <section className="tenancy-builder-grid workflow-page__grid workflow-page__grid--three-rail">
         <Card variant="outlined" className="tenancy-builder-steps workflow-page__rail" as="aside">
           <Card.Header>
@@ -1589,6 +1723,73 @@ const TenancyContractBuilderPage = () => {
             </p>
           </Card.Body>
         </Card>
+      </section>
+
+      {/* Upgraded Studio CTA Banner */}
+      <section
+        style={{
+          margin: '0 0 16px 0',
+          padding: '16px 20px',
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+          boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              fontSize: '26px',
+              backgroundColor: '#1e293b',
+              padding: '8px 12px',
+              borderRadius: '8px',
+            }}
+          >
+            🏔️
+          </div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#f8fafc', fontWeight: 'bold' }}>
+              White Caves Tenancy Studio v2.0
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+              Launch the upgraded studio with interactive canvas drag &amp; 1pt micro-nudging, 25-clause RERA
+              Addendum, and 5% VAT Payment Receipt compiler.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Button
+            variant="primary"
+            onClick={() => goToPage(APP_PAGES.TENANCY_STUDIO)}
+            style={{
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              padding: '10px 18px',
+            }}
+          >
+            🚀 Prepare Tenancy Contract Studio
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => goToPage(APP_PAGES.CLASSIC_STUDIO)}
+            style={{
+              backgroundColor: '#1e293b',
+              color: '#cbd5e1',
+              border: '1px solid #475569',
+              padding: '10px 14px',
+            }}
+          >
+            🏛️ Classic Studio (Legacy)
+          </Button>
+        </div>
       </section>
     </main>
   );

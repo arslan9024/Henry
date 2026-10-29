@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 360" width="940" height="360">
+  <defs>
+    <linearGradient id="bgGrad_02_5way_category_architecture_svg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bgGrad_02_5way_category_architecture_svg)" rx="12" stroke="#e2e8f0" stroke-width="1.5" />
+
+  <!-- Header Banner -->
+  <rect x="0" y="0" width="100%" height="95" fill="#0f172a" rx="12" />
+  <rect x="0" y="85" width="100%" height="10" fill="#0f172a" />
+  <rect x="0" y="92" width="100%" height="3" fill="#d97706" />
+
+  <!-- Brand & Titles -->
+  <text x="35" y="42" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#ffffff">The 5-Way File Category & Single-Purpose Architecture</text>
+  <text x="35" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">Need-to-Know Isolation: UI/UX Refactors Only Touch Category 1 · White Caves Real Estate</text>
+
+  <!-- Flow Nodes -->
+  
+      <!-- Node 1 -->
+      <g transform="translate(35, 140)">
+        <rect width="160" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="160" height="32" rx="8" fill="#2563eb" />
+        <rect y="24" width="160" height="8" fill="#2563eb" />
+        <text x="80" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cat 1</text>
+        <text x="80" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">View (UI Components)</text>
+        <foreignObject x="10" y="68" width="140" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            <=120 lines, zero inline CSS, shared design tokens
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(199, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 2 -->
+      <g transform="translate(210, 140)">
+        <rect width="160" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="160" height="32" rx="8" fill="#059669" />
+        <rect y="24" width="160" height="8" fill="#059669" />
+        <text x="80" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cat 2</text>
+        <text x="80" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Business Logic & Hooks</text>
+        <foreignObject x="10" y="68" width="140" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Custom hooks, PDC calculators, date math, validation
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(374, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 3 -->
+      <g transform="translate(385, 140)">
+        <rect width="160" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="160" height="32" rx="8" fill="#d97706" />
+        <rect y="24" width="160" height="8" fill="#d97706" />
+        <text x="80" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cat 3</text>
+        <text x="80" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">In-Memory State</text>
+        <foreignObject x="10" y="68" width="140" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Redux Toolkit slices, memoized selectors (Reselect)
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(549, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 4 -->
+      <g transform="translate(560, 140)">
+        <rect width="160" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="160" height="32" rx="8" fill="#7c3aed" />
+        <rect y="24" width="160" height="8" fill="#7c3aed" />
+        <text x="80" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cat 4</text>
+        <text x="80" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Services & Storage</text>
+        <foreignObject x="10" y="68" width="140" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            IndexedDB vault, PDF-Lib engines, Tesseract OCR
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(724, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 5 -->
+      <g transform="translate(735, 140)">
+        <rect width="160" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="160" height="32" rx="8" fill="#0f172a" />
+        <rect y="24" width="160" height="8" fill="#0f172a" />
+        <text x="80" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Cat 5</text>
+        <text x="80" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Config & Schemas</text>
+        <foreignObject x="10" y="68" width="140" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            DLD coordinate maps, RERA statutes, constants
+          </p>
+        </foreignObject>
+      </g>
+    
+
+  <!-- Footer Info -->
+  <text x="35" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94a3b8">White Caves Henry AI Platform · 5-Way Architectural Standard · UAE DLD &amp; RERA Compliant</text>
+  <text x="905" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" fill="#d97706" text-anchor="end">STRICT &lt;= 120 LINES RULE</text>
+</svg>

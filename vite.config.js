@@ -20,7 +20,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     // Exclude node_modules and the records archive (which contains generated PDFs).
-    exclude: ['node_modules', 'dist', 'records'],
+    exclude: ['node_modules', 'dist', 'records', 'importantFolder/**'],
     css: false,
     coverage: {
       provider: 'v8',

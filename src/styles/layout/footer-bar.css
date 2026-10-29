@@ -1,0 +1,44 @@
+/**
+ * [Category 1: View Stylesheet]
+ * Footer Bar Layout (footer-bar.css)
+ * Docked bottom action bar with workflow controls and decision making.
+ */
+
+.master-app-footer,
+.studio-footer {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  background-color: #0f172a !important;
+  border-top: 1px solid #1e293b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 16px !important;
+  flex-shrink: 0 !important;
+  z-index: 25 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15) !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  margin-top: auto !important;
+}
+
+.master-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.master-footer-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.master-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

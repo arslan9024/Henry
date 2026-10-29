@@ -10,22 +10,28 @@ export const APP_PAGES = {
   TENANT_IDENTITY_DOCS: 'tenantIdentityDocs',
   VALIDATION_DASHBOARD: 'validationDashboard',
   TEAM_WORKFLOW: 'teamWorkflow',
+  TENANCY_STUDIO: 'tenancyStudio',
+  CLASSIC_STUDIO: 'classicStudio',
+  WORKFLOW_BLUEPRINTS: 'workflowBlueprints',
 };
 
 export const APP_PAGE_NAV_ITEMS = [
   { key: APP_PAGES.DOCUMENT_WORKSPACE, label: 'Task Workspace', icon: '🗂️' },
   { key: APP_PAGES.DOCUMENT_HUB, label: 'Document Hub', icon: '📄' },
+  { key: APP_PAGES.TENANCY_STUDIO, label: 'Tenancy Studio', icon: '✨' },
   { key: APP_PAGES.TENANCY_BUILDER, label: 'Tenancy Builder', icon: '🧩' },
+  { key: APP_PAGES.CLASSIC_STUDIO, label: 'Classic Studio', icon: '🏛️' },
   { key: APP_PAGES.TENANT_IDENTITY_DOCS, label: 'Tenant Identity', icon: '🛂' },
   { key: APP_PAGES.TITLE_DEED, label: 'Title Deed', icon: '🏷️' },
   { key: APP_PAGES.EMIRATES_ID, label: 'Emirates ID', icon: '🪪' },
   { key: APP_PAGES.PAYROLL, label: 'Payroll', icon: '💳' },
   { key: APP_PAGES.VALIDATION_DASHBOARD, label: 'Validation', icon: '✅' },
   { key: APP_PAGES.TEAM_WORKFLOW, label: 'Team Workflow', icon: '👥' },
+  { key: APP_PAGES.WORKFLOW_BLUEPRINTS, label: 'Workflows', icon: '🗺️' },
 ];
 
 const VALID_PAGES = new Set(APP_PAGE_NAV_ITEMS.map((item) => item.key));
-const DEFAULT_PAGE = APP_PAGES.DOCUMENT_WORKSPACE;
+const DEFAULT_PAGE = APP_PAGES.TENANCY_STUDIO;
 const VALID_OWNER_TAGS = new Set(['tenant', 'landlord']);
 const VALID_DOCUMENT_TYPES = new Set(['passport', 'residence-permit']);
 const VALID_REQUIREMENTS = new Set([
@@ -117,6 +123,14 @@ const appRouteSlice = createSlice({
       state.currentPage = APP_PAGES.VALIDATION_DASHBOARD;
       state.context = null;
     },
+    goToTenancyStudio: (state) => {
+      state.currentPage = APP_PAGES.TENANCY_STUDIO;
+      state.context = null;
+    },
+    goToClassicStudio: (state) => {
+      state.currentPage = APP_PAGES.CLASSIC_STUDIO;
+      state.context = null;
+    },
     goToTeamWorkflow: (state) => {
       state.currentPage = APP_PAGES.TEAM_WORKFLOW;
       state.context = null;
@@ -137,22 +151,25 @@ export const {
   goToTenantIdentityDocs,
   goToValidationDashboard,
   goToTeamWorkflow,
+  goToTenancyStudio,
+  goToClassicStudio,
 } = appRouteSlice.actions;
 export default appRouteSlice.reducer;
 
 // Selectors
-export const selectCurrentPage = (state) => state.appRoute.currentPage;
-export const selectRouteContext = (state) => state.appRoute.context || null;
+export const selectCurrentPage = (state) => state?.appRoute?.currentPage || APP_PAGES.DOCUMENT_HUB;
+export const selectRouteContext = (state) => state?.appRoute?.context || null;
 export const selectAppPageNavItems = () => APP_PAGE_NAV_ITEMS;
 export const selectIsDocumentWorkspacePage = (state) =>
-  state.appRoute.currentPage === APP_PAGES.DOCUMENT_WORKSPACE;
-export const selectIsPayrollPage = (state) => state.appRoute.currentPage === APP_PAGES.PAYROLL;
-export const selectIsDocumentHubPage = (state) => state.appRoute.currentPage === APP_PAGES.DOCUMENT_HUB;
-export const selectIsTenancyBuilderPage = (state) => state.appRoute.currentPage === APP_PAGES.TENANCY_BUILDER;
-export const selectIsTitleDeedPage = (state) => state.appRoute.currentPage === APP_PAGES.TITLE_DEED;
-export const selectIsEmiratesIdPage = (state) => state.appRoute.currentPage === APP_PAGES.EMIRATES_ID;
+  state?.appRoute?.currentPage === APP_PAGES.DOCUMENT_WORKSPACE;
+export const selectIsPayrollPage = (state) => state?.appRoute?.currentPage === APP_PAGES.PAYROLL;
+export const selectIsDocumentHubPage = (state) => state?.appRoute?.currentPage === APP_PAGES.DOCUMENT_HUB;
+export const selectIsTenancyBuilderPage = (state) =>
+  state?.appRoute?.currentPage === APP_PAGES.TENANCY_BUILDER;
+export const selectIsTitleDeedPage = (state) => state?.appRoute?.currentPage === APP_PAGES.TITLE_DEED;
+export const selectIsEmiratesIdPage = (state) => state?.appRoute?.currentPage === APP_PAGES.EMIRATES_ID;
 export const selectIsTenantIdentityDocsPage = (state) =>
-  state.appRoute.currentPage === APP_PAGES.TENANT_IDENTITY_DOCS;
+  state?.appRoute?.currentPage === APP_PAGES.TENANT_IDENTITY_DOCS;
 export const selectIsValidationDashboardPage = (state) =>
-  state.appRoute.currentPage === APP_PAGES.VALIDATION_DASHBOARD;
-export const selectIsTeamWorkflowPage = (state) => state.appRoute.currentPage === APP_PAGES.TEAM_WORKFLOW;
+  state?.appRoute?.currentPage === APP_PAGES.VALIDATION_DASHBOARD;
+export const selectIsTeamWorkflowPage = (state) => state?.appRoute?.currentPage === APP_PAGES.TEAM_WORKFLOW;

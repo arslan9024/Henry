@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 360" width="940" height="360">
+  <defs>
+    <linearGradient id="bgGrad_07_scenario5_universal_vault_diff_svg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bgGrad_07_scenario5_universal_vault_diff_svg)" rx="12" stroke="#e2e8f0" stroke-width="1.5" />
+
+  <!-- Header Banner -->
+  <rect x="0" y="0" width="100%" height="95" fill="#0f172a" rx="12" />
+  <rect x="0" y="85" width="100%" height="10" fill="#0f172a" />
+  <rect x="0" y="92" width="100%" height="3" fill="#d97706" />
+
+  <!-- Brand & Titles -->
+  <text x="35" y="42" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#ffffff">Scenario 5: Universal Document Vault, Search & Diff Engine</text>
+  <text x="35" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">Persistent In-Browser IndexedDB Archive & Side-by-Side Comparison · White Caves Real Estate</text>
+
+  <!-- Flow Nodes -->
+  
+      <!-- Node 1 -->
+      <g transform="translate(35, 140)">
+        <rect width="205" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="205" height="32" rx="8" fill="#0f172a" />
+        <rect y="24" width="205" height="8" fill="#0f172a" />
+        <text x="102.5" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Step 1</text>
+        <text x="102.5" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">IndexedDB Vault Query</text>
+        <foreignObject x="10" y="68" width="185" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Fast local retrieval (<5ms) from white_caves_henry_vault
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(244, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 2 -->
+      <g transform="translate(260, 140)">
+        <rect width="205" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="205" height="32" rx="8" fill="#2563eb" />
+        <rect y="24" width="205" height="8" fill="#2563eb" />
+        <text x="102.5" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Step 2</text>
+        <text x="102.5" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Universal View Modal</text>
+        <foreignObject x="10" y="68" width="185" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Multi-page vector rendering, zoom, and direct download
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(469, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 3 -->
+      <g transform="translate(485, 140)">
+        <rect width="205" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="205" height="32" rx="8" fill="#7c3aed" />
+        <rect y="24" width="205" height="8" fill="#7c3aed" />
+        <text x="102.5" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Step 3</text>
+        <text x="102.5" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Side-by-Side Diff View</text>
+        <foreignObject x="10" y="68" width="185" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Compare contract revisions, rent differences, amended terms
+          </p>
+        </foreignObject>
+      </g>
+    
+        <!-- Arrow -->
+        <g transform="translate(694, 210)">
+          <path d="M0,10 L12,10 M8,6 L12,10 L8,14" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      
+      <!-- Node 4 -->
+      <g transform="translate(710, 140)">
+        <rect width="205" height="160" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <rect width="205" height="32" rx="8" fill="#059669" />
+        <rect y="24" width="205" height="8" fill="#059669" />
+        <text x="102.5" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Step 4</text>
+        <text x="102.5" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Re-Export & Sharing</text>
+        <foreignObject x="10" y="68" width="185" height="82">
+          <p xmlns="http://www.w3.org/1999/xhtml" style="margin:0; font-family:system-ui, sans-serif; font-size:11px; line-height:1.4; color:#475569; text-align:center;">
+            Re-generate vector PDFs, WhatsApp summary, encrypted backup
+          </p>
+        </foreignObject>
+      </g>
+    
+
+  <!-- Footer Info -->
+  <text x="35" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94a3b8">White Caves Henry AI Platform · 5-Way Architectural Standard · UAE DLD &amp; RERA Compliant</text>
+  <text x="905" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" fill="#d97706" text-anchor="end">STRICT &lt;= 120 LINES RULE</text>
+</svg>

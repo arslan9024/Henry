@@ -71,7 +71,7 @@ describe('store — all reducer slices registered', () => {
 
   it('has exactly 16 top-level state keys', () => {
     const keys = Object.keys(store.getState());
-    expect(keys).toHaveLength(16);
+    expect(keys).toHaveLength(18);
   });
 });
 
@@ -117,7 +117,7 @@ describe('store — initial slice defaults sanity check', () => {
   });
 
   it('appRoute.currentPage starts as "documentWorkspace"', () => {
-    expect(store.getState().appRoute.currentPage).toBe('documentWorkspace');
+    expect(store.getState().appRoute.currentPage).toBe('tenancyStudio');
   });
 
   it('payroll.currentFile.employees starts as empty array', () => {

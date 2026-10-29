@@ -21,6 +21,7 @@ export default [
       'dist/',
       'coverage/',
       'records/',
+      'importantFolder/',
       'node_modules/',
       '*.config.js', // Vite/Vitest configs use Node globals only — exempt
       'vite-plugins/',
